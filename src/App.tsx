@@ -63,6 +63,10 @@ import { PrescriptionSetupModal } from './components/prescription/PrescriptionSe
 import { ClinicalSessionReportModal } from './components/dashboard/ClinicalSessionReportModal';
 import { CognitiveClassifier } from './engine/cognitive-classifier';
 import { AdaptiveGameFlowEngine, type FlowRecommendation } from './engine/adaptive-game-flow';
+import { 
+  DailySessionManager, 
+  type DailyCompositeScoreResult 
+} from './utils/dailySessionManager';
 
 // Storage & Types
 import {
@@ -137,14 +141,25 @@ const activityConfig: Record<ActivityType, { dot: string; label: string }> = {
 
 // ─── Custom Chart Tooltip ───────────────────────────────────────────────────────
 
-function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number; dataKey: string }[]; label?: string }) {
+function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number; dataKey: string; payload?: any }[]; label?: string }) {
   if (!active || !payload?.length) return null;
   const score = payload.find(p => p.dataKey === 'score')?.value;
+  const point = payload[0]?.payload;
+  const gamesCount = point?.gamesPlayedCount ?? 0;
   const diff = score != null ? score - 78 : 0;
   return (
     <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 14, padding: '12px 16px', boxShadow: '0 8px 24px rgba(13,31,60,0.1)' }}>
       <p style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 700, color: '#0d1f3c', marginBottom: 6, fontSize: 13 }}>{label}</p>
-      <p style={{ color: '#3b9eda', fontSize: 13, fontWeight: 600 }}>Score: {score}</p>
+      <p style={{ color: '#3b9eda', fontSize: 13, fontWeight: 600 }}>Score: {score} / 100</p>
+      {gamesCount > 0 ? (
+        <p style={{ color: '#10b981', fontSize: 11, marginTop: 2, fontWeight: 600 }}>
+          ✓ {gamesCount} game{gamesCount > 1 ? 's' : ''} combined (Unplayed excluded)
+        </p>
+      ) : (
+        <p style={{ color: '#64748b', fontSize: 11, marginTop: 2 }}>
+          Baseline 78 (0 games played)
+        </p>
+      )}
       <p style={{ color: diff >= 0 ? '#4caf82' : '#f59c3a', fontSize: 12, marginTop: 2 }}>
         {diff >= 0 ? '+' : ''}{diff} vs baseline
       </p>
@@ -555,7 +570,7 @@ function CognitivePerfChart({ trendData, baseline = 78, patientName = 'Meera' }:
       {/* Annotations */}
       <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
         <div style={{ background: 'var(--sky-light)', border: '1px solid #c4e0f4', borderRadius: 12, padding: '8px 14px', fontSize: 12, color: '#1a6fa8' }}>
-          <strong>Latest Session:</strong> {latestScore} — {latestScore >= baseline ? 'Above personal baseline' : 'Below personal baseline'}
+          <strong>Today's Combined Score:</strong> {latestScore} — {data[data.length - 1]?.gamesPlayedCount ? `${data[data.length - 1].gamesPlayedCount} game(s) played today (Unplayed excluded)` : 'Baseline (0 games played today)'}
         </div>
         <div style={{ background: 'var(--amber-light)', border: '1px solid #fcd8a0', borderRadius: 12, padding: '8px 14px', fontSize: 12, color: '#9a5c10' }}>
           <strong>Baseline:</strong> {baseline} target
@@ -836,14 +851,18 @@ function InsightCard({
   cognitiveScore,
   classification,
   patientName,
-  lastSessionReport
+  lastSessionReport,
+  dailyComposite,
 }: {
   cognitiveScore: number;
   classification: any;
   patientName: string;
   lastSessionReport: SessionSummaryTelemetry | null;
+  dailyComposite?: DailyCompositeScoreResult;
 }) {
-  const thetaFormatted = lastSessionReport ? lastSessionReport.finalTheta.toFixed(2) : '+0.45';
+  const thetaFormatted = dailyComposite && dailyComposite.gamesPlayedCount > 0
+    ? (dailyComposite.meanTheta >= 0 ? `+${dailyComposite.meanTheta.toFixed(2)}` : dailyComposite.meanTheta.toFixed(2))
+    : (lastSessionReport ? lastSessionReport.finalTheta.toFixed(2) : '+0.45');
 
   return (
     <div style={{
@@ -862,7 +881,12 @@ function InsightCard({
 
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 18 }}>
           {patientName}'s cognitive score is{' '}
-          <strong style={{ color: 'var(--sky)', fontFamily: 'Manrope, sans-serif' }}>{cognitiveScore}</strong>.
+          <strong style={{ color: 'var(--sky)', fontFamily: 'Manrope, sans-serif' }}>{cognitiveScore}</strong>
+          {dailyComposite && dailyComposite.gamesPlayedCount > 0 ? (
+            <span> (combined across <strong>{dailyComposite.gamesPlayedCount}</strong> recommended & played game{dailyComposite.gamesPlayedCount > 1 ? 's' : ''} today). </span>
+          ) : (
+            <span> (resting baseline; awaiting today's games). </span>
+          )}
           Model inference classifies current status as{' '}
           <strong style={{ color: '#2d8a5c' }}>{classification.predictedClass.split('(')[0].trim()}</strong>{' '}
           ({(classification.confidenceScore * 100).toFixed(0)}% confidence).
@@ -883,25 +907,33 @@ function InsightCard({
           </div>
         </div>
 
-        {/* Mini breakdown */}
+        {/* Mini domain breakdown: strictly shows scores only from games played today; unplayed games are marked excluded */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {[
-            { label: 'Delayed recall', value: lastSessionReport ? Math.min(100, lastSessionReport.accuracyPercentage) : 82, color: '#3b9eda' },
-            { label: 'Orientation', value: 78, color: '#4caf82' },
-            { label: 'Attention Span', value: lastSessionReport ? Math.min(100, Math.round((lastSessionReport.estimatedMoCAMemoryScore / 5) * 100)) : 75, color: '#f59c3a' },
-          ].map(({ label, value, color }) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)', width: 100, flexShrink: 0 }}>{label}</span>
-              <div style={{ flex: 1, height: 5, borderRadius: 5, background: '#eef2f8', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${value}%`, background: color, borderRadius: 5 }} />
+          {(dailyComposite?.domainBreakdown || []).map((dom) => {
+            const hasScore = dom.isPlayedToday && dom.score !== null;
+            const barWidth = hasScore ? Math.min(100, dom.score!) : 0;
+            const barColor = !hasScore ? '#e2e8f0' : dom.score! >= 78 ? '#3b9eda' : '#f59c3a';
+
+            return (
+              <div key={dom.domain} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 12, color: hasScore ? 'var(--text-secondary)' : '#94a3b8', width: 110, flexShrink: 0, fontWeight: hasScore ? 600 : 400 }}>
+                  {dom.label.split(' ')[0]} {dom.label.split(' ')[1] || ''}
+                </span>
+                <div style={{ flex: 1, height: 6, borderRadius: 6, background: '#eef2f8', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${barWidth}%`, background: barColor, borderRadius: 6, transition: 'width 0.4s ease' }} />
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: hasScore ? 'var(--text-primary)' : '#94a3b8', width: 68, textAlign: 'right' }}>
+                  {hasScore ? `${dom.score}/100` : 'Excluded'}
+                </span>
               </div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', width: 24, textAlign: 'right' }}>{value}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 18, lineHeight: 1.6, borderTop: '1px solid var(--border)', paddingTop: 14 }}>
-          This information is observational and computed by on-device edge ML trained on the OASIS-2 longitudinal cohort.
+        <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 16, lineHeight: 1.5, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+          {dailyComposite && dailyComposite.gamesPlayedCount > 0
+            ? `Aggregated from ${dailyComposite.gamesPlayedCount} recommended & played game${dailyComposite.gamesPlayedCount > 1 ? 's' : ''} today (${dailyComposite.playedGameIds.join(', ')}). Unplayed games are strictly excluded from daily calculations.`
+            : 'No games played yet today. Awaiting today\'s prescribed exercises; unplayed games will not penalize the score.'}
         </p>
       </div>
     </div>
@@ -947,8 +979,18 @@ export function App() {
   const [prescription, setPrescription] = useState<PatientPrescription>(() => getSavedPrescription() || getDefaultPrescription());
   const [lastSessionReport, setLastSessionReport] = useState<SessionSummaryTelemetry | null>(() => getStoredSessionReport());
 
-  // Dynamic Dashboard Stats
-  const [cognitiveTrend, setCognitiveTrend] = useState(initialCogData);
+  // Daily Multi-Game Telemetry & Composite Scoring
+  const [dailySessions, setDailySessions] = useState<Record<string, any>>(() => DailySessionManager.getDailySessions());
+  const dailyCompositeScore = useMemo<DailyCompositeScoreResult>(() => {
+    return DailySessionManager.calculateDailyCompositeScore();
+  }, [dailySessions]);
+  const [cognitiveTrend, setCognitiveTrend] = useState(() => DailySessionManager.get7DayPerformanceTrend(78));
+
+  // Games completed today (all games actually recommended and played on this specific day)
+  const completedTodayGameIds = useMemo<GameId[]>(() => {
+    return Object.keys(dailySessions) as GameId[];
+  }, [dailySessions]);
+
   const [activityList, setActivityList] = useState(initialActivityFeed);
   const [medicationItems, setMedicationItems] = useState<MedicationItem[]>(() => getStoredMedications(activePatient.id));
   const [routineList, setRoutineList] = useState<DailyRoutineItem[]>(() => getStoredRoutine(activePatient.id));
@@ -1000,36 +1042,41 @@ export function App() {
       });
   }, []);
 
-  // Compute live Cognitive Score from last game or default
-  const liveCognitiveScore = useMemo(() => {
-    if (!lastSessionReport) return 80;
-    const accuracy = lastSessionReport.accuracyPercentage ?? 80;
-    const thetaBonus = Math.max(0, Math.min(20, Math.round((lastSessionReport.finalTheta + 1) * 7)));
-    return Math.max(60, Math.min(98, Math.round(accuracy * 0.8 + thetaBonus)));
-  }, [lastSessionReport]);
+  // Compute live Cognitive Score strictly from ONLY the games that were actually played today.
+  // Unplayed games are never counted or penalized.
+  const liveCognitiveScore = dailyCompositeScore.score;
 
   // Evaluate patient telemetry using OASIS-2 trained ML classifier
   const classification = useMemo(() => {
-    if (!lastSessionReport) {
-      return CognitiveClassifier.classify({
-        meanLatencyMs: 3200,
-        latencyVarianceMs: 800,
-        accuracyPct: 90,
-        perseverationRate: 0.05,
-        hesitationRatio: 0.1,
-        tremorJitterIndex: 0.15,
-      });
+    if (dailyCompositeScore.gamesPlayedCount === 0) {
+      if (!lastSessionReport) {
+        return CognitiveClassifier.classify({
+          meanLatencyMs: 3200,
+          latencyVarianceMs: 800,
+          accuracyPct: 90,
+          perseverationRate: 0.05,
+          hesitationRatio: 0.1,
+          tremorJitterIndex: 0.15,
+        });
+      }
     }
-    const totalRounds = lastSessionReport.totalRounds || 5;
+
+    const accuracy = dailyCompositeScore.gamesPlayedCount > 0
+      ? dailyCompositeScore.meanAccuracy
+      : (lastSessionReport?.accuracyPercentage ?? 90);
+    const latency = dailyCompositeScore.gamesPlayedCount > 0
+      ? dailyCompositeScore.meanLatencyMs
+      : (lastSessionReport?.averageLatencyMs || 2400);
+
     return CognitiveClassifier.classify({
-      meanLatencyMs: lastSessionReport.averageLatencyMs || 2400,
-      latencyVarianceMs: Math.round((lastSessionReport.averageLatencyMs || 2400) * 0.25),
-      accuracyPct: lastSessionReport.accuracyPercentage ?? 100,
-      perseverationRate: totalRounds > 0 ? ((lastSessionReport.perseverationErrors || 0) / totalRounds) : 0,
-      hesitationRatio: (lastSessionReport.averageLatencyMs || 0) > 4500 ? 0.35 : 0.05,
+      meanLatencyMs: latency,
+      latencyVarianceMs: Math.round(latency * 0.25),
+      accuracyPct: accuracy,
+      perseverationRate: (lastSessionReport?.perseverationErrors || 0) > 0 ? 0.08 : 0.02,
+      hesitationRatio: latency > 4500 ? 0.35 : 0.05,
       tremorJitterIndex: 0.12,
     });
-  }, [lastSessionReport]);
+  }, [dailyCompositeScore, lastSessionReport]);
 
   // Toggle Medication Item
   const handleToggleMed = (medId: string) => {
@@ -1047,35 +1094,38 @@ export function App() {
 
   // Record completed session and feed telemetry into Dashboard
   const handleRecordSessionSummary = (gameId: GameId, summary: any) => {
-    setLastSessionReport(summary);
-    saveStoredSessionReport(summary);
+    const normalizedGameId: GameId = (gameId === 'smriti-haat' ? 'word-recall' : gameId);
+    const enrichedSummary = {
+      ...summary,
+      gameId: normalizedGameId,
+    };
 
-    // Calculate score
-    const newScore = Math.max(60, Math.min(98, Math.round((summary.accuracyPercentage ?? 80) * 0.85 + 10)));
+    setLastSessionReport(enrichedSummary);
+    saveStoredSessionReport(enrichedSummary);
 
-    // Update 7-day trend
-    setCognitiveTrend(prev => {
-      const copy = [...prev];
-      if (copy.length > 0) {
-        copy[copy.length - 1] = { ...copy[copy.length - 1], score: newScore };
-      }
-      return copy;
-    });
+    // Record session into DailySessionManager (strictly counts ONLY games played today)
+    const updatedComposite = DailySessionManager.recordSession(enrichedSummary, true);
+    const updatedSessions = DailySessionManager.getDailySessions();
+    setDailySessions(updatedSessions);
+
+    // Update 7-day trend chart with actual daily composite scores
+    const updatedTrend = DailySessionManager.get7DayPerformanceTrend(78);
+    setCognitiveTrend(updatedTrend);
 
     // Prepend to activity feed
-    const title = summary.gameTitle || GAME_CATALOG.find(g => g.id === gameId)?.title.en || gameId;
+    const title = enrichedSummary.gameTitle || GAME_CATALOG.find(g => g.id === normalizedGameId)?.title.en || normalizedGameId;
     setActivityList(prev => [
       {
         type: 'cognitive',
         time: 'Just now',
-        text: `${title} completed — Score ${newScore} / 100 (Acc: ${summary.accuracyPercentage}%)`
+        text: `${title} completed — Today's Cognitive Score: ${updatedComposite.score} / 100 (${updatedComposite.gamesPlayedCount} game${updatedComposite.gamesPlayedCount > 1 ? 's' : ''} combined today)`
       },
       ...prev.slice(0, 8)
     ]);
 
     if (isWorkoutMode) {
-      setWorkoutSessionSummaries(prev => ({ ...prev, [gameId]: summary }));
-      setCompletedWorkoutGames(prev => [...prev.filter(id => id !== gameId), gameId]);
+      setWorkoutSessionSummaries(prev => ({ ...prev, [normalizedGameId]: enrichedSummary }));
+      setCompletedWorkoutGames(prev => [...prev.filter(id => id !== normalizedGameId), normalizedGameId]);
     }
   };
 
@@ -1245,8 +1295,16 @@ export function App() {
                   <SummaryCard
                     label="Cognitive Score"
                     value={String(liveCognitiveScore)}
-                    sub1="Baseline 78"
-                    sub2={liveCognitiveScore >= 78 ? 'Above baseline' : 'Under observation'}
+                    sub1={
+                      dailyCompositeScore.gamesPlayedCount > 0
+                        ? `${dailyCompositeScore.gamesPlayedCount} game${dailyCompositeScore.gamesPlayedCount > 1 ? 's' : ''} combined today`
+                        : 'Baseline 78 (0 games played)'
+                    }
+                    sub2={
+                      dailyCompositeScore.gamesPlayedCount > 0
+                        ? `Acc: ${dailyCompositeScore.meanAccuracy}% · θ: ${dailyCompositeScore.meanTheta >= 0 ? '+' : ''}${dailyCompositeScore.meanTheta}`
+                        : 'Unplayed games excluded'
+                    }
                     color="var(--sky)" bg="var(--sky-light)" trend={liveCognitiveScore >= 78 ? 'up' : 'down'}
                     icon={<TrendingUp size={16} />}
                   />
@@ -1303,6 +1361,7 @@ export function App() {
                     classification={classification}
                     patientName={activePatient.name}
                     lastSessionReport={lastSessionReport}
+                    dailyComposite={dailyCompositeScore}
                   />
                 </div>
               </>
@@ -1665,7 +1724,7 @@ export function App() {
                         currentRole="caretaker"
                         caretakerName={caretaker.name}
                         isWorkoutCompletedToday={isWorkoutCompletedToday}
-                        completedGameIds={completedWorkoutGames}
+                        completedGameIds={completedTodayGameIds}
                         onBeginWorkout={handleBeginWorkout}
                         onLaunchGame={(gId) => {
                           setIsWorkoutMode(false);
@@ -1691,6 +1750,8 @@ export function App() {
                         language={selectedLanguage}
                         patient={activePatient}
                         lastSessionReport={lastSessionReport}
+                        dailyComposite={dailyCompositeScore}
+                        dailySessions={dailySessions}
                       />
                     )}
 
