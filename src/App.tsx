@@ -46,6 +46,7 @@ import { SequenceRecall } from './games/sequence-recall';
 import { MemoryMatch } from './games/memory-match/MemoryMatch';
 import { BihuTaal } from './games/bihu-taal/BihuTaal';
 import { JigsawPuzzle } from './games/jigsaw-puzzle';
+import { NumberRecall } from './games/number-recall';
 import { InteractiveCognitiveExercise } from './components/games/InteractiveCognitiveExercise';
 import { WorkoutProgressHeader } from './components/workout/WorkoutProgressHeader';
 import { WorkoutIntermissionModal } from './components/workout/WorkoutIntermissionModal';
@@ -1448,13 +1449,44 @@ export function App() {
                       />
                     )}
 
+                    {/* Game 6: Number Recall */}
+                    {activeGameId === 'number-recall' && (
+                      <NumberRecall
+                        language={selectedLanguage}
+                        totalTrials={4}
+                        onSessionComplete={(summary) => {
+                          const report = {
+                            ...summary,
+                            gameId: 'number-recall',
+                            gameTitle: 'Number Recall (WAIS Digit Span)',
+                            totalRounds: summary.totalTrials,
+                            totalCorrect: summary.correctTrials,
+                            autoAssistedRounds: summary.totalReplaysRequested,
+                            accuracyPercentage: summary.accuracyPercentage,
+                            averageLatencyMs: summary.meanDeliberationMs,
+                            medianLatencyMs: summary.meanDeliberationMs,
+                            perseverationErrors: summary.totalBackspaceCorrections,
+                            finalTheta: summary.finalTheta,
+                            estimatedMoCAMemoryScore: Math.round(summary.waisDigitSpanScaledScore / 3.8),
+                            processingSpeedProfile: summary.keystrokeRhythmProfile,
+                            caregiverEndedEarly: summary.caregiverEndedEarly,
+                            completedAt: summary.completedAt,
+                            rounds: []
+                          };
+                          handleRecordSessionSummary('number-recall', report);
+                        }}
+                        onExit={() => handleAdvanceWorkout('number-recall')}
+                      />
+                    )}
+
                     {/* Other Catalog Exercises */}
                     {activeGameId !== 'memory-match' &&
                      activeGameId !== 'word-recall' &&
                      activeGameId !== 'smriti-haat' &&
                      activeGameId !== 'sequence-recall' &&
                      activeGameId !== 'bihu-taal' &&
-                     activeGameId !== 'jigsaw-puzzle' && (
+                     activeGameId !== 'jigsaw-puzzle' &&
+                     activeGameId !== 'number-recall' && (
                       <InteractiveCognitiveExercise
                         gameId={activeGameId}
                         language={selectedLanguage}
