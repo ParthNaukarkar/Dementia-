@@ -222,7 +222,7 @@ async function runRealWorldBenchmark() {
       else if (cdr === 0.5 || mmse <= 24) cluesNeeded = Math.random() < 0.65 ? 3 : 2;
       else cluesNeeded = Math.random() < 0.85 ? 1 : 2;
 
-      let pSuccess = 0.95 - (cdr / 2.0) * 0.36 - mmseFraction * 0.42;
+      let pSuccess = 0.95 - (cdr / 2.0) * 0.34 - mmseFraction * 0.46;
       if (curDiff.tierLevel >= 7) pSuccess -= 0.15;
       if (isSevere || mmse <= 16) pSuccess = Math.min(pSuccess, 0.35);
       pSuccess = Math.max(0.15, Math.min(0.98, pSuccess));
