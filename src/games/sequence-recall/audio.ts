@@ -132,6 +132,35 @@ class SequenceAudioManager {
   }
 
   /**
+   * Play gentle attention chime for auto-assist prompt
+   */
+  public playAttentionTone(): void {
+    if (!this.isEnabled) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(554.37, now + 0.15);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.14, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.36);
+    } catch {}
+  }
+
+  /**
    * Speak item name using browser SpeechSynthesis if audio is active
    */
   public speakItemName(text: string, language: SupportedLanguage): void {

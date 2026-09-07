@@ -32,6 +32,7 @@ import type {
 import { PUZZLE_IMAGES } from './images-catalog';
 import { JigsawPraxisEngine } from './engine';
 import { jigsawAudio } from './audio';
+import { AdaptiveAssistanceEngine } from '../../engine/adaptive-assistance';
 
 /**
  * High-precision Piece Slice Renderer.
@@ -255,7 +256,26 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     },
   };
 
-  // Reset auto-assist idle timer
+  // Patient-Profile Adaptive Assistance Derivation
+  const liveAssistanceProfile = useMemo(() => {
+    const latencies = placementHistory.map(p => p.deliberationMs);
+    const lockedCount = pieces.filter(p => p.isLocked).length;
+    const accuracy = (lockedCount + misplacements) > 0
+      ? Math.round((lockedCount / (lockedCount + misplacements)) * 100)
+      : 100;
+
+    return AdaptiveAssistanceEngine.deriveAssistanceProfile({
+      theta: engine.getTheta(),
+      tremorTapsCount: 0,
+      recentLatenciesMs: latencies,
+      consecutiveErrors: misplacements,
+      accuracyPct: accuracy,
+      hesitationMs: Date.now() - lastActionTimeRef.current,
+      taskType: 'visuomotor',
+    });
+  }, [engine, placementHistory, misplacements, pieces]);
+
+  // Reset auto-assist idle timer (Profile-Adaptive)
   const resetAutoAssistTimer = useCallback(() => {
     if (autoAssistTimerRef.current) {
       clearTimeout(autoAssistTimerRef.current);
@@ -264,9 +284,9 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     if (isPuzzleSolved) return;
 
     autoAssistTimerRef.current = setTimeout(() => {
-      triggerAutoAssist();
-    }, difficulty.autoAssistTimeoutMs);
-  }, [difficulty.autoAssistTimeoutMs, isPuzzleSolved]);
+      triggerAutoAssist(false, liveAssistanceProfile);
+    }, liveAssistanceProfile.assistTimeoutMs);
+  }, [liveAssistanceProfile, isPuzzleSolved]);
 
   // Initialize new puzzle
   const initPuzzle = useCallback((_puzzleIdx: number, overridePieces?: number | null) => {
@@ -328,8 +348,8 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     return () => clearInterval(interval);
   }, [puzzleStartTime, isPuzzleSolved]);
 
-  // Dignity Auto-Assist Trigger
-  const triggerAutoAssist = (isManual: boolean = false) => {
+  // Dignity Auto-Assist Trigger (Profile-Adaptive)
+  const triggerAutoAssist = (isManual: boolean = false, activeProfile = liveAssistanceProfile) => {
     if (isManual) {
       setProactiveHelpRequested(true);
     }
@@ -339,9 +359,27 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     setWasAutoAssisted(true);
     setAutoAssistedPiecesCount(prev => prev + 1);
 
-    // Highlight piece and target cell
-    setPieces(prev => prev.map(p => p.id === targetPiece.id ? { ...p, isHighlighted: true } : { ...p, isHighlighted: false }));
-    setSelectedPieceId(targetPiece.id);
+    if (activeProfile.profile === 'severe_amnesic') {
+      // Level 3: Auto-straighten tray pieces to 0° upright & highlight piece
+      const { modifiedPieces } = engine.straightenTrayPieces(pieces);
+      const highlightedPieces = modifiedPieces.map(p => 
+        p.id === targetPiece.id ? { ...p, isHighlighted: true } : { ...p, isHighlighted: false }
+      );
+      setPieces(highlightedPieces);
+      setSelectedPieceId(targetPiece.id);
+      setFeedbackBanner('AI Live Assist: Tray aligned to 0° & target piece illuminated for ease.');
+      setTimeout(() => setFeedbackBanner(null), 4000);
+    } else if (activeProfile.profile === 'motor_tremor_slowed') {
+      // Motor profile: Reassure patient without jarring tray rotation
+      setPieces(prev => prev.map(p => p.id === targetPiece.id ? { ...p, isHighlighted: true } : { ...p, isHighlighted: false }));
+      setSelectedPieceId(targetPiece.id);
+      setFeedbackBanner('🛡️ Motor stabilization active. Aim and drop comfortably without rush.');
+      setTimeout(() => setFeedbackBanner(null), 4500);
+    } else {
+      // Level 1 / 2: Highlight piece and target cell
+      setPieces(prev => prev.map(p => p.id === targetPiece.id ? { ...p, isHighlighted: true } : { ...p, isHighlighted: false }));
+      setSelectedPieceId(targetPiece.id);
+    }
 
     jigsawAudio.playAutoAssistChime();
     jigsawAudio.speakGuidance('assist', language);
@@ -872,6 +910,9 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
               <span>SIH 2026 Visuoconstructional Praxis AI Inspector & Testbed</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-1 rounded-lg">
+                Profile: {liveAssistanceProfile.displayName[language] || liveAssistanceProfile.displayName.en} ({liveAssistanceProfile.assistTimeoutMs / 1000}s)
+              </span>
               <span className="text-[11px] font-mono bg-white/10 px-2.5 py-1 rounded-lg text-amber-200">
                 Tier {difficulty.tierLevel} | {difficulty.gridCols}×{difficulty.gridRows} ({difficulty.totalPieces} Pcs)
               </span>

@@ -28,6 +28,7 @@ import type {
 import { SequenceRecallEngine } from './engine';
 import { getItemById } from './items-catalog';
 import { sequenceAudio } from './audio';
+import { AdaptiveAssistanceEngine } from '../../engine/adaptive-assistance';
 
 type SequencePhase = 'PRESENTATION' | 'RETENTION_PAUSE' | 'RECALL' | 'FEEDBACK' | 'SESSION_COMPLETE';
 
@@ -250,15 +251,29 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
     };
   }, [trialIndex, replayCounter, engine, language]);
 
-  // Dignity Auto-Assist Inactivity Guard
+  // Live Assistance Profile derivation
+  const liveProfileConfig = useMemo(() => {
+    return AdaptiveAssistanceEngine.deriveAssistanceProfile({
+      theta: engine.getTheta(),
+      recentLatenciesMs: latestTelemetry ? [latestTelemetry.initialDeliberationMs, ...latestTelemetry.stepLatencies] : [],
+      consecutiveErrors: latestTelemetry && !latestTelemetry.isCorrect ? 1 : 0,
+      accuracyPct: latestTelemetry?.isCorrect ? 100 : 80,
+      taskType: 'working_memory',
+    });
+  }, [engine, latestTelemetry]);
+
+  // Dignity Auto-Assist Inactivity Guard (Profile-Adaptive)
   useEffect(() => {
     if (phase === 'RECALL') {
       autoAssistTimerRef.current = setTimeout(() => {
         const hintItem = engine.triggerAutoAssist();
         if (hintItem) {
           setAutoAssistItemId(hintItem);
+          setShowEncouragementBanner(true);
+          sequenceAudio.playAttentionTone();
+          setTimeout(() => setShowEncouragementBanner(false), 4000);
         }
-      }, difficulty.autoAssistTimeoutMs);
+      }, liveProfileConfig.assistTimeoutMs);
     } else {
       if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
       setAutoAssistItemId(null);
@@ -266,7 +281,7 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
     return () => {
       if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
     };
-  }, [phase, recalledSteps, engine, difficulty.autoAssistTimeoutMs]);
+  }, [phase, recalledSteps, engine, liveProfileConfig]);
 
   /**
    * Handle Elder Card Tap
@@ -460,7 +475,12 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
               <Activity className="w-4 h-4 text-amber-400" />
               Continuous 2PL IRT Dynamic Difficulty Adjustment (DDA) Telemetry
             </span>
-            <span className="text-[10px] text-slate-400 font-mono">Bayesian Adaptive Loop</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full">
+                Profile: {liveProfileConfig.displayName[language] || liveProfileConfig.displayName.en} ({liveProfileConfig.assistTimeoutMs / 1000}s)
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">Bayesian Adaptive Loop</span>
+            </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1 font-mono">
             <div>

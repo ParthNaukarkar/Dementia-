@@ -19,6 +19,7 @@ import type { SmritiHaatProps, RoundTelemetry, SessionSummaryTelemetry } from '.
 import { vernacularVoice } from '../../engine/vernacular-voice';
 import { CognitiveClassifier, type CognitiveClassificationResult } from '../../engine/cognitive-classifier';
 import type { LatencyStage } from '../../engine/latency-timer';
+import { AdaptiveAssistanceEngine, type AssistanceProfileConfig } from '../../engine/adaptive-assistance';
 
 // Multilingual audio and UI string dictionaries (Large, high-clarity phrasing)
 const STRINGS = {
@@ -130,6 +131,9 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
   const [autoAssistAlert, setAutoAssistAlert] = useState<string>('');
   const [showJudgeControls, setShowJudgeControls] = useState<boolean>(true);
   const [demoPacing, setDemoPacing] = useState<'clinical' | 'rapid'>('clinical');
+  const [assistanceProfileConfig, setAssistanceProfileConfig] = useState<AssistanceProfileConfig>(() =>
+    AdaptiveAssistanceEngine.deriveAssistanceProfile({ theta: initialTheta })
+  );
   const [savedSessions, setSavedSessions] = useState<SessionSummaryTelemetry[]>(() => {
     try {
       return JSON.parse(localStorage.getItem('smriti_haat_sessions') || '[]');
@@ -184,9 +188,23 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
     setAutoAssistAlert('');
     setHasTargetBeacon(false);
 
-    const limits = demoPacing === 'rapid'
-      ? { voice: 4000, blur: 8000, beacon: 12000, autoAssist: 16000 }
-      : { voice: 16000, blur: 28000, beacon: 42000, autoAssist: 58000 };
+    // Dynamically derive patient assistance profile
+    const profile = demoPacing === 'rapid'
+      ? AdaptiveAssistanceEngine.getConfigurationForProfile('severe_amnesic')
+      : AdaptiveAssistanceEngine.deriveAssistanceProfile({
+          theta: engine.getTheta(),
+          recentLatenciesMs: latestRoundTelemetry ? [latestRoundTelemetry.latencyMs] : [],
+          accuracyPct: latestRoundTelemetry?.isFullyCorrect ? 100 : 75,
+          taskType: 'recognition',
+        });
+    setAssistanceProfileConfig(profile);
+
+    const limits = {
+      voice: profile.multiStageTimeouts.voicePromptMs,
+      blur: profile.multiStageTimeouts.contextualActionMs,
+      beacon: profile.multiStageTimeouts.beaconPromptMs,
+      autoAssist: profile.multiStageTimeouts.autoCompleteMs,
+    };
 
     let stagePromptDone = false;
     let stageBlurDone = false;
@@ -540,9 +558,14 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
               <Sliders className="w-4 h-4" />
               <span>SIH 2026 Live AI Inspector & Test Controls</span>
             </div>
-            <span className="text-[11px] font-mono bg-white/15 px-2.5 py-0.5 rounded-full text-amber-200">
-              Phase: {phase} | Stage: {latencyStage} | Grid: {difficulty.gridSize} | Items: {difficulty.itemsToMemorize}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full">
+                Profile: {assistanceProfileConfig.displayName[language] || assistanceProfileConfig.displayName.en}
+              </span>
+              <span className="text-[11px] font-mono bg-white/15 px-2.5 py-0.5 rounded-full text-amber-200">
+                Phase: {phase} | Stage: {latencyStage} | Grid: {difficulty.gridSize} | Items: {difficulty.itemsToMemorize}
+              </span>
+            </div>
           </div>
           
           <div className="flex flex-wrap items-center gap-2 text-xs font-bold">

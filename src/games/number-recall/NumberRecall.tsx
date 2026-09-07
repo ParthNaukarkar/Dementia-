@@ -22,6 +22,7 @@ import {
 import confetti from 'canvas-confetti';
 import { NumberRecallEngine, NUMBER_RECALL_TIERS } from './engine';
 import { numberRecallAudio } from './audio';
+import { AdaptiveAssistanceEngine } from '../../engine/adaptive-assistance';
 import type {
   NumberRecallProps,
   NumberRecallDifficulty,
@@ -263,26 +264,53 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
     setTimeout(showNextDigit, 400);
   };
 
-  // Reset auto-assist idle timer
+  // Patient-Profile Adaptive Assistance Derivation
+  const liveAssistanceProfile = useMemo(() => {
+    return AdaptiveAssistanceEngine.deriveAssistanceProfile({
+      theta: engine.getTheta(),
+      tremorTapsCount: 0,
+      recentLatenciesMs: keystrokesRef.current.map(k => k.latencyFromPreviousMs),
+      consecutiveErrors: 0,
+      accuracyPct: currentTrialIndex > 0 ? 85 : 100,
+      hesitationMs: Date.now() - lastActionTimeRef.current,
+      taskType: 'working_memory',
+    });
+  }, [engine, currentTrialIndex]);
+
+  // Reset auto-assist idle timer (Profile-Adaptive)
   const resetAutoAssistTimer = useCallback(() => {
     if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
     if (phase !== 'RECALL') return;
 
     autoAssistTimerRef.current = setTimeout(() => {
-      triggerAutoAssist();
-    }, difficulty.autoAssistTimeoutMs);
-  }, [difficulty.autoAssistTimeoutMs, phase]);
+      triggerAutoAssist(false, liveAssistanceProfile);
+    }, liveAssistanceProfile.assistTimeoutMs);
+  }, [liveAssistanceProfile, phase]);
 
-  // Dignity Auto-Assist Trigger
-  const triggerAutoAssist = (isManual: boolean = false) => {
+  // Dignity Auto-Assist Trigger (Profile-Adaptive)
+  const triggerAutoAssist = (isManual: boolean = false, activeProfile = liveAssistanceProfile) => {
     if (isManual) setProactiveHelpRequested(true);
     const expected = engine.getExpectedSequence(targetSequence, difficulty.recallMode);
     const nextCharIndex = userEnteredSequence.length;
     if (nextCharIndex < expected.length) {
       const hintDigit = expected[nextCharIndex];
       numberRecallAudio.playDigitTone(parseInt(hintDigit, 10));
-      setFeedbackBanner(`💡 Hint: The next digit is "${hintDigit}"`);
-      setTimeout(() => setFeedbackBanner(null), 3500);
+
+      if (activeProfile.profile === 'severe_amnesic') {
+        // Level 3: Auto-reveal watermark + spoken digit in vernacular + hint banner
+        setIsGhostWatermarkVisible(true);
+        numberRecallAudio.speakDigit(hintDigit, language, 0.85);
+        setFeedbackBanner(`AI Live Assist: Watermark revealed. Next digit is "${hintDigit}".`);
+        setTimeout(() => setFeedbackBanner(null), 4000);
+      } else if (activeProfile.profile === 'motor_tremor_slowed') {
+        // Motor profile: Reassure patient without rushing
+        setFeedbackBanner(`🛡️ Motor grace active. Tap "${hintDigit}" on the dialpad when ready.`);
+        setTimeout(() => setFeedbackBanner(null), 4500);
+      } else {
+        // Level 1 / 2: Standard hint banner
+        setFeedbackBanner(`💡 Hint: The next digit is "${hintDigit}"`);
+        setTimeout(() => setFeedbackBanner(null), 3500);
+      }
     }
   };
 
@@ -709,6 +737,9 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
               <span>SIH 2026 WAIS-IV Digit Span & Working Memory AI Testbed</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-1 rounded-lg">
+                Profile: {liveAssistanceProfile.displayName[language] || liveAssistanceProfile.displayName.en} ({liveAssistanceProfile.assistTimeoutMs / 1000}s)
+              </span>
               <span className="text-[11px] font-mono bg-white/10 px-2.5 py-1 rounded-lg text-indigo-200">
                 Tier {difficulty.tierLevel} | {difficulty.digitCount} Digits ({difficulty.recallMode})
               </span>
