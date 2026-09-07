@@ -1526,7 +1526,7 @@ export function App() {
                             totalRounds: summary.totalTrials,
                             totalCorrect: summary.correctTrials,
                             averageLatencyMs: summary.meanDeliberationMs,
-                            finalTheta: summary.accuracyPercentage >= 85 ? 1.15 : summary.accuracyPercentage >= 70 ? 0.45 : -0.25,
+                            finalTheta: summary.finalTheta ?? (summary.accuracyPercentage >= 85 ? 1.15 : summary.accuracyPercentage >= 70 ? 0.45 : -0.25),
                             completedAt: new Date().toISOString(),
                           };
                           handleRecordSessionSummary('pattern-recall', report);
