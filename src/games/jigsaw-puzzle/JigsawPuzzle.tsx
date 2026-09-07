@@ -15,7 +15,9 @@ import {
   Brain,
   Zap,
   Sliders,
-  Compass
+  Compass,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { 
@@ -71,8 +73,22 @@ function PieceRenderer({
   );
 }
 
-// Available piece count minimal tiers
-const PIECE_COUNT_TIERS = [2, 4, 6, 8, 9, 12, 16, 20, 24, 25, 30, 32, 36];
+// 13 Minimal-step piece tiers
+const PIECE_COUNT_TIERS = [
+  { count: 2, label: 'T1: 2 Pcs (1×2 Floor)' },
+  { count: 4, label: 'T2: 4 Pcs (2×2)' },
+  { count: 6, label: 'T3: 6 Pcs (3×2)' },
+  { count: 8, label: 'T4: 8 Pcs (4×2)' },
+  { count: 9, label: 'T5: 9 Pcs (3×3 Baseline)' },
+  { count: 12, label: 'T6: 12 Pcs (4×3)' },
+  { count: 16, label: 'T7: 16 Pcs (4×4 Advanced)' },
+  { count: 20, label: 'T8: 20 Pcs (5×4)' },
+  { count: 24, label: 'T9: 24 Pcs (6×4)' },
+  { count: 25, label: 'T10: 25 Pcs (5×5 Expert)' },
+  { count: 30, label: 'T11: 30 Pcs (6×5)' },
+  { count: 32, label: 'T12: 32 Pcs (8×4 Master)' },
+  { count: 36, label: 'T13: 36 Pcs (6×6 Ceiling)' },
+];
 
 export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   language = 'as',
@@ -99,6 +115,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(0);
   const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
   const [showArtworkPicker, setShowArtworkPicker] = useState(false);
+  const [showTestbed, setShowTestbed] = useState(false);
   const [manualPieceCount, setManualPieceCount] = useState<number | null>(null);
   const [difficulty, setDifficulty] = useState<JigsawDifficulty>(() => engine.getDifficulty());
   const [pieces, setPieces] = useState<PuzzlePiece[]>([]);
@@ -688,6 +705,27 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             <span className="text-amber-700 font-black">{elapsedSeconds}s</span>
           </div>
 
+          {/* AI TESTBED BUTTON (Matching Game 1 & 2) */}
+          <button
+            onClick={() => setShowTestbed(!showTestbed)}
+            className={`px-3 py-1.5 border font-black text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all active:scale-95 ${
+              showTestbed
+                ? 'bg-amber-500 text-white border-amber-600 shadow-md ring-2 ring-amber-300'
+                : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
+            }`}
+            title="Inspect AI dynamic variables & test live clinical features"
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>AI Testbed</span>
+            {showTestbed ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+
+          {/* Ability Theta Pill */}
+          <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-black text-slate-700 shadow-2xs">
+            <Brain className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span>Ability (θ): <strong>{engine.getTheta() >= 0 ? `+${engine.getTheta().toFixed(2)}` : engine.getTheta().toFixed(2)}</strong></span>
+          </div>
+
           {/* Gallery Artwork Picker */}
           <button
             onClick={() => setShowArtworkPicker(v => !v)}
@@ -746,43 +784,139 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
         </div>
       </div>
 
-      {/* 2. FINE-GRAINED MINIMAL STEP TIER SELECTOR */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-bold scrollbar-none">
-        <span className="text-[11px] font-black uppercase text-slate-400 shrink-0 mr-1 flex items-center gap-1">
-          <Sliders className="w-3.5 h-3.5 text-amber-600" />
-          <span>Piece Tier:</span>
-        </span>
+      {/* 2. SIH 2026 AI TESTBED & CLINICAL INSPECTOR DRAWER */}
+      {showTestbed && (
+        <div className="my-4 p-5 bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950 text-white rounded-3xl border-2 border-amber-500 shadow-2xl space-y-4 animate-fadeIn">
+          
+          {/* Drawer Header */}
+          <div className="flex items-center justify-between border-b border-white/10 pb-3 flex-wrap gap-2">
+            <div className="flex items-center gap-2 text-xs font-black tracking-widest text-amber-400 uppercase">
+              <Sliders className="w-4 h-4" />
+              <span>SIH 2026 Visuoconstructional Praxis AI Inspector & Testbed</span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-mono bg-white/10 px-2.5 py-1 rounded-lg text-amber-200">
+                Tier {difficulty.tierLevel} | {difficulty.gridCols}×{difficulty.gridRows} ({difficulty.totalPieces} Pcs)
+              </span>
+              <span className="text-[11px] font-mono bg-white/10 px-2.5 py-1 rounded-lg text-emerald-300">
+                Ghost: {Math.round(difficulty.ghostOpacity * 100)}%
+              </span>
+              <span className="text-[11px] font-mono bg-white/10 px-2.5 py-1 rounded-lg text-indigo-300">
+                Snap: {difficulty.snapMarginPx}px
+              </span>
+              <span className="text-[11px] font-mono bg-white/10 px-2.5 py-1 rounded-lg text-rose-300">
+                Rotation: {difficulty.allowRotation ? (difficulty.rotationModes.length > 2 ? '4-Way (90°)' : '180° Inversion') : '0° Locked'}
+              </span>
+            </div>
+          </div>
 
-        {/* Auto AI Pill */}
-        <button
-          onClick={() => setManualPieceCount(null)}
-          className={`px-2.5 py-1 rounded-lg border text-xs font-black shrink-0 transition-all cursor-pointer ${
-            manualPieceCount === null
-              ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
-              : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
-          }`}
-        >
-          Auto AI (Adaptive)
-        </button>
+          {/* Section A: Live Simulated AI Actions */}
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+              1. Live Dynamic AI Interventions & Sensory Triggers:
+            </span>
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+              <button
+                onClick={handlePerturbAngles}
+                className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5 transition-all active:scale-95"
+                title="Simulates rapid patient flow: dynamically perturbs tray piece angles to 90°/180°/270°"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-300" />
+                <span>⚡ Simulate Rapid Flow (Perturb Tray Angles)</span>
+              </button>
 
-        {/* Minimal Tiers: 2, 4, 6, 8, 9, 12, 16, 20, 24, 25, 30, 32, 36 */}
-        {PIECE_COUNT_TIERS.map(cnt => {
-          const isSelected = manualPieceCount === cnt || (manualPieceCount === null && difficulty.totalPieces === cnt);
-          return (
-            <button
-              key={cnt}
-              onClick={() => setManualPieceCount(cnt)}
-              className={`px-2.5 py-1 rounded-lg border text-xs font-bold shrink-0 transition-all cursor-pointer ${
-                isSelected
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                  : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-              }`}
-            >
-              {cnt} Pcs
-            </button>
-          );
-        })}
-      </div>
+              <button
+                onClick={handleStraightenAll}
+                className="px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5 transition-all active:scale-95"
+                title="Simulates hesitation: auto-aligns all tray pieces upright to 0°"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-200" />
+                <span>🛡️ Simulate Hesitation (Auto-Align Tray 0°)</span>
+              </button>
+
+              <button
+                onClick={triggerAutoAssist}
+                className="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5 transition-all active:scale-95"
+                title="Fires dignity auto-assist pulse"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>💡 Test Dignity Auto-Assist Glide</span>
+              </button>
+
+              <button
+                onClick={() => jigsawAudio.speakGuidance('assist', language)}
+                className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5 transition-all active:scale-95"
+              >
+                <Volume2 className="w-3.5 h-3.5 text-amber-300" />
+                <span>🔊 Test Vernacular Voice Prompt</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Section B: Force Minimal-Step Difficulty Tier */}
+          <div className="space-y-1.5 pt-1">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+              2. Force Minimal-Step Clinical Tier (2 to 36 Pieces):
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5 text-xs font-bold">
+              <button
+                onClick={() => setManualPieceCount(null)}
+                className={`px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                  manualPieceCount === null
+                    ? 'bg-amber-400 text-slate-950 border-amber-300 font-black shadow-xs'
+                    : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+                }`}
+              >
+                Auto AI (Bayesian 2PL IRT)
+              </button>
+
+              {PIECE_COUNT_TIERS.map(tier => {
+                const isSelected = manualPieceCount === tier.count || (manualPieceCount === null && difficulty.totalPieces === tier.count);
+                return (
+                  <button
+                    key={tier.count}
+                    onClick={() => setManualPieceCount(tier.count)}
+                    className={`px-2.5 py-1.5 rounded-xl border text-[11px] transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-amber-400 text-slate-950 border-amber-300 font-black shadow-xs'
+                        : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+                    }`}
+                  >
+                    {tier.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Section C: Live Real-Time Diagnostics Telemetry Bar */}
+          <div className="pt-2 border-t border-white/10 grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono text-xs">
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase">Latent Ability (θ)</span>
+              <strong className="text-base text-amber-300">{engine.getTheta() >= 0 ? `+${engine.getTheta().toFixed(2)}` : engine.getTheta().toFixed(2)}</strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase">Parietal Synthesis</span>
+              <strong className="text-base text-emerald-300">
+                {Math.max(10, Math.min(100, Math.round(100 - (rotationalErrorsCount * 18) - (misplacements * 8))))}%
+              </strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase">Rotational Errors</span>
+              <strong className="text-base text-rose-300">{rotationalErrorsCount}</strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase">Tremor Debounce</span>
+              <strong className="text-base text-cyan-300">{engine.getTremorFilteredCount()} taps filtered</strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase">Deliberation</span>
+              <strong className="text-base text-purple-300">{elapsedSeconds}s elapsed</strong>
+            </div>
+          </div>
+
+        </div>
+      )}
 
       {/* 3. ARTWORK PICKER DRAWER */}
       {showArtworkPicker && (
