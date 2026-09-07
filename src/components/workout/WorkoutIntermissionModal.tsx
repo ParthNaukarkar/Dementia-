@@ -21,6 +21,8 @@ interface WorkoutIntermissionModalProps {
   nextGameSubtitle?: string;
   nextGameDomain?: string;
   nextGameEstimatedMinutes?: number;
+  flowReason?: string;
+  flowRationale?: string;
   onStartNext: () => void;
   onExitWorkout: () => void;
 }
@@ -37,6 +39,8 @@ export const WorkoutIntermissionModal: React.FC<WorkoutIntermissionModalProps> =
   nextGameSubtitle,
   nextGameDomain = 'Cognitive Stimulation',
   nextGameEstimatedMinutes = 3,
+  flowReason: _flowReason,
+  flowRationale,
   onStartNext,
   onExitWorkout,
 }) => {
@@ -145,6 +149,21 @@ export const WorkoutIntermissionModal: React.FC<WorkoutIntermissionModalProps> =
                 {nextGameSubtitle || nextGameDomain}
               </p>
             </div>
+
+            {/* Dynamic AI Flow Adaptation Rationale */}
+            {flowRationale && (
+              <div className="mt-2 p-3 rounded-xl bg-indigo-50 border border-indigo-200/80 text-xs flex items-start gap-2.5 text-indigo-900 animate-fadeIn">
+                <Sparkles className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-black text-[10px] uppercase tracking-wider text-indigo-700 block">
+                    AI Clinical Flow Adaptation
+                  </span>
+                  <p className="text-[11px] font-medium leading-relaxed mt-0.5 text-indigo-950">
+                    {flowRationale}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}

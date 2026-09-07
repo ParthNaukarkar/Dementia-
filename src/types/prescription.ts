@@ -11,7 +11,6 @@ export type GameId =
   | 'where-am-i'
   | 'odd-one-out'
   | 'pattern-recall'
-  | 'bihu-taal'
   | 'smriti-haat'; // Alias to word-recall for backwards-compatibility
 
 export type LumosityDomain = 

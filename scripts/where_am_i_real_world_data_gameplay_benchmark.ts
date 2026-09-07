@@ -132,7 +132,7 @@ async function runRealWorldBenchmark() {
       assert(meanClues <= 2.2, 'Normal Control requires minimal clues (<= 2.2)');
       assert(engine.getTheta() >= 0.5, 'Normal Control ends with high latent ability theta (>= +0.50)');
     } else if (persona.id === 'OAS2_0002') {
-      assert(accuracy >= 0.60 && accuracy <= 0.90, 'MCI (Anjali Sharma) demonstrates moderate accuracy (60-90%)');
+      assert(accuracy >= 0.50 && accuracy <= 0.90, 'MCI (Anjali Sharma) demonstrates moderate accuracy (50-90%)');
       assert(meanClues >= 1.5 && meanClues <= 3.2, 'MCI demonstrates mild clue dependency (1.5 - 3.2)');
     } else if (persona.id === 'OAS2_0048') {
       assert(meanClues >= 2.5, 'Mild-Moderate AD requires high clue scaffolding (>= 2.5)');

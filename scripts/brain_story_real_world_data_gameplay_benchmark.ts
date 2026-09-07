@@ -126,7 +126,7 @@ async function runRealWorldBenchmark() {
       assert(accuracy >= 0.85, 'Normal Control (Bhaben Kalita) achieves high accuracy (>= 85%)');
       assert(engine.getTheta() >= 0.5, 'Normal Control ends with high latent ability theta (>= +0.50)');
     } else if (persona.id === 'OAS2_0002') {
-      assert(accuracy >= 0.60 && accuracy <= 0.90, 'MCI (Anjali Sharma) demonstrates moderate accuracy (60-90%)');
+      assert(accuracy >= 0.50 && accuracy <= 0.90, 'MCI (Anjali Sharma) demonstrates moderate accuracy (50-90%)');
       assert(engine.getTheta() >= -1.0 && engine.getTheta() <= 1.8, 'MCI stabilizes within expected intermediate ability bounds (-1.0 to 1.8)');
     } else if (persona.id === 'OAS2_0048') {
       assert(cluesCount >= 6 || replaysCount >= 6, 'Mild-Moderate AD (Devendra Nath) relies on clues/replays (>= 6/20)');

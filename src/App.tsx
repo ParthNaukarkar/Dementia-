@@ -44,7 +44,6 @@ import { TimeEngineDemo } from './components/time-engine/TimeEngineDemo';
 import { SmritiHaat, type SessionSummaryTelemetry } from './games/smriti-haat';
 import { SequenceRecall } from './games/sequence-recall';
 import { MemoryMatch } from './games/memory-match/MemoryMatch';
-import { BihuTaal } from './games/bihu-taal/BihuTaal';
 import { JigsawPuzzle } from './games/jigsaw-puzzle';
 import { NumberRecall } from './games/number-recall';
 import { WhatChanged } from './games/what-changed';
@@ -63,6 +62,7 @@ import { MyBrainAnalytics } from './components/dashboard/MyBrainAnalytics';
 import { PrescriptionSetupModal } from './components/prescription/PrescriptionSetupModal';
 import { ClinicalSessionReportModal } from './components/dashboard/ClinicalSessionReportModal';
 import { CognitiveClassifier } from './engine/cognitive-classifier';
+import { AdaptiveGameFlowEngine, type FlowRecommendation } from './engine/adaptive-game-flow';
 
 // Storage & Types
 import {
@@ -963,6 +963,7 @@ export function App() {
   const [workoutSessionSummaries, setWorkoutSessionSummaries] = useState<Record<string, any>>({});
   const [isIntermissionOpen, setIsIntermissionOpen] = useState(false);
   const [isWorkoutCelebrationOpen, setIsWorkoutCelebrationOpen] = useState(false);
+  const [lastFlowRecommendation, setLastFlowRecommendation] = useState<FlowRecommendation | null>(null);
   const [isWorkoutCompletedToday, setIsWorkoutCompletedToday] = useState<boolean>(() => {
     try {
       const todayKey = `smriti_workout_done_${new Date().toISOString().slice(0, 10)}`;
@@ -1089,6 +1090,7 @@ export function App() {
     setIsWorkoutMode(true);
     setCompletedWorkoutGames([]);
     setWorkoutSessionSummaries({});
+    setLastFlowRecommendation(null);
     setIsIntermissionOpen(false);
     setIsWorkoutCelebrationOpen(false);
     setActiveGameId(playlist[0]);
@@ -1101,7 +1103,23 @@ export function App() {
     }
 
     if (isWorkoutMode) {
-      if (workoutCurrentIndex + 1 < workoutPlaylist.length) {
+      const activeReports = { ...workoutSessionSummaries, [gameId]: summary };
+      
+      // Dynamic AI Flow Adaptation: Evaluate telemetry and recommend next game on the flow
+      const recommendation = AdaptiveGameFlowEngine.recommendNextGame({
+        completedGameId: gameId,
+        completedSummary: summary,
+        currentPlaylist: workoutPlaylist,
+        completedGameIds: [...completedWorkoutGames, gameId],
+        sessionReports: activeReports,
+        patientLanguage: selectedLanguage,
+      });
+
+      setLastFlowRecommendation(recommendation);
+      const effectivePlaylist = recommendation.adjustedPlaylist;
+      setWorkoutPlaylist(effectivePlaylist);
+
+      if (workoutCurrentIndex + 1 < effectivePlaylist.length) {
         setIsIntermissionOpen(true);
       } else {
         setIsWorkoutCelebrationOpen(true);
@@ -1394,37 +1412,7 @@ export function App() {
                       />
                     )}
 
-                    {/* Game 4: Bihu Taal */}
-                    {activeGameId === 'bihu-taal' && (
-                      <BihuTaal
-                        language={selectedLanguage}
-                        totalTrials={10}
-                        onSessionComplete={(summary) => {
-                          const report = {
-                            ...summary,
-                            gameId: 'bihu-taal',
-                            gameTitle: 'Bihu Taal (Go/No-Go Attention)',
-                            totalRounds: summary.totalTrials,
-                            totalCorrect: Math.max(0, summary.totalTrials - summary.commissionErrors - summary.omissionErrors),
-                            autoAssistedRounds: 0,
-                            accuracyPercentage: summary.accuracyPercentage,
-                            averageLatencyMs: summary.meanReactionTimeMs,
-                            medianLatencyMs: summary.meanReactionTimeMs,
-                            perseverationErrors: summary.commissionErrors,
-                            finalTheta: summary.accuracyPercentage >= 80 ? 1.0 : 0.2,
-                            estimatedMoCAMemoryScore: summary.estimatedMoCAAttentionScore,
-                            processingSpeedProfile: summary.processingSpeedProfile,
-                            caregiverEndedEarly: false,
-                            completedAt: summary.completedAt,
-                            rounds: []
-                          };
-                          handleRecordSessionSummary('bihu-taal', report);
-                        }}
-                        onExit={() => handleAdvanceWorkout('bihu-taal')}
-                      />
-                    )}
-
-                    {/* Game 5: Jigsaw Puzzle */}
+                    {/* Game 4: Jigsaw Puzzle */}
                     {activeGameId === 'jigsaw-puzzle' && (
                       <JigsawPuzzle
                         language={selectedLanguage}
@@ -1607,7 +1595,6 @@ export function App() {
                      activeGameId !== 'word-recall' &&
                      activeGameId !== 'smriti-haat' &&
                      activeGameId !== 'sequence-recall' &&
-                     activeGameId !== 'bihu-taal' &&
                      activeGameId !== 'jigsaw-puzzle' &&
                      activeGameId !== 'number-recall' &&
                      activeGameId !== 'what-changed' &&
@@ -1879,6 +1866,8 @@ export function App() {
         }
         onStartNext={handleStartNextFromIntermission}
         onExitWorkout={handleExitWorkout}
+        flowReason={lastFlowRecommendation?.reason}
+        flowRationale={lastFlowRecommendation?.clinicalRationale[selectedLanguage]}
         language={selectedLanguage}
       />
 
