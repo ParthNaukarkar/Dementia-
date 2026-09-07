@@ -360,7 +360,13 @@ export class WhatChangedEngine {
       case 'removal': {
         // Target disappears from Scene B
         targetItem.icon = '';
-        targetItem.color = 'bg-transparent border-dashed border-slate-200 text-transparent opacity-0';
+        targetItem.color = 'bg-amber-50/20 border-2 border-dashed border-amber-300/40 text-transparent';
+        targetItem.name = {
+          as: 'নাইকিয়া হোৱা স্থান',
+          bn: 'অদৃশ্য হওয়া স্থান',
+          hi: 'गायब हुआ स्थान',
+          en: 'Empty Spot',
+        };
         targetItem.changeDescription = {
           as: `এই স্থানৰ পৰা ${catalogRef.names.as} নাইকিয়া হ’ল।`,
           bn: `এই স্থান থেকে ${catalogRef.names.bn} অদৃশ্য হয়েছে।`,
@@ -419,7 +425,13 @@ export class WhatChangedEngine {
         const itemInA = sceneA.find(i => i.slotId === targetSlotId);
         if (itemInA) {
           itemInA.icon = '';
-          itemInA.color = 'bg-transparent border-dashed border-slate-200 text-transparent opacity-0';
+          itemInA.color = 'bg-amber-50/20 border-2 border-dashed border-amber-300/40 text-transparent';
+          itemInA.name = {
+            as: 'খালি স্থান',
+            bn: 'খালি স্থান',
+            hi: 'खाली स्थान',
+            en: 'Empty Spot',
+          };
         }
         targetItem.changeDescription = {
           as: `দৃশ্যখনত নতুনকৈ ${catalogRef.names.as} সংযোজিত হ’ল।`,

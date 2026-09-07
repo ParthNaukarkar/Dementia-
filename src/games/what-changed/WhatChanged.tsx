@@ -1068,6 +1068,17 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
             <div className={`grid gap-3 sm:gap-4 mx-auto p-4 sm:p-6 bg-amber-50/40 rounded-3xl border-2 border-amber-200/80 shadow-inner ${gridStyle}`}>
               {sceneA.map(item => {
                 const isGazeFocused = simulatedGazeSlot === item.slotId;
+                const isEmpty = !item.icon;
+
+                if (isEmpty) {
+                  return (
+                    <div
+                      key={item.slotId}
+                      className="h-24 sm:h-28 rounded-2xl flex flex-col items-center justify-center p-2 border-2 border-dashed border-amber-200/50 bg-amber-50/10 text-transparent"
+                    />
+                  );
+                }
+
                 return (
                   <div
                     key={item.slotId}
@@ -1135,6 +1146,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
                 const shouldHaloGlow = isHaloVisible && isTargetSpot;
                 const isGazeFocused = simulatedGazeSlot === item.slotId;
                 const isTremorShaking = simulatedTremorBurstActive && isSelected;
+                const isEmpty = !item.icon;
 
                 return (
                   <button
@@ -1142,15 +1154,21 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
                     onClick={() => handleSlotTap(item.slotId)}
                     style={{ transform: `rotate(${item.rotationDeg}deg)` }}
                     className={`h-24 sm:h-28 rounded-2xl flex flex-col items-center justify-center p-2 border-2 shadow-xs transition-all cursor-pointer active:scale-95 relative ${
-                      item.color
-                    } ${
-                      isSelected
-                        ? 'ring-4 ring-indigo-500 scale-105 border-indigo-600 shadow-md bg-white'
-                        : 'hover:scale-102 hover:border-indigo-300'
-                    } ${
-                      shouldHaloGlow
-                        ? 'ring-4 ring-amber-400 border-amber-500 shadow-lg animate-pulse'
-                        : ''
+                      isEmpty
+                        ? (isSelected
+                            ? 'bg-amber-100/90 border-indigo-600 ring-4 ring-indigo-500 scale-105 shadow-md'
+                            : shouldHaloGlow
+                              ? 'bg-amber-100/90 border-amber-500 ring-4 ring-amber-400 shadow-lg animate-pulse'
+                              : 'bg-amber-50/20 border-dashed border-amber-200/60 hover:border-amber-300')
+                        : `${item.color} ${
+                            isSelected
+                              ? 'ring-4 ring-indigo-500 scale-105 border-indigo-600 shadow-md bg-white'
+                              : 'hover:scale-102 hover:border-indigo-300'
+                          } ${
+                            shouldHaloGlow
+                              ? 'ring-4 ring-amber-400 border-amber-500 shadow-lg animate-pulse'
+                              : ''
+                          }`
                     } ${
                       isGazeFocused
                         ? 'ring-4 ring-sky-400 scale-105'
@@ -1179,12 +1197,34 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
                       </span>
                     )}
 
-                    <span className="text-3xl sm:text-4xl mb-1 select-none">
-                      {item.icon || '❓'}
-                    </span>
-                    <span className="text-[10px] sm:text-xs font-extrabold text-center leading-tight line-clamp-1">
-                      {item.name[language] || 'Empty Slot'}
-                    </span>
+                    {isEmpty ? (
+                      isSelected ? (
+                        <div className="flex flex-col items-center select-none">
+                          <span className="text-2xl mb-0.5">⭕</span>
+                          <span className="text-[10px] font-black text-indigo-900 leading-tight">
+                            {item.name[language] || 'Empty Spot'}
+                          </span>
+                        </div>
+                      ) : shouldHaloGlow ? (
+                        <div className="flex flex-col items-center select-none">
+                          <span className="text-2xl mb-0.5 text-amber-600">✨</span>
+                          <span className="text-[10px] font-black text-amber-900 leading-tight">
+                            {item.name[language] || 'Empty Spot'}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-amber-800/40 font-medium select-none">·</span>
+                      )
+                    ) : (
+                      <>
+                        <span className="text-3xl sm:text-4xl mb-1 select-none">
+                          {item.icon}
+                        </span>
+                        <span className="text-[10px] sm:text-xs font-extrabold text-center leading-tight line-clamp-1">
+                          {item.name[language]}
+                        </span>
+                      </>
+                    )}
                   </button>
                 );
               })}
@@ -1277,10 +1317,10 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
               <div className="text-center space-y-1">
                 <span className="text-[10px] uppercase text-indigo-600 font-black block">Scene B (Changed)</span>
                 <div className="w-16 h-16 rounded-xl bg-indigo-50 border-2 border-indigo-400 flex items-center justify-center text-3xl mx-auto shadow-xs">
-                  {lastTrialFeedback.targetItemB?.icon || '—'}
+                  {lastTrialFeedback.targetItemB?.icon || '⭕'}
                 </div>
                 <span className="text-[10px] text-indigo-900 font-black line-clamp-1 max-w-[80px]">
-                  {lastTrialFeedback.targetItemB?.name[language] || 'Disappeared'}
+                  {lastTrialFeedback.targetItemB?.name[language] || (language === 'as' ? 'নাইকিয়া স্থান' : language === 'bn' ? 'অদৃশ্য স্থান' : language === 'hi' ? 'गायब स्थान' : 'Empty Spot')}
                 </span>
               </div>
             </div>
@@ -1289,7 +1329,11 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
               onClick={handleNextOrFinish}
               className="w-full py-3.5 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
             >
-              <span>{t.nextTrial[language]}</span>
+              <span>
+                {currentTrialIndex + 1 < totalTrials
+                  ? t.nextTrial[language]
+                  : (language === 'as' ? 'সত্ৰৰ ফলাফল চাওক ➔' : language === 'bn' ? 'সেশনের ফলাফল দেখুন ➔' : language === 'hi' ? 'सत्र का परिणाम देखें ➔' : 'View Session Results ➔')}
+              </span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -1405,7 +1449,13 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
               onClick={onExit}
               className="w-full py-3.5 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-md transition-all cursor-pointer active:scale-95"
             >
-              Close & Return to Dashboard
+              {language === 'as'
+                ? 'সমাপ্ত কৰি ডেচবৰ্ডলৈ যাওক ➔'
+                : language === 'bn'
+                ? 'সমাপ্ত করে ড্যাশবোর্ডে ফিরুন ➔'
+                : language === 'hi'
+                ? 'समाप्त कर डैशबोर्ड पर लौटें ➔'
+                : 'Close & Return to Dashboard ➔'}
             </button>
           </div>
         )}
