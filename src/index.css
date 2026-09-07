@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --navy: #0d1f3c;
+  --navy-mid: #162844;
+  --navy-light: #1e3a5f;
+  --sky: #3b9eda;
+  --sky-light: #e8f4fd;
+  --sage: #4caf82;
+  --sage-light: #e8f7f0;
+  --amber: #f59c3a;
+  --amber-light: #fff4e6;
+  --rose-soft: #f87171;
+  --rose-light: #fff1f1;
+  --surface: #f8fafc;
+  --card: #ffffff;
+  --border: #e8edf5;
+  --text-primary: #0d1f3c;
+  --text-secondary: #4b5e7a;
+  --text-muted: #8a9bb5;
+  --radius-card: 20px;
+  --shadow-card: 0 2px 12px rgba(13,31,60,0.06), 0 1px 3px rgba(13,31,60,0.04);
+  --shadow-card-hover: 0 8px 24px rgba(13,31,60,0.10), 0 2px 6px rgba(13,31,60,0.06);
+}
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--surface);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    touch-action: manipulation;
+  }
+}
+
+* { box-sizing: border-box; }
+
+/* Scrollbars */
+* { scrollbar-width: thin; scrollbar-color: #dbe5f0 transparent; }
+*::-webkit-scrollbar { width: 5px; height: 5px; }
+*::-webkit-scrollbar-thumb { background: #dbe5f0; border-radius: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* Typography helpers */
+.font-display { font-family: 'Manrope', sans-serif; }
+
+/* Smooth transitions */
+button { transition: all 0.15s ease; }
+
+/* Dementia-friendly glowing pulse for subtle visual prompts */
+@keyframes soft-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(217, 119, 6, 0);
+    transform: scale(1.02);
+  }
+}
+
+.animate-gentle-cue {
+  animation: soft-pulse 2.2s infinite ease-in-out;
+}

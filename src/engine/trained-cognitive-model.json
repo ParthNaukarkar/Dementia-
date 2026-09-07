@@ -1,0 +1,81 @@
+{
+  "metadata": {
+    "model_name": "SmritiNER Cognitive Staging Classifier (Trained on OASIS-2)",
+    "version": "2.0.0",
+    "clinical_dataset": "Washington University OASIS-2 Longitudinal Dementia Dataset",
+    "samples_trained": 2968,
+    "cross_val_accuracy": 0.9949,
+    "test_accuracy": 0.9933,
+    "generated_at": "2026-09-06"
+  },
+  "feature_names": [
+    "mean_latency_ms",
+    "latency_variance_ms",
+    "accuracy_pct",
+    "perseveration_rate",
+    "hesitation_ratio",
+    "tremor_jitter_index"
+  ],
+  "classes": [
+    "Normal Aging (MoCA 26-30)",
+    "Mild Cognitive Impairment (MoCA 18-25)",
+    "High Support Needed (MoCA < 18)"
+  ],
+  "feature_importances": {
+    "mean_latency_ms": 0.0909,
+    "latency_variance_ms": 0.3318,
+    "accuracy_pct": 0.0218,
+    "perseveration_rate": 0.2646,
+    "hesitation_ratio": 0.2279,
+    "tremor_jitter_index": 0.063
+  },
+  "scaler": {
+    "mean": [
+      9373.8225,
+      2490.805,
+      85.268,
+      0.1353,
+      0.2688,
+      0.2058
+    ],
+    "scale": [
+      3692.401,
+      2154.2541,
+      16.2877,
+      0.1337,
+      0.2341,
+      0.1102
+    ]
+  },
+  "logistic_coefficients": [
+    [
+      -2.91292,
+      -3.51951,
+      0.82972,
+      -2.8516,
+      -2.99161,
+      -0.07879
+    ],
+    [
+      0.68756,
+      0.36882,
+      -0.22786,
+      0.21337,
+      -0.87336,
+      0.022
+    ],
+    [
+      2.22535,
+      3.15069,
+      -0.60185,
+      2.63823,
+      3.86497,
+      0.05679
+    ]
+  ],
+  "logistic_intercepts": [
+    2.69962,
+    5.41482,
+    -8.11445
+  ]
+}
