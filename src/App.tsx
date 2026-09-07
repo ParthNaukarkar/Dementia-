@@ -1895,6 +1895,8 @@ export function App() {
         onClose={() => setIsClinicalReportModalOpen(false)}
         report={lastSessionReport}
         patient={activePatient}
+        dailyComposite={dailyCompositeScore}
+        dailySessions={dailySessions}
       />
 
       <WorkoutIntermissionModal

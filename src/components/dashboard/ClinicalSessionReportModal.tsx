@@ -6,18 +6,26 @@ import {
   ShieldCheck, 
   Sparkles, 
   User, 
-  Calendar,
-  FileText,
-  Brain
+  Calendar, 
+  FileText, 
+  Brain,
+  CheckCircle2,
+  Activity
 } from 'lucide-react';
 import type { PatientProfile } from '../../types/auth';
 import { CognitiveClassifier } from '../../engine/cognitive-classifier';
+import type { 
+  DailyCompositeScoreResult, 
+  DailyGameSessionRecord 
+} from '../../utils/dailySessionManager';
 
 interface ClinicalSessionReportModalProps {
   isOpen: boolean;
   onClose: () => void;
   report: any | null;
   patient: PatientProfile | null;
+  dailyComposite?: DailyCompositeScoreResult;
+  dailySessions?: Record<string, any>;
 }
 
 export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProps> = ({
@@ -25,6 +33,8 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
   onClose,
   report,
   patient,
+  dailyComposite,
+  dailySessions = {},
 }) => {
   if (!isOpen || !report) return null;
 
@@ -137,6 +147,117 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
               </strong>
             </div>
           </div>
+
+          {/* DAILY MULTI-GAME AGGREGATED TELEMETRY SECTION */}
+          {dailyComposite && dailyComposite.gamesPlayedCount > 0 && (
+            <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border border-slate-700 space-y-4 shadow-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-indigo-400" />
+                  <h3 className="text-sm font-black tracking-wide uppercase">
+                    Today's Multi-Game Composite Cognitive Synthesis
+                  </h3>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-400/30">
+                    ✓ {dailyComposite.gamesPlayedCount} Game{dailyComposite.gamesPlayedCount > 1 ? 's' : ''} Recommended & Played
+                  </span>
+                  <span className="text-[10px] bg-slate-800 text-slate-400 font-bold px-2 py-0.5 rounded-full">
+                    Unplayed Games Excluded (0 Penalty)
+                  </span>
+                </div>
+              </div>
+
+              {/* 4 Multi-Game Summary KPIs */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Daily Composite Score</span>
+                  <p className="text-2xl font-black text-sky-400 mt-0.5">{dailyComposite.score} / 100</p>
+                  <span className="text-[9px] text-slate-400">Weighted Multi-Game</span>
+                </div>
+                <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Mean Accuracy</span>
+                  <p className="text-2xl font-black text-emerald-400 mt-0.5">{dailyComposite.meanAccuracy}%</p>
+                  <span className="text-[9px] text-slate-400">Across Played Games</span>
+                </div>
+                <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Mean Latent Ability θ</span>
+                  <p className="text-2xl font-black text-purple-400 mt-0.5">{dailyComposite.meanTheta >= 0 ? `+${dailyComposite.meanTheta}` : dailyComposite.meanTheta}</p>
+                  <span className="text-[9px] text-slate-400">2PL IRT Scale</span>
+                </div>
+                <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Mean Deliberation</span>
+                  <p className="text-2xl font-black text-amber-400 mt-0.5">{(dailyComposite.meanLatencyMs / 1000).toFixed(1)}s</p>
+                  <span className="text-[9px] text-slate-400">Tremor Filtered</span>
+                </div>
+              </div>
+
+              {/* Multi-Game Telemetry Itemized Audit Table */}
+              <div className="space-y-2 pt-1">
+                <span className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider block">
+                  Itemized Daily Session Telemetry & Audit Log
+                </span>
+                <div className="overflow-x-auto rounded-xl border border-slate-700/80">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-slate-800 text-[10px] text-slate-400 uppercase font-black">
+                      <tr>
+                        <th className="py-2 px-3">Protocol / Game</th>
+                        <th className="py-2 px-3">Domain</th>
+                        <th className="py-2 px-3 text-center">Accuracy</th>
+                        <th className="py-2 px-3 text-center">Reaction Latency</th>
+                        <th className="py-2 px-3 text-center">Ability θ</th>
+                        <th className="py-2 px-3 text-center">Autonomy</th>
+                        <th className="py-2 px-3 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800 bg-slate-900/60 font-medium">
+                      {(Object.values(dailySessions) as DailyGameSessionRecord[]).map((sess) => (
+                        <tr key={sess.gameId} className="hover:bg-slate-800/40 transition-colors">
+                          <td className="py-2 px-3 font-bold text-white flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            <span>{sess.gameTitle}</span>
+                          </td>
+                          <td className="py-2 px-3 text-slate-300 capitalize">{sess.domain}</td>
+                          <td className="py-2 px-3 text-center font-bold text-emerald-400">{sess.accuracyPercentage}%</td>
+                          <td className="py-2 px-3 text-center text-slate-300">{(sess.averageLatencyMs / 1000).toFixed(1)}s</td>
+                          <td className="py-2 px-3 text-center font-bold text-purple-400">{sess.finalTheta >= 0 ? `+${sess.finalTheta.toFixed(2)}` : sess.finalTheta.toFixed(2)}</td>
+                          <td className="py-2 px-3 text-center text-slate-300">{sess.autonomyScore ?? 100}%</td>
+                          <td className="py-2 px-3 text-right">
+                            <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-emerald-400/30">
+                              Verified
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* 5-Domain Neurocognitive Synthesis */}
+              <div className="space-y-2 pt-1 border-t border-slate-700/80">
+                <span className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider block">
+                  DSM-5 Domain Breakdown (Unplayed Domains Strictly Excluded)
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 text-center text-xs">
+                  {dailyComposite.domainBreakdown.map((dom) => {
+                    const isPlayed = dom.isPlayedToday && dom.score !== null;
+                    return (
+                      <div key={dom.domain} className={`p-2 rounded-xl border ${isPlayed ? 'bg-slate-800/90 border-indigo-500/40 text-white' : 'bg-slate-800/30 border-slate-700/40 text-slate-400'}`}>
+                        <span className="text-[9px] uppercase font-bold block truncate">{dom.label.split(' ')[0]}</span>
+                        <p className={`text-base font-black mt-0.5 ${isPlayed ? 'text-sky-300' : 'text-slate-500'}`}>
+                          {isPlayed ? `${dom.score}/100` : '—'}
+                        </p>
+                        <span className="text-[9px] block text-slate-400 font-medium">
+                          {isPlayed ? `${dom.accuracy}% Acc` : 'Not played (0%)'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Executive Clinical Assessment Summary */}
           <div className="p-5 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-2">
