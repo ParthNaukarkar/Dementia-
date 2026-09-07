@@ -26,7 +26,8 @@ import type {
   PiecePlacementEvent, 
   PuzzleTrialTelemetry, 
   JigsawDifficulty,
-  AIDynamicAction 
+  AIDynamicAction,
+  TrialSettingsSnapshot
 } from './types';
 import { PUZZLE_IMAGES } from './images-catalog';
 import { JigsawPraxisEngine } from './engine';
@@ -123,6 +124,13 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   const [isGhostVisible, setIsGhostVisible] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [trayCategoryFilter, setTrayCategoryFilter] = useState<'all' | 'corners' | 'edges' | 'centers'>('all');
+
+  // Patient Settings Choices & Autonomy Tracking (Per-Trial)
+  const [manualStraightenCount, setManualStraightenCount] = useState(0);
+  const [manualScrambleCount, setManualScrambleCount] = useState(0);
+  const [proactiveHelpRequested, setProactiveHelpRequested] = useState(false);
+  const [lastSettingsImpactRationale, setLastSettingsImpactRationale] = useState<string>('');
+  const [lastAutonomyScore, setLastAutonomyScore] = useState<number>(70);
 
   // Live AI Adaptation Messaging & Alerts
   const [aiLiveReasoning, setAiLiveReasoning] = useState<string>('');
@@ -289,6 +297,9 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     setElapsedSeconds(0);
     setFeedbackBanner(null);
     setAiDynamicActions([]);
+    setManualStraightenCount(0);
+    setManualScrambleCount(0);
+    setProactiveHelpRequested(false);
     consecutiveFastSolvesRef.current = 0;
     lastActionTimeRef.current = Date.now();
     lastPlacementTimeRef.current = Date.now();
@@ -314,7 +325,10 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   }, [puzzleStartTime, isPuzzleSolved]);
 
   // Dignity Auto-Assist Trigger
-  const triggerAutoAssist = () => {
+  const triggerAutoAssist = (isManual: boolean = false) => {
+    if (isManual) {
+      setProactiveHelpRequested(true);
+    }
     const targetPiece = engine.getNextAssistPiece(pieces);
     if (!targetPiece) return;
 
@@ -358,22 +372,28 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
 
   // Manual Straighten All Pieces (0 deg)
   const handleStraightenAll = () => {
+    setManualStraightenCount(c => c + 1);
     const { modifiedPieces, changedCount } = engine.straightenTrayPieces(pieces);
     if (changedCount > 0) {
       setPieces(modifiedPieces);
       setRotationalErrorsCount(0);
       lastActionTimeRef.current = Date.now();
       jigsawAudio.playAutoAssistChime();
+      setFeedbackBanner('🛡️ Tray auto-aligned to 0° upright. AI will prioritize upright pieces for patient comfort.');
+      setTimeout(() => setFeedbackBanner(null), 4000);
     }
   };
 
   // Manual Perturb Angles (Challenge Trigger)
   const handlePerturbAngles = () => {
+    setManualScrambleCount(c => c + 1);
     const { modifiedPieces, changedCount } = engine.perturbTrayPieces(pieces, difficulty.rotationModes);
     if (changedCount > 0) {
       setPieces(modifiedPieces);
       lastActionTimeRef.current = Date.now();
       jigsawAudio.playRotateChime();
+      setFeedbackBanner('⚡ Rotations scrambled. AI will accelerate mental rotation challenge.');
+      setTimeout(() => setFeedbackBanner(null), 4000);
     }
   };
 
@@ -568,12 +588,33 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
 
     const totalSolveTimeMs = Date.now() - puzzleStartTime;
     
-    // AI Bayesian Theta & DDA Step
-    const { newTheta, reasoning } = engine.updateTheta(true, misplacements, wasAutoAssisted);
+    // Trial Settings Snapshot
+    const settingsSnapshot: TrialSettingsSnapshot = {
+      ghostGuideVisible: isGhostVisible,
+      audioMuted: isMuted,
+      manualStraightenCount,
+      manualScrambleCount,
+      manualPieceRotationsCount: rotationsUsed,
+      trayFilterUsed: trayCategoryFilter,
+      proactiveHelpRequested,
+      isManualTierOverride: manualPieceCount !== null,
+    };
+
+    // AI Bayesian Theta & DDA Step with Settings Factor
+    const { newTheta, reasoning, settingsImpactRationale, autonomyScore } = engine.updateTheta(
+      true, 
+      misplacements, 
+      wasAutoAssisted,
+      settingsSnapshot
+    );
     const newDiff = engine.getDifficulty();
     
-    // Flash AI reasoning on screen
-    setAiLiveReasoning(reasoning[language] || reasoning.en);
+    // Flash AI reasoning and settings impact rationale on screen
+    const reasoningText = reasoning[language] || reasoning.en;
+    const settingsText = settingsImpactRationale[language] || settingsImpactRationale.en;
+    setAiLiveReasoning(reasoningText);
+    setLastSettingsImpactRationale(settingsText);
+    setLastAutonomyScore(autonomyScore);
     setAiAdaptationFlash(true);
     setTimeout(() => setAiAdaptationFlash(false), 5000);
 
@@ -597,6 +638,9 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       thetaAfterTrial: Number(newTheta.toFixed(2)),
       difficultySnapshot: newDiff,
       aiAdaptiveReasoning: reasoning,
+      settingsSnapshot,
+      settingsImpactRationale,
+      autonomyScore,
       aiDynamicActions,
       placementHistory,
     };
@@ -736,18 +780,31 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             <span className="hidden sm:inline">{t.chooseArt[language]}</span>
           </button>
 
-          {/* Ghost Guide Toggle */}
+          {/* Ghost Guide Toggle with +Bonus Indicator */}
           <button
-            onClick={() => setIsGhostVisible(v => !v)}
-            title="Toggle Ghost Guide"
-            className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center gap-1 text-xs font-bold ${
+            onClick={() => {
+              const next = !isGhostVisible;
+              setIsGhostVisible(next);
+              if (!next) {
+                setFeedbackBanner('🧠 Unassisted Mode Active: Ghost Guide OFF (+0.75 2PL IRT Ability Bonus on success)');
+                setTimeout(() => setFeedbackBanner(null), 4000);
+              } else {
+                setFeedbackBanner('👁️ Visual Scaffolding Active: Ghost Guide ON (Standard Baseline Guidance)');
+                setTimeout(() => setFeedbackBanner(null), 3500);
+              }
+            }}
+            title="Toggle Ghost Guide Underlay"
+            className={`px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold ${
               isGhostVisible 
                 ? 'bg-amber-50 border-amber-300 text-amber-900' 
-                : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                : 'bg-emerald-50 border-emerald-400 text-emerald-950 ring-2 ring-emerald-300'
             }`}
           >
-            {isGhostVisible ? <Eye className="w-4 h-4 text-amber-700" /> : <EyeOff className="w-4 h-4" />}
+            {isGhostVisible ? <Eye className="w-4 h-4 text-amber-700" /> : <EyeOff className="w-4 h-4 text-emerald-700" />}
             <span className="hidden sm:inline">{t.ghostGuide[language]}</span>
+            <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-black uppercase ${!isGhostVisible ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-amber-200 text-amber-900'}`}>
+              {!isGhostVisible ? '+Bonus' : 'ON'}
+            </span>
           </button>
 
           {/* Mute Audio Toggle */}
@@ -765,8 +822,8 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
 
           {/* Dignity Auto-Assist Button */}
           <button
-            onClick={triggerAutoAssist}
-            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
+            onClick={() => triggerAutoAssist(true)}
+            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black shadow-2xs transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{t.autoAssistBtn[language]}</span>
@@ -835,7 +892,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
               </button>
 
               <button
-                onClick={triggerAutoAssist}
+                onClick={() => triggerAutoAssist(true)}
                 className="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5 transition-all active:scale-95"
                 title="Fires dignity auto-assist pulse"
               >
@@ -889,7 +946,67 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             </div>
           </div>
 
-          {/* Section C: Live Real-Time Diagnostics Telemetry Bar */}
+          {/* Section C: Live Patient Settings Audit & Scaffolding Adaptation */}
+          <div className="space-y-2 pt-2 border-t border-white/10">
+            <div className="flex items-center justify-between flex-wrap gap-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                3. Patient Settings Audit & Scaffolding Adaptation:
+              </span>
+              <span className="text-[10px] font-mono text-amber-300">
+                Current Autonomy: <strong>{lastAutonomyScore}%</strong> ({lastAutonomyScore >= 75 ? 'Autonomous Mastery' : (lastAutonomyScore >= 45 ? 'Moderate Guidance' : 'High Scaffolding Reliance')})
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">Ghost Guide</span>
+                <span className={`font-black text-xs flex items-center gap-1 mt-0.5 ${!isGhostVisible ? 'text-emerald-400' : 'text-amber-300'}`}>
+                  {!isGhostVisible ? 'OFF (+0.75 IRT Bonus)' : `ON (${Math.round(difficulty.ghostOpacity * 100)}% Guide)`}
+                </span>
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  {!isGhostVisible ? 'Pure mental coordinate reconstruction' : 'Visual matching scaffold active'}
+                </span>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">Tray Straightens</span>
+                <span className={`font-black text-xs flex items-center gap-1 mt-0.5 ${manualStraightenCount > 0 ? 'text-indigo-300' : 'text-slate-200'}`}>
+                  {manualStraightenCount} Request(s)
+                </span>
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  {engine.getPatientPrefersUpright() ? 'AI locked to 0° upright for comfort' : 'Spontaneous orientation'}
+                </span>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">Manual Scrambles</span>
+                <span className={`font-black text-xs flex items-center gap-1 mt-0.5 ${manualScrambleCount > 0 ? 'text-emerald-400' : 'text-slate-200'}`}>
+                  {manualScrambleCount} Provocation(s)
+                </span>
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  {manualScrambleCount > 0 ? 'Patient requested rotational challenge' : 'No scramble requested'}
+                </span>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">Executive Filter</span>
+                <span className="font-black text-xs text-amber-300 capitalize mt-0.5 block">
+                  {trayCategoryFilter} pieces
+                </span>
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  {trayCategoryFilter !== 'all' ? 'Active chunking strategy recorded' : 'Full visual search'}
+                </span>
+              </div>
+            </div>
+
+            {lastSettingsImpactRationale && (
+              <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-[11px] text-amber-200 leading-relaxed">
+                <strong>⚙️ AI Settings Adaptation Rationale:</strong> {lastSettingsImpactRationale}
+              </div>
+            )}
+          </div>
+
+          {/* Section D: Live Real-Time Diagnostics Telemetry Bar */}
           <div className="pt-2 border-t border-white/10 grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono text-xs">
             <div>
               <span className="text-slate-400 block text-[10px] uppercase">Latent Ability (θ)</span>
@@ -958,29 +1075,64 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             <Zap className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-1">
-              <span>Live AI Cognitive-Motor Analysis</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
-            </span>
-            <p className="text-xs text-slate-700 font-medium leading-relaxed truncate">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-1">
+                <span>Live AI Cognitive-Motor Analysis</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
+              </span>
+
+              {/* Live Settings Impact Badges */}
+              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase border ${
+                !isGhostVisible 
+                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300' 
+                  : 'bg-amber-100 text-amber-900 border-amber-300'
+              }`}>
+                {!isGhostVisible ? '★ Unassisted Ghost (+Bonus)' : 'Ghost Scaffolding'}
+              </span>
+
+              {engine.getPatientPrefersUpright() && (
+                <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase border bg-indigo-100 text-indigo-900 border-indigo-300">
+                  0° Upright Locked by Patient
+                </span>
+              )}
+
+              {isMuted && (
+                <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase border bg-rose-100 text-rose-800 border-rose-200">
+                  Audio Muted
+                </span>
+              )}
+            </div>
+
+            <p className="text-xs text-slate-700 font-medium leading-relaxed mt-0.5">
               {aiLiveReasoning || `Monitoring spatial synthesis & orientation angles (θ: ${engine.getTheta() >= 0 ? '+' : ''}${engine.getTheta().toFixed(2)}). Minimal-step parameter titration active.`}
             </p>
+
+            {lastSettingsImpactRationale && (
+              <p className="text-[11px] text-amber-900 font-bold mt-0.5">
+                ⚙️ {lastSettingsImpactRationale}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* 4 Active Parameter Chips */}
-        <div className="flex items-center gap-2 flex-wrap shrink-0">
+        {/* Active Parameter Chips + Autonomy Score */}
+        <div className="flex items-center gap-1.5 flex-wrap shrink-0">
           <span className="text-[10px] font-bold bg-white text-slate-700 px-2 py-1 rounded-lg border border-slate-200">
             Grid: <strong>{difficulty.gridCols}×{difficulty.gridRows}</strong>
           </span>
-          <span className="text-[10px] font-bold bg-white text-slate-700 px-2 py-1 rounded-lg border border-slate-200">
-            Ghost: <strong>{Math.round(difficulty.ghostOpacity * 100)}%</strong>
+          <span className={`text-[10px] font-bold px-2 py-1 rounded-lg border ${
+            !isGhostVisible ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-black' : 'bg-white text-slate-700 border-slate-200'
+          }`}>
+            Ghost: <strong>{isGhostVisible ? `${Math.round(difficulty.ghostOpacity * 100)}%` : 'OFF (+Bonus)'}</strong>
           </span>
           <span className="text-[10px] font-bold bg-white text-slate-700 px-2 py-1 rounded-lg border border-slate-200">
             Snap: <strong>{difficulty.snapMarginPx}px</strong>
           </span>
           <span className="text-[10px] font-bold bg-white text-slate-700 px-2 py-1 rounded-lg border border-slate-200">
             Rotation: <strong>{difficulty.allowRotation ? (difficulty.rotationModes.length > 2 ? '4-Way (90°)' : '180° Inversion') : '0° Locked'}</strong>
+          </span>
+          <span className="text-[10px] font-bold bg-amber-50 text-amber-900 px-2 py-1 rounded-lg border border-amber-300 font-black">
+            Autonomy: <strong>{lastAutonomyScore}%</strong>
           </span>
         </div>
       </div>
@@ -1298,77 +1450,143 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             </p>
           </div>
 
-          {/* 6 Comprehensive Clinical Metrics Tiles */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 text-left">
-            
-            {/* 1. WAIS-IV Block Design Score */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">WAIS-IV Praxis</span>
-              <p className="text-2xl font-black text-slate-900 mt-0.5">
-                {Math.max(0, Math.min(5, Math.round((engine.getTheta() + 2.5))))} / 5
-              </p>
-              <span className="text-[11px] text-emerald-700 font-semibold">Standard Praxis</span>
-            </div>
+          {(() => {
+            const summary = engine.compileSessionSummary(sessionTrials);
+            return (
+              <>
+                {/* Comprehensive Clinical Metrics Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
+                  
+                  {/* 1. WAIS-IV Block Design Score */}
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">WAIS-IV Praxis</span>
+                    <p className="text-xl font-black text-slate-900 mt-0.5">
+                      {summary.spatialPraxisScore} / 5
+                    </p>
+                    <span className="text-[11px] text-emerald-700 font-semibold">Standard Praxis</span>
+                  </div>
 
-            {/* 2. CERAD Praxis Scale */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">CERAD Index</span>
-              <p className="text-2xl font-black text-amber-700 mt-0.5">
-                {Math.max(0, Math.min(14, Math.round((engine.getTheta() + 2.5) * 2.8)))} / 14
-              </p>
-              <span className="text-[11px] text-slate-500 font-semibold">Visuomotor Score</span>
-            </div>
+                  {/* 2. CERAD Praxis Scale */}
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">CERAD Index</span>
+                    <p className="text-xl font-black text-amber-700 mt-0.5">
+                      {summary.estimatedCERADPraxisScore} / 14
+                    </p>
+                    <span className="text-[11px] text-slate-500 font-semibold">Visuomotor Score</span>
+                  </div>
 
-            {/* 3. Latent Ability Theta */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Latent Ability θ</span>
-              <p className="text-2xl font-black text-indigo-700 mt-0.5">
-                {engine.getTheta() >= 0 ? '+' : ''}{engine.getTheta().toFixed(2)}
-              </p>
-              <span className="text-[11px] text-indigo-600 font-semibold">2PL IRT Calibration</span>
-            </div>
+                  {/* 3. Latent Ability Theta */}
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Latent Ability θ</span>
+                    <p className="text-xl font-black text-indigo-700 mt-0.5">
+                      {summary.finalTheta >= 0 ? '+' : ''}{summary.finalTheta.toFixed(2)}
+                    </p>
+                    <span className="text-[11px] text-indigo-600 font-semibold">2PL IRT Calibration</span>
+                  </div>
 
-            {/* 4. Right Parietal Function */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Parietal Function</span>
-              <p className="text-base font-black text-slate-900 mt-1 capitalize">
-                {engine.compileSessionSummary(sessionTrials).parietalPraxisRating.replace(/_/g, ' ')}
-              </p>
-              <span className="text-[11px] text-slate-500 font-semibold">Coordinate Mapping</span>
-            </div>
+                  {/* 4. Patient Autonomy Rating */}
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Autonomy Rating</span>
+                    <p className="text-xs font-black text-slate-900 mt-1 uppercase">
+                      {summary.patientSettingsAutonomyRating.replace(/_/g, ' ')}
+                    </p>
+                    <span className="text-[11px] text-emerald-600 font-semibold">
+                      {100 - summary.ghostGuideReliancePercentage}% Ghost Independence
+                    </span>
+                  </div>
 
-            {/* 5. Tremor Filtration Audit */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Tremor Guard</span>
-              <p className="text-2xl font-black text-emerald-700 mt-0.5">
-                {engine.getTremorFilteredCount()} Filtered
-              </p>
-              <span className="text-[11px] text-emerald-600 font-semibold">400ms Debounce</span>
-            </div>
+                  {/* 5. Right Parietal Function */}
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Parietal Function</span>
+                    <p className="text-sm font-black text-slate-900 mt-1 capitalize">
+                      {summary.parietalPraxisRating.replace(/_/g, ' ')}
+                    </p>
+                    <span className="text-[11px] text-slate-500 font-semibold">Coordinate Mapping</span>
+                  </div>
 
-            {/* 6. Visuomotor Trajectory Profile */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Motor Profile</span>
-              <p className="text-base font-black text-slate-900 mt-1 capitalize">
-                {engine.compileSessionSummary(sessionTrials).visuomotorProfile.replace(/_/g, ' ')}
-              </p>
-              <span className="text-[11px] text-slate-500 font-semibold">Tactile Trajectory</span>
-            </div>
+                  {/* 6. Tremor Filtration Audit */}
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Tremor Guard</span>
+                    <p className="text-xl font-black text-emerald-700 mt-0.5">
+                      {summary.tremorTapsFilteredCount} Filtered
+                    </p>
+                    <span className="text-[11px] text-emerald-600 font-semibold">400ms Debounce</span>
+                  </div>
 
-          </div>
+                  {/* 7. Visuomotor Trajectory Profile */}
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Motor Profile</span>
+                    <p className="text-sm font-black text-slate-900 mt-1 capitalize">
+                      {summary.visuomotorProfile.replace(/_/g, ' ')}
+                    </p>
+                    <span className="text-[11px] text-slate-500 font-semibold">Tactile Trajectory</span>
+                  </div>
 
-          {/* AI Clinical Diagnostic Synthesis */}
-          <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-left space-y-1">
-            <div className="flex items-center gap-2 font-black text-xs text-amber-950 uppercase">
-              <Brain className="w-4 h-4 text-amber-700" />
-              <span>AI Clinical Diagnostic Summary</span>
-            </div>
-            <p className="text-xs text-amber-900/90 leading-relaxed">
-              Patient completed <strong>{sessionTrials.length} puzzles</strong> with an accuracy rate of <strong>{sessionTrials.length > 0 ? Math.round((sessionTrials.filter(t => t.piecesPlacedCorrectly === t.totalPieces).length / sessionTrials.length) * 100) : 100}%</strong>.
-              Average construction solve time: <strong>{sessionTrials.length > 0 ? Math.round(sessionTrials.reduce((a, b) => a + b.totalSolveTimeMs, 0) / sessionTrials.length / 1000) : 0}s</strong>.
-              The AI evaluated {engine.compileSessionSummary(sessionTrials).totalRotationalErrors} rotational error(s) and executed {engine.compileSessionSummary(sessionTrials).totalAIDynamicInterventions} dynamic tray reorientations.
-            </p>
-          </div>
+                  {/* 8. Orientation Scaffolding Requests */}
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Straighten Requests</span>
+                    <p className="text-xl font-black text-indigo-700 mt-0.5">
+                      {summary.totalManualStraightens}
+                    </p>
+                    <span className="text-[11px] text-indigo-600 font-semibold">
+                      {summary.totalManualScrambles} Manual Scrambles
+                    </span>
+                  </div>
+
+                </div>
+
+                {/* Patient Autonomy & Scaffolding Strategy Analysis Card */}
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-slate-50 border border-indigo-200 text-left space-y-2.5">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2 font-black text-xs text-indigo-950 uppercase">
+                      <Sliders className="w-4 h-4 text-indigo-600" />
+                      <span>Patient Autonomy & Scaffolding Strategy Profile</span>
+                    </div>
+                    <span className="text-[11px] font-black uppercase px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-300">
+                      Rating: {summary.patientSettingsAutonomyRating.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                    <div className="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs space-y-1">
+                      <span className="text-[10px] font-black text-slate-400 uppercase block">Visual Reference</span>
+                      <p className="text-slate-800 font-medium leading-relaxed">
+                        {summary.settingsAnalysisReport.ghostGuideIndependence}
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs space-y-1">
+                      <span className="text-[10px] font-black text-slate-400 uppercase block">Rotational Scaffolding</span>
+                      <p className="text-slate-800 font-medium leading-relaxed">
+                        {summary.settingsAnalysisReport.rotationalAssistanceReliance}
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs space-y-1">
+                      <span className="text-[10px] font-black text-slate-400 uppercase block">Executive Strategy</span>
+                      <p className="text-slate-800 font-medium leading-relaxed">
+                        {summary.settingsAnalysisReport.executiveChunkingStrategy}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Clinical Diagnostic Synthesis */}
+                <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-left space-y-1">
+                  <div className="flex items-center gap-2 font-black text-xs text-amber-950 uppercase">
+                    <Brain className="w-4 h-4 text-amber-700" />
+                    <span>AI Clinical Diagnostic Summary</span>
+                  </div>
+                  <p className="text-xs text-amber-900/90 leading-relaxed">
+                    Patient completed <strong>{summary.totalPuzzles} puzzles</strong> with an accuracy rate of <strong>{summary.accuracyPercentage}%</strong>.
+                    Average construction solve time: <strong>{summary.meanSolveTimeSeconds}s</strong>.
+                    The AI evaluated {summary.totalRotationalErrors} rotational error(s) and executed {summary.totalAIDynamicInterventions} dynamic tray reorientations.
+                    Settings analysis confirmed <strong>{100 - summary.ghostGuideReliancePercentage}% unassisted ghost-free solving</strong> and <strong>{summary.totalManualStraightens} manual straightening request(s)</strong>, directly integrated into the calibrated ability level θ ({summary.finalTheta >= 0 ? '+' : ''}{summary.finalTheta.toFixed(2)}).
+                  </p>
+                </div>
+              </>
+            );
+          })()}
 
           <button
             onClick={onExit}

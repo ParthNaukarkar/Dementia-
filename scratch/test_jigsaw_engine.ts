@@ -139,8 +139,79 @@ assert(flowIntervention.action === 'perturb_tray', `AI intervenes to perturb tra
 const { modifiedPieces: perturbed } = engine.perturbTrayPieces(uprightPieces, [90, 180, 270]);
 assert(perturbed.some(p => p.rotation !== 0), `Tray pieces successfully perturbed to non-zero rotations`);
 
-// 9. Clinical Session Summary Compilation
-console.log('\n>>> [9] Validating Comprehensive Clinical Session Summary Payload...');
+// 9. Settings Analysis in Bayesian DDA & Autonomy Evaluation
+console.log('\n>>> [9] Validating Patient Settings Analysis in Bayesian DDA & Scaffolding Autonomy...');
+
+// 9A: Ghost Guide OFF IRT Bonus
+const engineGhostOn = new JigsawPraxisEngine(0.5);
+const engineGhostOff = new JigsawPraxisEngine(0.5);
+
+const resGhostOn = engineGhostOn.updateTheta(true, 0, false, {
+  ghostGuideVisible: true,
+  audioMuted: false,
+  manualStraightenCount: 0,
+  manualScrambleCount: 0,
+  manualPieceRotationsCount: 0,
+  trayFilterUsed: 'all',
+  proactiveHelpRequested: false,
+  isManualTierOverride: false,
+});
+
+const resGhostOff = engineGhostOff.updateTheta(true, 0, false, {
+  ghostGuideVisible: false, // Unassisted visual synthesis!
+  audioMuted: false,
+  manualStraightenCount: 0,
+  manualScrambleCount: 0,
+  manualPieceRotationsCount: 0,
+  trayFilterUsed: 'all',
+  proactiveHelpRequested: false,
+  isManualTierOverride: false,
+});
+
+console.log(`Ghost ON delta theta: +${(resGhostOn.newTheta - 0.5).toFixed(3)}, Autonomy: ${resGhostOn.autonomyScore}%`);
+console.log(`Ghost OFF delta theta: +${(resGhostOff.newTheta - 0.5).toFixed(3)}, Autonomy: ${resGhostOff.autonomyScore}%`);
+
+assert(resGhostOff.newTheta > resGhostOn.newTheta, `Ghost Guide OFF grants a significantly higher theta delta than Ghost ON (+${(resGhostOff.newTheta - resGhostOn.newTheta).toFixed(3)} bonus)`);
+assert(resGhostOff.autonomyScore > resGhostOn.autonomyScore, `Ghost Guide OFF yields higher autonomy score (${resGhostOff.autonomyScore}% vs ${resGhostOn.autonomyScore}%)`);
+assert(resGhostOff.settingsImpactRationale.en.includes('Ghost Guide OFF'), `Settings impact rationale mentions Ghost Guide OFF`);
+
+// 9B: Manual "Straighten All" Request Suppresses Rotational Perturbation
+const engineDisoriented = new JigsawPraxisEngine(1.2); // Tier 7 (normally has allowRotation: true)
+assert(engineDisoriented.getDifficulty().allowRotation === true, `Tier 7 baseline allows rotation`);
+
+const resStraighten = engineDisoriented.updateTheta(true, 0, false, {
+  ghostGuideVisible: true,
+  audioMuted: false,
+  manualStraightenCount: 2, // Patient repeatedly asked to straighten tray
+  manualScrambleCount: 0,
+  manualPieceRotationsCount: 1,
+  trayFilterUsed: 'all',
+  proactiveHelpRequested: false,
+  isManualTierOverride: false,
+});
+
+assert(engineDisoriented.getPatientPrefersUpright() === true, `AI flagged patient preference for upright orientation`);
+assert(engineDisoriented.getDifficulty().allowRotation === false, `AI locked rotation to 0 deg upright to respect patient preference`);
+assert(engineDisoriented.getDifficulty().rotationModes.length === 1 && engineDisoriented.getDifficulty().rotationModes[0] === 0, `Rotation modes locked to [0]`);
+assert(resStraighten.settingsImpactRationale.en.includes('Straighten All requested'), `Rationale reflects straighten request`);
+
+// 9C: Manual Scramble Challenge Resets Upright Lock
+engineDisoriented.updateTheta(true, 0, false, {
+  ghostGuideVisible: true,
+  audioMuted: false,
+  manualStraightenCount: 0,
+  manualScrambleCount: 1, // Patient proactively clicked Scramble
+  manualPieceRotationsCount: 2,
+  trayFilterUsed: 'all',
+  proactiveHelpRequested: false,
+  isManualTierOverride: false,
+});
+
+assert(engineDisoriented.getPatientPrefersUpright() === false, `Patient upright preference reset after voluntary scramble`);
+assert(engineDisoriented.getDifficulty().allowRotation === true, `AI re-enabled rotation challenge`);
+
+// 10. Clinical Session Summary Compilation
+console.log('\n>>> [10] Validating Comprehensive Clinical Session Summary Payload...');
 engine.setTheta(1.4);
 const dummyTrials: PuzzleTrialTelemetry[] = [
   {
@@ -159,6 +230,18 @@ const dummyTrials: PuzzleTrialTelemetry[] = [
     thetaAfterTrial: 1.4,
     difficultySnapshot: engine.getDifficultyForPieceCount(16),
     aiAdaptiveReasoning: { as: 'টেস্ট', bn: 'টেস্ট', hi: 'टेस्ट', en: 'Test' },
+    settingsSnapshot: {
+      ghostGuideVisible: false,
+      audioMuted: false,
+      manualStraightenCount: 0,
+      manualScrambleCount: 1,
+      manualPieceRotationsCount: 3,
+      trayFilterUsed: 'corners',
+      proactiveHelpRequested: false,
+      isManualTierOverride: false,
+    },
+    settingsImpactRationale: { as: 'টেস্ট', bn: 'টেস্ট', hi: 'टेस्ट', en: 'Unassisted test' },
+    autonomyScore: 90,
     aiDynamicActions: [
       {
         type: 'perturb_tray',
@@ -180,6 +263,9 @@ console.log('Session Summary Payload:', {
   totalRotationalErrors: summary.totalRotationalErrors,
   meanParietalSynthesisIndex: `${summary.meanParietalSynthesisIndex}%`,
   totalAIDynamicInterventions: summary.totalAIDynamicInterventions,
+  ghostGuideReliance: `${summary.ghostGuideReliancePercentage}%`,
+  autonomyRating: summary.patientSettingsAutonomyRating,
+  report: summary.settingsAnalysisReport,
 });
 
 assert(summary.gameId === 'jigsaw-puzzle', `gameId is 'jigsaw-puzzle'`);
@@ -188,6 +274,11 @@ assert(summary.solvedPuzzles === 1, `Solved puzzles count is 1`);
 assert(summary.totalRotationalErrors === 1, `Total rotational errors recorded accurately`);
 assert(summary.meanParietalSynthesisIndex === 85, `Mean parietal synthesis index recorded accurately`);
 assert(summary.totalAIDynamicInterventions === 1, `AI dynamic interventions count recorded accurately`);
+assert(summary.ghostGuideReliancePercentage === 0, `Ghost reliance is 0% since trial had ghost OFF`);
+assert(summary.patientSettingsAutonomyRating === 'autonomous_mastery', `Autonomy rating is 'autonomous_mastery'`);
+assert(summary.settingsAnalysisReport.ghostGuideIndependence.includes('turned OFF'), `Report includes ghost independence`);
+assert(summary.settingsAnalysisReport.rotationalAssistanceReliance.includes('Scramble Angles'), `Report includes scramble note`);
+assert(summary.settingsAnalysisReport.executiveChunkingStrategy.includes('corners/edges'), `Report includes executive chunking`);
 
 console.log('\n======================================================================');
 console.log('   ALL JIGSAW PRAXIS ENGINE VERIFICATION TESTS PASSED SUCCESSFULLY!   ');

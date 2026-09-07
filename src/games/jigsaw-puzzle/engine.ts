@@ -5,6 +5,7 @@ import type {
   JigsawSessionSummary,
   VisuomotorProfile,
   ParietalPraxisRating,
+  TrialSettingsSnapshot,
 } from './types';
 import type { SupportedLanguage } from '../../types/prescription';
 
@@ -15,6 +16,7 @@ export class JigsawPraxisEngine {
   private lastTapTimestamp: number = 0;
   private tremorTapsFilteredCount: number = 0;
   private currentDifficulty: JigsawDifficulty;
+  private patientPrefersUpright: boolean = false;
 
   constructor(initialTheta: number = 0.0) {
     this.currentTheta = initialTheta;
@@ -470,58 +472,150 @@ export class JigsawPraxisEngine {
 
   /**
    * Updates Bayesian ability theta based on trial performance, titrates difficulty,
-   * and generates human-readable clinical rationale for the AI adaptation.
+   * factors in patient settings choices (Ghost Guide OFF bonus, Straighten All requests,
+   * Manual Scrambles, Tray Chunking Filters), and generates human-readable clinical rationale.
    */
   public updateTheta(
     isFullSolveSuccess: boolean,
     misplacements: number,
-    usedAutoAssist: boolean
-  ): { newTheta: number; reasoning: Record<SupportedLanguage, string> } {
+    usedAutoAssist: boolean,
+    settings?: Partial<TrialSettingsSnapshot>
+  ): { 
+    newTheta: number; 
+    reasoning: Record<SupportedLanguage, string>;
+    settingsImpactRationale: Record<SupportedLanguage, string>;
+    autonomyScore: number;
+  } {
     const prevTheta = this.currentTheta;
     const currentDiff = this.currentDifficulty;
 
+    const ghostOff = settings?.ghostGuideVisible === false;
+    const manualStraightens = settings?.manualStraightenCount || 0;
+    const manualScrambles = settings?.manualScrambleCount || 0;
+    const filterUsed = settings?.trayFilterUsed || 'all';
+
+    // Track patient preference regarding rotations
+    if (manualStraightens > 0) {
+      this.patientPrefersUpright = true;
+    } else if (manualScrambles > 0) {
+      this.patientPrefersUpright = false;
+    }
+
+    // Effective item difficulty b in 2PL IRT:
+    // Without ghost guide, task demands complete mental coordinate visualization (+0.75 difficulty)
+    // With manual straightens requested, effective complexity felt excessive (-0.20)
+    // With manual scrambles, patient actively challenged mental rotation (+0.25)
+    const ghostBonus = ghostOff ? 0.75 : 0.0;
+    const scrambleBonus = manualScrambles > 0 ? 0.25 : 0.0;
+    const straightenAdjustment = manualStraightens > 0 ? -0.20 : 0.0;
+
     const itemDifficultyB = (currentDiff.tierLevel - 5) * 0.35 
       - currentDiff.ghostOpacity * 1.0 
-      + (currentDiff.allowRotation ? 0.6 : -0.4);
+      + (currentDiff.allowRotation ? 0.6 : -0.4)
+      + ghostBonus
+      + scrambleBonus
+      + straightenAdjustment;
 
     const discriminationA = 1.2;
 
+    // Autonomy Score calculation (0 - 100%)
+    let rawAutonomy = 70;
+    if (ghostOff) rawAutonomy += 20;
+    if (usedAutoAssist) rawAutonomy -= 30;
+    if (manualStraightens > 0) rawAutonomy -= Math.min(20, manualStraightens * 10);
+    if (manualScrambles > 0) rawAutonomy += 10;
+    if (filterUsed !== 'all') rawAutonomy += 10;
+    if (misplacements === 0) rawAutonomy += 10;
+    const autonomyScore = Math.max(10, Math.min(100, rawAutonomy));
+
+    let settingsImpactRationale: Record<SupportedLanguage, string>;
     let reasoning: Record<SupportedLanguage, string>;
+
+    if (ghostOff) {
+      settingsImpactRationale = {
+        as: `সহায়িকা ছবি (Ghost Guide) বন্ধ ৰখাৰ বাবে AI এ স্থানিক নিৰ্মাণ ক্ষমতাৰ বাবে অতিৰিক্ত বোনাছ প্ৰদান কৰিলে।`,
+        bn: `সহায়িকা ছবি (Ghost Guide) বন্ধ রাখার জন্য AI স্থানিক নির্মাণ ক্ষমতার জন্য অতিরিক্ত বোনাস প্রদান করল।`,
+        hi: `सहायक चित्र (Ghost Guide) बंद रखने के कारण AI ने मानसिक दृश्य-रचना हेतु अतिरिक्त θ बोनस दिया।`,
+        en: `Ghost Guide OFF: AI credited unassisted mental visualization with an enhanced 2PL IRT ability bonus (+θ).`,
+      };
+    } else if (manualStraightens > 0) {
+      settingsImpactRationale = {
+        as: `ট্ৰে' পোন কৰা (Straighten All) অনুৰোধ (${manualStraightens}বাৰ): AI এ কোণীয় চাপ লাঘৱ কৰি ০° পোন স্থানত স্থিৰ ৰাখিলে।`,
+        bn: `ট্রে সোজা করার (Straighten All) অনুরোধ (${manualStraightens}বার): AI কোণীয় চাপ লাঘব করে ০° সোজা অবস্থানে স্থির রাখল।`,
+        hi: `सीधा करने का अनुरोध (${manualStraightens} बार): AI ने घूर्णन भ्रम कम करने हेतु 0° सीधा अभिविन्यास सुरक्षित रखा।`,
+        en: `Straighten All requested (${manualStraightens}x): AI recognized angular disorientation and locked rotation to 0° upright.`,
+      };
+    } else if (manualScrambles > 0) {
+      settingsImpactRationale = {
+        as: `স্বেচ্ছামূলক কোণ সালসলনি (Scramble): ৰোগীয়ে প্ৰত্যাহ্বান বাছি লোৱাৰ বাবে AI এ কোণ ঘূৰ্ণন সক্রিয় ৰাখিলে।`,
+        bn: `স্বেচ্ছামূলক কোণ পরিবর্তন (Scramble): রোগী চ্যালেঞ্জ বেছে নেওয়ার কারণে AI কোণ ঘূর্ণন সক্রিয় রাখল।`,
+        hi: `स्वैच्छिक घूर्णन चुनौती (Scramble): रोगी द्वारा सक्रिय चुनौती चुनने पर AI ने घूर्णन कठिनाई में वृद्धि की।`,
+        en: `Manual Scramble engaged: Patient actively sought angular rotation challenge; AI escalated parietal demands.`,
+      };
+    } else {
+      settingsImpactRationale = {
+        as: `মানক সহায়িকা সক্ৰিয়: AI এ সংবেদনশীল সহায়ৰ সৈতে স্থানিক দক্ষতা পৰ্যবেক্ষণ কৰিছে।`,
+        bn: `মানক সহায়িকা সক্রিয়: AI সংবেদনশীল সহায়তার সাথে স্থানিক দক্ষতা পর্যবেক্ষণ করছে।`,
+        hi: `मानक मार्गदर्शन सक्रिय: AI सहायक चित्र के साथ स्थानिक क्षमता का विश्लेषण कर रहा है।`,
+        en: `Standard scaffolding active: Visual ghost guide provided baseline coordinate support.`,
+      };
+    }
 
     if (isFullSolveSuccess && !usedAutoAssist && misplacements <= 1) {
       this.consecutiveSuccesses++;
       this.consecutiveErrors = 0;
 
       const expectedProb = 1 / (1 + Math.exp(-discriminationA * (this.currentTheta - itemDifficultyB)));
-      const delta = (1 - expectedProb) * 0.28;
+      const baseMultiplier = ghostOff ? 0.38 : 0.28;
+      const delta = (1 - expectedProb) * baseMultiplier + (manualScrambles > 0 ? 0.04 : 0.0);
       this.currentTheta = Math.min(3.0, this.currentTheta + delta);
 
       // Titrate difficulty smoothly
-      this.currentDifficulty = this.deriveDifficultyFromTheta(this.currentTheta);
+      let nextDiff = this.deriveDifficultyFromTheta(this.currentTheta);
+      if (this.patientPrefersUpright && nextDiff.allowRotation) {
+        nextDiff = {
+          ...nextDiff,
+          allowRotation: false,
+          rotationModes: [0],
+          trayOrientationPerturbation: 'none',
+        };
+      }
+      this.currentDifficulty = nextDiff;
 
       if (this.currentDifficulty.tierLevel > currentDiff.tierLevel) {
         reasoning = {
-          as: `উচ্চ স্থানিক সমন্বয় পৰিলক্ষিত (θ: ${this.currentTheta.toFixed(2)})! AI এ স্তৰ ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} টুকুৰা) লৈ ন্যূনতম পৰিৱৰ্তন কৰি সহায়িকা স্বচ্ছতা হ্ৰাস কৰিলে।`,
-          bn: `উচ্চ স্থানিক সমন্বয় পরিলক্ষিত (θ: ${this.currentTheta.toFixed(2)})! AI স্তর ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} টুকরো)-এ মসৃণ পরিবর্তন করে সহায়ক স্বচ্ছতা হ্রাস করল।`,
-          hi: `उत्कृष्ट स्थानिक संतुलन (θ: ${this.currentTheta.toFixed(2)})! AI ने स्तर ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} टुकड़े) पर सूक्ष्म समायोजन किया।`,
-          en: `High spatial praxis observed (θ: ${this.currentTheta.toFixed(2)})! AI titrated smoothly to Tier ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} pieces) with ${Math.round(this.currentDifficulty.ghostOpacity * 100)}% ghost guide.`,
+          as: `উচ্চ স্থানিক সমন্বয় পৰিলক্ষিত (θ: ${this.currentTheta.toFixed(2)})! AI এ স্তৰ ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} টুকুৰা) লৈ সংগতিপূৰ্ণভাৱে বৃদ্ধি কৰিলে। ${ghostOff ? '(সহায়িকা অবিহনে সফল)' : ''}`,
+          bn: `উচ্চ স্থানিক সমন্বয় পরিলক্ষিত (θ: ${this.currentTheta.toFixed(2)})! AI স্তর ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} টুকরো)-এ বৃদ্ধি করল। ${ghostOff ? '(সহায়িকা ছাড়া সফল)' : ''}`,
+          hi: `उत्कृष्ट स्थानिक संतुलन (θ: ${this.currentTheta.toFixed(2)})! AI ने स्तर ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} टुकड़े) पर समायोजन किया। ${ghostOff ? '(मार्गदर्शक के बिना सफल)' : ''}`,
+          en: `High spatial praxis observed (θ: ${this.currentTheta.toFixed(2)})! AI titrated smoothly to Tier ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} pieces). ${ghostOff ? 'Solved without ghost guide (+IRT bonus applied).' : ''}`,
         };
       } else {
         reasoning = {
           as: `সফল সমাধান। স্থানিক ক্ষমতা θ: ${prevTheta.toFixed(2)} ৰ পৰা ${this.currentTheta.toFixed(2)} লৈ বৃদ্ধি পালে।`,
           bn: `সফল সমাধান। স্থানিক ক্ষমতা θ: ${prevTheta.toFixed(2)} থেকে ${this.currentTheta.toFixed(2)}-এ বৃদ্ধি পেল।`,
           hi: `सफल समाधान। स्थानिक क्षमता θ: ${prevTheta.toFixed(2)} से बढ़कर ${this.currentTheta.toFixed(2)} हो गई।`,
-          en: `Accurate solve. Spatial ability theta consolidated from ${prevTheta.toFixed(2)} to ${this.currentTheta.toFixed(2)}.`,
+          en: `Accurate solve. Spatial ability theta consolidated from ${prevTheta.toFixed(2)} to ${this.currentTheta.toFixed(2)}. ${ghostOff ? 'Unassisted bonus incorporated.' : ''}`,
         };
       }
     } else {
       this.consecutiveErrors++;
       this.consecutiveSuccesses = 0;
 
-      const delta = (usedAutoAssist ? 0.35 : 0.20) + Math.min(0.15, misplacements * 0.04);
+      // If ghost guide was turned off, patient attempted high-autonomy mode; do not over-penalize
+      const penaltyScale = ghostOff ? 0.75 : 1.0;
+      const delta = ((usedAutoAssist ? 0.35 : 0.20) + Math.min(0.15, misplacements * 0.04)) * penaltyScale;
       this.currentTheta = Math.max(-3.0, this.currentTheta - delta);
 
-      this.currentDifficulty = this.deriveDifficultyFromTheta(this.currentTheta);
+      let nextDiff = this.deriveDifficultyFromTheta(this.currentTheta);
+      if (this.patientPrefersUpright && nextDiff.allowRotation) {
+        nextDiff = {
+          ...nextDiff,
+          allowRotation: false,
+          rotationModes: [0],
+          trayOrientationPerturbation: 'none',
+        };
+      }
+      this.currentDifficulty = nextDiff;
 
       if (this.currentDifficulty.totalPieces === 2) {
         reasoning = {
@@ -540,7 +634,7 @@ export class JigsawPraxisEngine {
       }
     }
 
-    return { newTheta: this.currentTheta, reasoning };
+    return { newTheta: this.currentTheta, reasoning, settingsImpactRationale, autonomyScore };
   }
 
   /**
@@ -554,7 +648,8 @@ export class JigsawPraxisEngine {
   }
 
   /**
-   * Compiles the complete clinical session summary payload for Caregiver Dashboard & Physician Reports.
+   * Compiles the complete clinical session summary payload for Caregiver Dashboard & Physician Reports,
+   * including comprehensive patient settings autonomy ratings and scaffolding utilization profiles.
    */
   public compileSessionSummary(
     trials: PuzzleTrialTelemetry[],
@@ -579,6 +674,40 @@ export class JigsawPraxisEngine {
       (acc, t) => acc + (t.aiDynamicActions?.length || 0), 
       0
     );
+
+    // Settings Analysis Aggregations
+    const ghostOnCount = trials.filter(t => t.settingsSnapshot?.ghostGuideVisible !== false).length;
+    const ghostGuideReliancePercentage = totalPuzzles > 0 ? Math.round((ghostOnCount / totalPuzzles) * 100) : 0;
+    const ghostOffCount = totalPuzzles - ghostOnCount;
+
+    const totalManualStraightens = trials.reduce((acc, t) => acc + (t.settingsSnapshot?.manualStraightenCount || 0), 0);
+    const totalManualScrambles = trials.reduce((acc, t) => acc + (t.settingsSnapshot?.manualScrambleCount || 0), 0);
+
+    const meanAutonomy = totalPuzzles > 0
+      ? Math.round(trials.reduce((acc, t) => acc + (t.autonomyScore ?? 50), 0) / totalPuzzles)
+      : 50;
+
+    let patientSettingsAutonomyRating: 'autonomous_mastery' | 'moderate_scaffolding' | 'high_scaffolding_reliance' = 'moderate_scaffolding';
+    if (meanAutonomy >= 75) {
+      patientSettingsAutonomyRating = 'autonomous_mastery';
+    } else if (meanAutonomy < 45) {
+      patientSettingsAutonomyRating = 'high_scaffolding_reliance';
+    }
+
+    const ghostGuideIndependence = ghostOffCount > 0
+      ? `Ghost Guide was turned OFF in ${ghostOffCount} of ${totalPuzzles} round(s) (${Math.round((ghostOffCount / totalPuzzles) * 100)}% unassisted visual synthesis).`
+      : `Ghost Guide was maintained across all rounds, providing consistent visual reference scaffolding.`;
+
+    const rotationalAssistanceReliance = totalManualStraightens > 0
+      ? `Patient requested manual tray straightening ${totalManualStraightens} time(s); AI adapted by anchoring pieces upright (0°) to preserve construction flow.`
+      : (totalManualScrambles > 0
+          ? `Patient proactively engaged "Scramble Angles" ${totalManualScrambles} time(s), demonstrating high rotational resilience.`
+          : `Zero manual orientation overrides; spontaneous angular alignment preserved.`);
+
+    const filteredCount = trials.filter(t => t.settingsSnapshot?.trayFilterUsed && t.settingsSnapshot.trayFilterUsed !== 'all').length;
+    const executiveChunkingStrategy = filteredCount > 0
+      ? `Patient actively employed tray category filtering (corners/edges) in ${filteredCount} trial(s), reflecting preserved executive planning.`
+      : `Direct full-tray visual scanning utilized across all trials.`;
 
     // WAIS-IV Block Design equivalent score (0 to 5 points)
     const spatialPraxisScore = Math.max(0, Math.min(5, Math.round((this.currentTheta + 2.5) * 1.0)));
@@ -624,12 +753,29 @@ export class JigsawPraxisEngine {
       parietalPraxisRating,
       tremorTapsFilteredCount: this.tremorTapsFilteredCount,
       scaffoldingReliancePercentage,
+      ghostGuideReliancePercentage,
+      totalManualStraightens,
+      totalManualScrambles,
+      patientSettingsAutonomyRating,
+      settingsAnalysisReport: {
+        ghostGuideIndependence,
+        rotationalAssistanceReliance,
+        executiveChunkingStrategy,
+      },
       finalTheta: Number(this.currentTheta.toFixed(2)),
       autoAssistedRounds,
       completedAt: new Date().toISOString(),
       caregiverEndedEarly,
       trials,
     };
+  }
+
+  public getPatientPrefersUpright(): boolean {
+    return this.patientPrefersUpright;
+  }
+
+  public setPatientPrefersUpright(pref: boolean): void {
+    this.patientPrefersUpright = pref;
   }
 
   public getDifficulty(): JigsawDifficulty {

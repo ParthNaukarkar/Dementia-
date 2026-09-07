@@ -58,6 +58,17 @@ export interface AIDynamicAction {
   piecesAffected: number;
 }
 
+export interface TrialSettingsSnapshot {
+  ghostGuideVisible: boolean;
+  audioMuted: boolean;
+  manualStraightenCount: number;
+  manualScrambleCount: number;
+  manualPieceRotationsCount: number;
+  trayFilterUsed: 'all' | 'corners' | 'edges' | 'centers';
+  proactiveHelpRequested: boolean;
+  isManualTierOverride: boolean;
+}
+
 export interface PuzzleTrialTelemetry {
   trialIndex: number;
   puzzleImageId: string;
@@ -74,6 +85,9 @@ export interface PuzzleTrialTelemetry {
   thetaAfterTrial: number;
   difficultySnapshot: JigsawDifficulty;
   aiAdaptiveReasoning: Record<SupportedLanguage, string>;
+  settingsSnapshot: TrialSettingsSnapshot;
+  settingsImpactRationale: Record<SupportedLanguage, string>;
+  autonomyScore: number; // 0 to 100%
   aiDynamicActions: AIDynamicAction[];
   placementHistory: PiecePlacementEvent[];
 }
@@ -94,6 +108,15 @@ export interface JigsawSessionSummary {
   parietalPraxisRating: ParietalPraxisRating;
   tremorTapsFilteredCount: number;
   scaffoldingReliancePercentage: number;
+  ghostGuideReliancePercentage: number; // % of trials where ghost guide was kept ON
+  totalManualStraightens: number;
+  totalManualScrambles: number;
+  patientSettingsAutonomyRating: 'autonomous_mastery' | 'moderate_scaffolding' | 'high_scaffolding_reliance';
+  settingsAnalysisReport: {
+    ghostGuideIndependence: string;
+    rotationalAssistanceReliance: string;
+    executiveChunkingStrategy: string;
+  };
   finalTheta: number;              // Continuous ability parameter (-3.0 to +3.0)
   autoAssistedRounds: number;
   completedAt: string;
