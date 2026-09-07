@@ -1,6 +1,7 @@
 import type { SupportedLanguage } from '../../types/prescription';
 
 export type VisuomotorProfile = 'fluid' | 'hesitant' | 'tremor_dominant' | 'marked_apraxia';
+export type ParietalPraxisRating = 'preserved' | 'mild_slowing' | 'marked_constructional_apraxia';
 
 export interface PuzzleImage {
   id: string;
@@ -58,6 +59,7 @@ export interface PuzzleTrialTelemetry {
   autoAssistedPiecesCount: number;
   thetaAfterTrial: number;
   difficultySnapshot: JigsawDifficulty;
+  aiAdaptiveReasoning: Record<SupportedLanguage, string>;
   placementHistory: PiecePlacementEvent[];
 }
 
@@ -71,6 +73,9 @@ export interface JigsawSessionSummary {
   spatialPraxisScore: number;       // 0 to 5 points (WAIS-IV Block Design equivalent)
   estimatedCERADPraxisScore: number;// 0 to 14 standard points
   visuomotorProfile: VisuomotorProfile;
+  parietalPraxisRating: ParietalPraxisRating;
+  tremorTapsFilteredCount: number;
+  scaffoldingReliancePercentage: number;
   finalTheta: number;              // Continuous ability parameter (-3.0 to +3.0)
   autoAssistedRounds: number;
   completedAt: string;

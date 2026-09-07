@@ -10,7 +10,10 @@ import {
   CheckCircle2, 
   ArrowRight, 
   ShieldCheck, 
-  Timer
+  Timer,
+  ImageIcon,
+  Brain,
+  Zap
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { 
@@ -26,8 +29,7 @@ import { jigsawAudio } from './audio';
 
 /**
  * High-precision Piece Slice Renderer.
- * Slices the full-size vector artwork so that piece (col, row) fills the slot 100% edge-to-edge
- * with zero empty borders or scaling distortion.
+ * Slices the full-size vector artwork so that piece (col, row) fills the slot 100% edge-to-edge.
  */
 function PieceRenderer({
   col,
@@ -68,7 +70,7 @@ function PieceRenderer({
 
 export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   language = 'as',
-  totalPuzzles = 3,
+  totalPuzzles = 4,
   initialTheta = 0.0,
   onTrialComplete,
   onSessionComplete,
@@ -77,13 +79,29 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   // Initialize Engine
   const engine = useMemo(() => new JigsawPraxisEngine(initialTheta), [initialTheta]);
 
+  // Shuffled artwork playlist so elder never sees the same 3 in identical order
+  const shuffledImages = useMemo(() => {
+    const list = [...PUZZLE_IMAGES];
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+  }, []);
+
   // Current Puzzle State
   const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(0);
+  const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
+  const [showArtworkPicker, setShowArtworkPicker] = useState(false);
   const [difficulty, setDifficulty] = useState<JigsawDifficulty>(() => engine.getDifficulty());
   const [pieces, setPieces] = useState<PuzzlePiece[]>([]);
   const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
   const [isGhostVisible, setIsGhostVisible] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
+
+  // Live AI Adaptation Messaging
+  const [aiLiveReasoning, setAiLiveReasoning] = useState<string>('');
+  const [aiAdaptationFlash, setAiAdaptationFlash] = useState(false);
 
   // Timers & Telemetry Tracking
   const [puzzleStartTime, setPuzzleStartTime] = useState<number>(Date.now());
@@ -103,8 +121,14 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   // Auto-Assist Idle Timer
   const autoAssistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Current Artwork
-  const currentImage = PUZZLE_IMAGES[currentPuzzleIndex % PUZZLE_IMAGES.length];
+  // Current Artwork (Either manually selected from gallery or auto-sequenced)
+  const currentImage = useMemo(() => {
+    if (selectedArtworkId) {
+      const found = PUZZLE_IMAGES.find(img => img.id === selectedArtworkId);
+      if (found) return found;
+    }
+    return shuffledImages[currentPuzzleIndex % shuffledImages.length];
+  }, [selectedArtworkId, shuffledImages, currentPuzzleIndex]);
 
   // Localized Strings
   const t = {
@@ -143,6 +167,12 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       bn: 'সহায়তা নিন (Help Me)',
       hi: 'मदद लें (Help Me)',
       en: 'Gentle Hint',
+    },
+    chooseArt: {
+      as: 'ছবি বাছক (Gallery)',
+      bn: 'ছবি নির্বাচন (Gallery)',
+      hi: 'चित्र चुनें (Gallery)',
+      en: 'Art Gallery',
     },
     completedPuzzleTitle: {
       as: 'অপূৰ্ব! ছবিখন সম্পূৰ্ণ হ’ল!',
@@ -204,13 +234,13 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     jigsawAudio.speakGuidance('intro', language);
   }, [engine, language]);
 
-  // Load puzzle on index change
+  // Load puzzle on index or artwork change
   useEffect(() => {
     initPuzzle(currentPuzzleIndex);
     return () => {
       if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
     };
-  }, [currentPuzzleIndex, initPuzzle]);
+  }, [currentPuzzleIndex, selectedArtworkId, initPuzzle]);
 
   // Elapsed timer tick
   useEffect(() => {
@@ -336,7 +366,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     }
   };
 
-  // Handle Full Puzzle Completion
+  // Handle Full Puzzle Completion & Real-time AI Parameter Adaptation
   const handlePuzzleCompleted = (solvedPieces: PuzzlePiece[]) => {
     setIsPuzzleSolved(true);
     if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
@@ -350,7 +380,15 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     } catch {}
 
     const totalSolveTimeMs = Date.now() - puzzleStartTime;
-    const newTheta = engine.updateTheta(true, misplacements, wasAutoAssisted);
+    
+    // AI Bayesian Theta & DDA Step
+    const { newTheta, reasoning } = engine.updateTheta(true, misplacements, wasAutoAssisted);
+    const newDiff = engine.getDifficulty();
+    
+    // Flash AI reasoning on screen
+    setAiLiveReasoning(reasoning[language] || reasoning.en);
+    setAiAdaptationFlash(true);
+    setTimeout(() => setAiAdaptationFlash(false), 5000);
 
     const trialTelemetry: PuzzleTrialTelemetry = {
       trialIndex: currentPuzzleIndex + 1,
@@ -364,7 +402,8 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       wasAutoAssisted,
       autoAssistedPiecesCount,
       thetaAfterTrial: Number(newTheta.toFixed(2)),
-      difficultySnapshot: difficulty,
+      difficultySnapshot: newDiff,
+      aiAdaptiveReasoning: reasoning,
       placementHistory,
     };
 
@@ -375,6 +414,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   // Advance to Next Puzzle or Finish
   const handleNextOrFinish = () => {
     if (currentPuzzleIndex + 1 < totalPuzzles) {
+      setSelectedArtworkId(null);
       setCurrentPuzzleIndex(prev => prev + 1);
     } else {
       setIsSessionFinished(true);
@@ -383,19 +423,23 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     }
   };
 
+  // Switch to specific artwork from gallery
+  const handleSelectArtworkFromGallery = (artId: string) => {
+    setSelectedArtworkId(artId);
+    setShowArtworkPicker(false);
+  };
+
   // Audio mute toggle
   const handleToggleMute = () => {
     const next = jigsawAudio.toggleMute();
     setIsMuted(next);
   };
 
-  // Calculate cell aspect ratio (width / height)
-  // Since the whole board is 1:1 square, cell width is 1/cols and cell height is 1/rows.
-  // So width / height = (1/cols) / (1/rows) = rows / cols.
+  // Aspect ratio of the piece slot
   const cellAspectRatio = `${difficulty.gridRows} / ${difficulty.gridCols}`;
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-7 max-w-5xl mx-auto space-y-6 animate-fadeIn select-none">
+    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-7 max-w-5xl mx-auto space-y-5 animate-fadeIn select-none">
       
       {/* 1. TOP HEADER & ACCESSIBILITY CONTROLS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
@@ -426,6 +470,16 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             <span className="text-slate-400">·</span>
             <span className="text-amber-700 font-black">{elapsedSeconds}s</span>
           </div>
+
+          {/* Gallery Artwork Picker */}
+          <button
+            onClick={() => setShowArtworkPicker(v => !v)}
+            title="Browse All 8 Heritage Artworks"
+            className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all"
+          >
+            <ImageIcon className="w-4 h-4 text-amber-600" />
+            <span className="hidden sm:inline">{t.chooseArt[language]}</span>
+          </button>
 
           {/* Ghost Guide Toggle */}
           <button
@@ -475,7 +529,74 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
         </div>
       </div>
 
-      {/* 2. MAIN PUZZLE WORKSPACE */}
+      {/* 2. ARTWORK PICKER DRAWER (GALLERY OF ALL 8 NORTHEAST ICONS) */}
+      {showArtworkPicker && (
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 animate-fadeIn">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-black uppercase text-slate-800">
+              Cultural Artworks Gallery ({PUZZLE_IMAGES.length} Available)
+            </h4>
+            <span className="text-[11px] text-slate-500">Tap any artwork to load immediately</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {PUZZLE_IMAGES.map(img => (
+              <button
+                key={img.id}
+                onClick={() => handleSelectArtworkFromGallery(img.id)}
+                className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all flex flex-col gap-1.5 ${
+                  currentImage.id === img.id
+                    ? 'bg-amber-100 border-amber-500 ring-2 ring-amber-400'
+                    : 'bg-white hover:bg-slate-100 border-slate-200'
+                }`}
+              >
+                <div className="w-full aspect-square rounded-lg overflow-hidden border border-slate-300/60 bg-slate-900 pointer-events-none" dangerouslySetInnerHTML={{ __html: img.svgArt }} />
+                <p className="text-[11px] font-black text-slate-800 truncate">{img.titles[language]}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 3. LIVE AI ADAPTIVE REASONING & ACTIVE PARAMETERS HUD */}
+      <div className={`p-3.5 rounded-2xl border transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-3 ${
+        aiAdaptationFlash 
+          ? 'bg-amber-100/90 border-amber-400 shadow-md ring-2 ring-amber-300' 
+          : 'bg-gradient-to-r from-slate-50 via-amber-50/40 to-slate-50 border-slate-200/80'
+      }`}>
+        <div className="flex items-start gap-2.5 min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+            <Zap className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-1">
+              <span>Live AI Adaptive Clinical Engine</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
+            </span>
+            <p className="text-xs text-slate-700 font-medium leading-relaxed truncate">
+              {aiLiveReasoning || `Real-time Bayesian 2PL IRT monitoring active (θ: ${engine.getTheta() >= 0 ? '+' : ''}${engine.getTheta().toFixed(2)}). Titrating piece count, ghost transparency, and magnetic snap.`}
+            </p>
+          </div>
+        </div>
+
+        {/* 4 Active Parameter Chips */}
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
+          <span className="text-[10px] font-bold bg-white text-slate-700 px-2 py-1 rounded-lg border border-slate-200">
+            Grid: <strong>{difficulty.gridCols}×{difficulty.gridRows}</strong>
+          </span>
+          <span className="text-[10px] font-bold bg-white text-slate-700 px-2 py-1 rounded-lg border border-slate-200">
+            Ghost: <strong>{Math.round(difficulty.ghostOpacity * 100)}%</strong>
+          </span>
+          <span className="text-[10px] font-bold bg-white text-slate-700 px-2 py-1 rounded-lg border border-slate-200">
+            Snap: <strong>{difficulty.snapMarginPx}px</strong>
+          </span>
+          <span className="text-[10px] font-bold bg-white text-slate-700 px-2 py-1 rounded-lg border border-slate-200">
+            Rotation: <strong>{difficulty.allowRotation ? '90° Enabled' : '0° Locked'}</strong>
+          </span>
+        </div>
+      </div>
+
+      {/* 4. MAIN PUZZLE WORKSPACE */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* LEFT COLUMN: TARGET ASSEMBLY CANVAS (7 COLS) */}
@@ -549,13 +670,12 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                             svgArt={currentImage.svgArt}
                             rotation={placedPiece.rotation}
                           />
-                          {/* Locked subtle badge */}
                           <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md">
                             <CheckCircle2 className="w-4 h-4" />
                           </div>
                         </div>
                       ) : (
-                        /* Empty Slot Placeholder with guide coordinates */
+                        /* Empty Slot Placeholder */
                         <div className="text-center p-2">
                           <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center mx-auto text-xs font-black text-white/80 shadow-xs">
                             {r * difficulty.gridCols + c + 1}
@@ -573,7 +693,6 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
 
           </div>
 
-          {/* Guidance Caption */}
           <p className="text-xs text-slate-500 font-medium text-center mt-3 max-w-sm leading-relaxed">
             {t.tapToPlace[language]}
           </p>
@@ -597,7 +716,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             )}
           </div>
 
-          {/* Unplaced Pieces Tray: Pieces now render with 100% matching slot aspect ratio */}
+          {/* Unplaced Pieces Tray: Pieces render with 100% matching slot aspect ratio */}
           <div className="p-4 rounded-3xl bg-slate-50 border border-slate-200 min-h-[280px] grid grid-cols-2 gap-4 max-h-[460px] overflow-y-auto">
             {pieces.filter(p => !p.isLocked).map(piece => {
               const isSelected = selectedPieceId === piece.id;
@@ -664,7 +783,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             </div>
             <p className="text-[11px] leading-relaxed">
               Pieces match the puzzle grid slot dimensions with full-bleed vector precision.
-              Ghost guide opacity is dynamically set to <strong>{Math.round(difficulty.ghostOpacity * 100)}%</strong>.
+              Ghost guide opacity is dynamically titrated to <strong>{Math.round(difficulty.ghostOpacity * 100)}%</strong>.
             </p>
           </div>
 
@@ -672,7 +791,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
 
       </div>
 
-      {/* 3. PUZZLE COMPLETED CELEBRATION BANNER */}
+      {/* 5. PUZZLE COMPLETED CELEBRATION BANNER */}
       {isPuzzleSolved && (
         <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-50 via-teal-50 to-amber-50 border-2 border-emerald-300 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 animate-scaleUp">
           <div className="flex items-center gap-4">
@@ -702,40 +821,44 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
         </div>
       )}
 
-      {/* 4. SESSION FINISHED RECAP MODAL */}
+      {/* 6. COMPREHENSIVE CLINICAL ANALYSIS MODAL */}
       {isSessionFinished && (
-        <div className="p-8 rounded-3xl bg-white border-2 border-slate-300 shadow-xl space-y-6 text-center animate-fadeIn">
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center mx-auto text-3xl shadow-md">
-            🏆
-          </div>
-
-          <div>
+        <div className="p-8 rounded-3xl bg-white border-2 border-slate-300 shadow-2xl space-y-6 animate-fadeIn">
+          
+          <div className="text-center space-y-1.5">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center mx-auto text-3xl shadow-md">
+              🏆
+            </div>
             <h3 className="text-2xl font-black text-slate-900">
-              Visuoconstructional Praxis Session Complete
+              Visuoconstructional Praxis Clinical Analysis
             </h3>
-            <p className="text-xs text-slate-500 font-medium mt-1">
-              WAIS-IV Block Design & CERAD Visuomotor Analysis
+            <p className="text-xs text-slate-500 font-medium">
+              Standardized WAIS-IV Block Design & CERAD Visuomotor Assessment
             </p>
           </div>
 
-          {/* 3 Metric Tiles */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+          {/* 6 Comprehensive Clinical Metrics Tiles */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 text-left">
+            
+            {/* 1. WAIS-IV Block Design Score */}
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Spatial Praxis Score</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase">WAIS-IV Praxis</span>
               <p className="text-2xl font-black text-slate-900 mt-0.5">
                 {Math.max(0, Math.min(5, Math.round((engine.getTheta() + 2.5))))} / 5
               </p>
-              <span className="text-[11px] text-emerald-700 font-semibold">WAIS-IV Equivalent</span>
+              <span className="text-[11px] text-emerald-700 font-semibold">Standard Praxis</span>
             </div>
 
+            {/* 2. CERAD Praxis Scale */}
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">CERAD Standard Index</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase">CERAD Index</span>
               <p className="text-2xl font-black text-amber-700 mt-0.5">
                 {Math.max(0, Math.min(14, Math.round((engine.getTheta() + 2.5) * 2.8)))} / 14
               </p>
-              <span className="text-[11px] text-slate-500 font-semibold">Constructional Praxis</span>
+              <span className="text-[11px] text-slate-500 font-semibold">Visuomotor Score</span>
             </div>
 
+            {/* 3. Latent Ability Theta */}
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
               <span className="text-[10px] font-bold text-slate-400 uppercase">Latent Ability θ</span>
               <p className="text-2xl font-black text-indigo-700 mt-0.5">
@@ -743,6 +866,47 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
               </p>
               <span className="text-[11px] text-indigo-600 font-semibold">2PL IRT Calibration</span>
             </div>
+
+            {/* 4. Right Parietal Function */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Parietal Function</span>
+              <p className="text-base font-black text-slate-900 mt-1 capitalize">
+                {engine.compileSessionSummary(sessionTrials).parietalPraxisRating.replace(/_/g, ' ')}
+              </p>
+              <span className="text-[11px] text-slate-500 font-semibold">Coordinate Mapping</span>
+            </div>
+
+            {/* 5. Tremor Filtration Audit */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Tremor Guard</span>
+              <p className="text-2xl font-black text-emerald-700 mt-0.5">
+                {engine.getTremorFilteredCount()} Filtered
+              </p>
+              <span className="text-[11px] text-emerald-600 font-semibold">400ms Debounce</span>
+            </div>
+
+            {/* 6. Visuomotor Trajectory Profile */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Motor Profile</span>
+              <p className="text-base font-black text-slate-900 mt-1 capitalize">
+                {engine.compileSessionSummary(sessionTrials).visuomotorProfile.replace(/_/g, ' ')}
+              </p>
+              <span className="text-[11px] text-slate-500 font-semibold">Tactile Trajectory</span>
+            </div>
+
+          </div>
+
+          {/* AI Clinical Diagnostic Synthesis */}
+          <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-left space-y-1">
+            <div className="flex items-center gap-2 font-black text-xs text-amber-950 uppercase">
+              <Brain className="w-4 h-4 text-amber-700" />
+              <span>AI Clinical Diagnostic Summary</span>
+            </div>
+            <p className="text-xs text-amber-900/90 leading-relaxed">
+              Patient completed <strong>{sessionTrials.length} puzzles</strong> with an accuracy rate of <strong>{sessionTrials.length > 0 ? Math.round((sessionTrials.filter(t => t.piecesPlacedCorrectly === t.totalPieces).length / sessionTrials.length) * 100) : 100}%</strong>.
+              Average construction solve time: <strong>{sessionTrials.length > 0 ? Math.round(sessionTrials.reduce((a, b) => a + b.totalSolveTimeMs, 0) / sessionTrials.length / 1000) : 0}s</strong>.
+              The AI titrated spatial difficulty across piece counts ({difficulty.gridCols}×{difficulty.gridRows}) and ghost underlay guidance, maintaining optimal neuroplastic challenge without triggering anxiety.
+            </p>
           </div>
 
           <button
