@@ -48,6 +48,9 @@ import { BihuTaal } from './games/bihu-taal/BihuTaal';
 import { JigsawPuzzle } from './games/jigsaw-puzzle';
 import { NumberRecall } from './games/number-recall';
 import { WhatChanged } from './games/what-changed';
+import { PatternRecall } from './games/pattern-recall';
+import { OddOneOut } from './games/odd-one-out';
+import { WhereAmI } from './games/where-am-i';
 import { InteractiveCognitiveExercise } from './components/games/InteractiveCognitiveExercise';
 import { WorkoutProgressHeader } from './components/workout/WorkoutProgressHeader';
 import { WorkoutIntermissionModal } from './components/workout/WorkoutIntermissionModal';
@@ -1510,6 +1513,72 @@ export function App() {
                       />
                     )}
 
+                    {/* Game 8: Pattern Recall */}
+                    {activeGameId === 'pattern-recall' && (
+                      <PatternRecall
+                        language={selectedLanguage}
+                        totalTrials={5}
+                        onSessionComplete={(summary) => {
+                          const report = {
+                            ...summary,
+                            gameId: 'pattern-recall',
+                            gameTitle: 'Pattern Recall (Noxar Chonda)',
+                            totalRounds: summary.totalTrials,
+                            totalCorrect: summary.correctTrials,
+                            averageLatencyMs: summary.meanDeliberationMs,
+                            finalTheta: summary.accuracyPercentage >= 85 ? 1.15 : summary.accuracyPercentage >= 70 ? 0.45 : -0.25,
+                            completedAt: new Date().toISOString(),
+                          };
+                          handleRecordSessionSummary('pattern-recall', report);
+                        }}
+                        onExit={() => handleAdvanceWorkout('pattern-recall')}
+                      />
+                    )}
+
+                    {/* Game 9: Odd One Out */}
+                    {activeGameId === 'odd-one-out' && (
+                      <OddOneOut
+                        language={selectedLanguage}
+                        totalTrials={5}
+                        onSessionComplete={(summary) => {
+                          const report = {
+                            ...summary,
+                            gameId: 'odd-one-out',
+                            gameTitle: 'Odd One Out (Omilto Basoni)',
+                            totalRounds: summary.totalTrials,
+                            totalCorrect: summary.correctTrials,
+                            averageLatencyMs: summary.meanDeliberationMs,
+                            finalTheta: summary.accuracyPercentage >= 85 ? 1.15 : summary.accuracyPercentage >= 70 ? 0.45 : -0.25,
+                            completedAt: new Date().toISOString(),
+                          };
+                          handleRecordSessionSummary('odd-one-out', report);
+                        }}
+                        onExit={() => handleAdvanceWorkout('odd-one-out')}
+                      />
+                    )}
+
+                    {/* Game 10: Where Am I? */}
+                    {activeGameId === 'where-am-i' && (
+                      <WhereAmI
+                        language={selectedLanguage}
+                        totalTrials={5}
+                        onSessionComplete={(summary) => {
+                          const report = {
+                            ...summary,
+                            gameId: 'where-am-i',
+                            gameTitle: 'Where Am I? (Moi Kot Aso?)',
+                            totalRounds: summary.totalTrials,
+                            totalCorrect: summary.correctTrials,
+                            averageLatencyMs: summary.meanDeliberationMs,
+                            finalTheta: summary.accuracyPercentage >= 85 ? 1.15 : summary.accuracyPercentage >= 70 ? 0.45 : -0.25,
+                            completedAt: new Date().toISOString(),
+                          };
+                          handleRecordSessionSummary('where-am-i', report);
+                        }}
+                        onExit={() => handleAdvanceWorkout('where-am-i')}
+                      />
+                    )}
+
                     {/* Other Catalog Exercises */}
                     {activeGameId !== 'memory-match' &&
                      activeGameId !== 'word-recall' &&
@@ -1518,7 +1587,10 @@ export function App() {
                      activeGameId !== 'bihu-taal' &&
                      activeGameId !== 'jigsaw-puzzle' &&
                      activeGameId !== 'number-recall' &&
-                     activeGameId !== 'what-changed' && (
+                     activeGameId !== 'what-changed' &&
+                     activeGameId !== 'pattern-recall' &&
+                     activeGameId !== 'odd-one-out' &&
+                     activeGameId !== 'where-am-i' && (
                       <InteractiveCognitiveExercise
                         gameId={activeGameId}
                         language={selectedLanguage}
