@@ -60,6 +60,7 @@ export interface AIDynamicAction {
 
 export interface TrialSettingsSnapshot {
   ghostGuideVisible: boolean;
+  ghostOffPiecesPlacedCount: number; // Verification metric: count of pieces assembled while ghost was disabled
   audioMuted: boolean;
   manualStraightenCount: number;
   manualScrambleCount: number;

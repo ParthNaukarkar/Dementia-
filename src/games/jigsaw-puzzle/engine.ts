@@ -301,8 +301,14 @@ export class JigsawPraxisEngine {
 
   /**
    * Hardware Tremor Debounce Guard (400ms).
+   * Hardened against timestamp rollback and client clock skew.
    */
   public filterTremorTap(now: number = Date.now()): boolean {
+    if (now < this.lastTapTimestamp) {
+      // Clock skew or inverted timestamp detected: reset baseline to prevent permanent lockout
+      this.lastTapTimestamp = now;
+      return true;
+    }
     if (now - this.lastTapTimestamp < this.currentDifficulty.tremorDebounceMs) {
       this.tremorTapsFilteredCount++;
       return false; // Suppress duplicate motor tap
@@ -348,7 +354,7 @@ export class JigsawPraxisEngine {
 
   /**
    * Evaluates piece placement with precise rotation checking.
-   * Returns whether position matches and if rotation was the only error.
+   * Uses mathematical modular normalization to support 360°, 720°, or negative angle representations.
    */
   public evaluatePlacement(
     piece: PuzzlePiece,
@@ -357,7 +363,8 @@ export class JigsawPraxisEngine {
     currentRotation: number
   ): { isCorrect: boolean; wasCorrectPositionWrongAngle: boolean } {
     const isCorrectPos = piece.correctCol === targetCol && piece.correctRow === targetRow;
-    const isCorrectRot = currentRotation % 360 === 0;
+    const normalizedRot = ((Math.round(currentRotation) % 360) + 360) % 360;
+    const isCorrectRot = normalizedRot === 0;
     return {
       isCorrect: isCorrectPos && isCorrectRot,
       wasCorrectPositionWrongAngle: isCorrectPos && !isCorrectRot,
@@ -489,9 +496,12 @@ export class JigsawPraxisEngine {
     const prevTheta = this.currentTheta;
     const currentDiff = this.currentDifficulty;
 
-    const ghostOff = settings?.ghostGuideVisible === false;
-    const manualStraightens = settings?.manualStraightenCount || 0;
-    const manualScrambles = settings?.manualScrambleCount || 0;
+    // Unassisted bonus requires ghost guide OFF throughout the majority of placements (>= 75% of pieces assembled unassisted)
+    const ghostOff = (settings?.ghostGuideVisible === false) && 
+      (settings?.ghostOffPiecesPlacedCount === undefined || 
+       settings.ghostOffPiecesPlacedCount >= Math.max(1, Math.floor(currentDiff.totalPieces * 0.75)));
+    const manualStraightens = Math.min(5, settings?.manualStraightenCount || 0);
+    const manualScrambles = Math.min(3, settings?.manualScrambleCount || 0);
     const filterUsed = settings?.trayFilterUsed || 'all';
 
     // Track patient preference regarding rotations

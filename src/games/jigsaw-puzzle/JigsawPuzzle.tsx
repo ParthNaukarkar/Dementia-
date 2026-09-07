@@ -142,7 +142,8 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   const [puzzleStartTime, setPuzzleStartTime] = useState<number>(Date.now());
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [misplacements, setMisplacements] = useState(0);
-  const [rotationalErrorsCount, setRotationalErrorsCount] = useState(0);
+  const [rotationalErrorsCount, setRotationalErrorsCount] = useState(0); // Cumulative for clinical telemetry
+  const [ghostOffPiecesPlacedCount, setGhostOffPiecesPlacedCount] = useState(0); // Exploit verification metric
   const [rotationsUsed, setRotationsUsed] = useState(0);
   const [wasAutoAssisted, setWasAutoAssisted] = useState(false);
   const [autoAssistedPiecesCount, setAutoAssistedPiecesCount] = useState(0);
@@ -153,6 +154,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   const lastActionTimeRef = useRef<number>(Date.now());
   const consecutiveFastSolvesRef = useRef<number>(0);
   const lastPlacementTimeRef = useRef<number>(Date.now());
+  const liveRotationalErrorsRef = useRef<number>(0); // Transient trigger for live AI interventions
 
   // Completion State
   const [isPuzzleSolved, setIsPuzzleSolved] = useState(false);
@@ -300,6 +302,8 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     setManualStraightenCount(0);
     setManualScrambleCount(0);
     setProactiveHelpRequested(false);
+    setGhostOffPiecesPlacedCount(0);
+    liveRotationalErrorsRef.current = 0;
     consecutiveFastSolvesRef.current = 0;
     lastActionTimeRef.current = Date.now();
     lastPlacementTimeRef.current = Date.now();
@@ -376,7 +380,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     const { modifiedPieces, changedCount } = engine.straightenTrayPieces(pieces);
     if (changedCount > 0) {
       setPieces(modifiedPieces);
-      setRotationalErrorsCount(0);
+      liveRotationalErrorsRef.current = 0; // Reset live trigger without wiping cumulative telemetry!
       lastActionTimeRef.current = Date.now();
       jigsawAudio.playAutoAssistChime();
       setFeedbackBanner('🛡️ Tray auto-aligned to 0° upright. AI will prioritize upright pieces for patient comfort.');
@@ -421,6 +425,11 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     );
 
     if (isCorrect) {
+      // Track verification metric: pieces placed while ghost guide was OFF
+      if (!isGhostVisible) {
+        setGhostOffPiecesPlacedCount(c => c + 1);
+      }
+
       // Fast solve tracking
       const solveDelta = now - lastPlacementTimeRef.current;
       lastPlacementTimeRef.current = now;
@@ -472,7 +481,8 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     } else if (wasCorrectPositionWrongAngle) {
       // Placed in correct slot, but orientation was wrong!
       consecutiveFastSolvesRef.current = 0;
-      setRotationalErrorsCount(r => r + 1);
+      setRotationalErrorsCount(r => r + 1); // Cumulative trial metric
+      liveRotationalErrorsRef.current += 1; // Live trigger for AI intervention
       setMisplacements(m => m + 1);
 
       jigsawAudio.playRotateChime();
@@ -519,7 +529,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       
       const intervention = engine.analyzeLiveIntervention({
         consecutiveFastSolves: consecutiveFastSolvesRef.current,
-        rotationalErrorsCount,
+        rotationalErrorsCount: liveRotationalErrorsRef.current,
         idleTimeSeconds: idleSeconds,
         allowRotation: difficulty.allowRotation,
         currentPieces: pieces,
@@ -550,7 +560,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
         const { modifiedPieces, changedCount } = engine.straightenTrayPieces(pieces);
         if (changedCount > 0) {
           setPieces(modifiedPieces);
-          setRotationalErrorsCount(0);
+          liveRotationalErrorsRef.current = 0;
           lastActionTimeRef.current = Date.now();
           const rationaleText = intervention.rationale[language] || intervention.rationale.en;
           setAiLiveReasoning(rationaleText);
@@ -571,7 +581,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     }, 2000);
 
     return () => clearInterval(checkInterval);
-  }, [isPuzzleSolved, difficulty, pieces, rotationalErrorsCount, engine, language]);
+  }, [isPuzzleSolved, difficulty, pieces, engine, language]);
 
   // Handle Full Puzzle Completion & Real-time AI Parameter Adaptation
   const handlePuzzleCompleted = (solvedPieces: PuzzlePiece[]) => {
@@ -591,6 +601,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     // Trial Settings Snapshot
     const settingsSnapshot: TrialSettingsSnapshot = {
       ghostGuideVisible: isGhostVisible,
+      ghostOffPiecesPlacedCount,
       audioMuted: isMuted,
       manualStraightenCount,
       manualScrambleCount,
@@ -659,6 +670,15 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       const summary = engine.compileSessionSummary(sessionTrials);
       onSessionComplete?.(summary);
     }
+  };
+
+  // Caregiver / Patient Early Session Exit with Partial Telemetry Preservation
+  const handleExitSession = () => {
+    if (sessionTrials.length > 0) {
+      const summary = engine.compileSessionSummary(sessionTrials, true);
+      onSessionComplete?.(summary);
+    }
+    onExit?.();
   };
 
   // Switch to specific artwork from gallery
@@ -832,7 +852,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
           {/* Exit Button */}
           {onExit && (
             <button
-              onClick={onExit}
+              onClick={handleExitSession}
               className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition-all cursor-pointer"
             >
               {t.exit[language]}
