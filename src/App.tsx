@@ -43,6 +43,9 @@ import {
 import { TimeEngineDemo } from './components/time-engine/TimeEngineDemo';
 import { SmritiHaat, type SessionSummaryTelemetry } from './games/smriti-haat';
 import { SequenceRecall } from './games/sequence-recall';
+import { PatternRecall } from './games/pattern-recall';
+import { OddOneOut } from './games/odd-one-out';
+import { WhereAmI } from './games/where-am-i';
 import { MemoryMatch } from './games/memory-match/MemoryMatch';
 import { BihuTaal } from './games/bihu-taal/BihuTaal';
 import { JigsawPuzzle } from './games/jigsaw-puzzle';
@@ -837,7 +840,7 @@ function InsightCard({
   patientName: string;
   lastSessionReport: SessionSummaryTelemetry | null;
 }) {
-  const thetaFormatted = lastSessionReport ? lastSessionReport.finalTheta.toFixed(2) : '+0.45';
+  const thetaFormatted = lastSessionReport && lastSessionReport.finalTheta !== undefined ? lastSessionReport.finalTheta.toFixed(2) : '+0.45';
 
   return (
     <div style={{
@@ -859,7 +862,7 @@ function InsightCard({
           <strong style={{ color: 'var(--sky)', fontFamily: 'Manrope, sans-serif' }}>{cognitiveScore}</strong>.
           Model inference classifies current status as{' '}
           <strong style={{ color: '#2d8a5c' }}>{classification.predictedClass.split('(')[0].trim()}</strong>{' '}
-          ({(classification.confidenceScore * 100).toFixed(0)}% confidence).
+          ({classification?.confidenceScore ? (classification.confidenceScore * 100).toFixed(0) : '0'}% confidence).
         </p>
 
         {/* Score visual */}
@@ -1388,6 +1391,72 @@ export function App() {
                       />
                     )}
 
+                    {/* Game: Pattern Recall */}
+                    {activeGameId === 'pattern-recall' && (
+                      <PatternRecall
+                        language={selectedLanguage}
+                        totalTrials={5}
+                        onSessionComplete={(summary) => {
+                          const report = {
+                            ...summary,
+                            gameId: 'pattern-recall',
+                            gameTitle: 'Pattern Recall (Noxar Chonda)',
+                            totalRounds: summary.totalTrials,
+                            totalCorrect: summary.correctTrials,
+                            averageLatencyMs: summary.meanDeliberationMs,
+                            finalTheta: summary.accuracyPercentage >= 85 ? 1.15 : summary.accuracyPercentage >= 70 ? 0.45 : -0.25,
+                            completedAt: new Date().toISOString(),
+                          };
+                          handleRecordSessionSummary('pattern-recall', report);
+                        }}
+                        onExit={() => handleAdvanceWorkout('pattern-recall')}
+                      />
+                    )}
+
+                    {/* Game: Odd One Out */}
+                    {activeGameId === 'odd-one-out' && (
+                      <OddOneOut
+                        language={selectedLanguage}
+                        totalTrials={5}
+                        onSessionComplete={(summary) => {
+                          const report = {
+                            ...summary,
+                            gameId: 'odd-one-out',
+                            gameTitle: 'Odd One Out (Omilto Basoni)',
+                            totalRounds: summary.totalTrials,
+                            totalCorrect: summary.correctTrials,
+                            averageLatencyMs: summary.meanDeliberationMs,
+                            finalTheta: summary.accuracyPercentage >= 85 ? 1.15 : summary.accuracyPercentage >= 70 ? 0.45 : -0.25,
+                            completedAt: new Date().toISOString(),
+                          };
+                          handleRecordSessionSummary('odd-one-out', report);
+                        }}
+                        onExit={() => handleAdvanceWorkout('odd-one-out')}
+                      />
+                    )}
+
+                    {/* Game: Where Am I? */}
+                    {activeGameId === 'where-am-i' && (
+                      <WhereAmI
+                        language={selectedLanguage}
+                        totalTrials={5}
+                        onSessionComplete={(summary) => {
+                          const report = {
+                            ...summary,
+                            gameId: 'where-am-i',
+                            gameTitle: 'Where Am I? (Moi Kot Aso?)',
+                            totalRounds: summary.totalTrials,
+                            totalCorrect: summary.correctTrials,
+                            averageLatencyMs: summary.meanDeliberationMs,
+                            finalTheta: summary.accuracyPercentage >= 85 ? 1.15 : summary.accuracyPercentage >= 70 ? 0.45 : -0.25,
+                            completedAt: new Date().toISOString(),
+                          };
+                          handleRecordSessionSummary('where-am-i', report);
+                        }}
+                        onExit={() => handleAdvanceWorkout('where-am-i')}
+                      />
+                    )}
+
                     {/* Game 4: Bihu Taal */}
                     {activeGameId === 'bihu-taal' && (
                       <BihuTaal
@@ -1454,7 +1523,10 @@ export function App() {
                      activeGameId !== 'smriti-haat' &&
                      activeGameId !== 'sequence-recall' &&
                      activeGameId !== 'bihu-taal' &&
-                     activeGameId !== 'jigsaw-puzzle' && (
+                     activeGameId !== 'jigsaw-puzzle' &&
+                     activeGameId !== 'pattern-recall' &&
+                     activeGameId !== 'odd-one-out' &&
+                     activeGameId !== 'where-am-i' && (
                       <InteractiveCognitiveExercise
                         gameId={activeGameId}
                         language={selectedLanguage}

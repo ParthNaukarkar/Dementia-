@@ -158,7 +158,7 @@ export const GAME_CATALOG: GameMetadata[] = [
     targetBrainArea: 'Dorsolateral Prefrontal Cortex & Phonological Loop',
     estimatedMinutes: 3,
     iconType: 'hash',
-    isAvailable: true,
+    isAvailable: false,
     description: {
       as: 'সংখ্যাৰ ক্ৰমটো চাওক। ই নাইকিয়া হোৱাৰ পিছত সঠিকভাৱে টাইপ কৰক। উচ্চ পৰ্যায়ত ওলোটাকৈ মনত পেলাব লাগিব।',
       bn: 'সংখ্যার ক্রমটি দেখুন। এটি অদৃশ্য হওয়ার পর সঠিকভাবে লিখুন। উচ্চ স্তরে বিপরীত ক্রমে লিখতে হবে।',
@@ -191,7 +191,7 @@ export const GAME_CATALOG: GameMetadata[] = [
     targetBrainArea: 'Ventral Visual Stream & Frontoparietal Attention',
     estimatedMinutes: 3,
     iconType: 'eye',
-    isAvailable: true,
+    isAvailable: false,
     description: {
       as: 'বস্তু থকা দৃশ্য এটা ভালদৰে চাওক। কিছু সময়ৰ পিছত এটা বস্তু সলনি, স্থানান্তৰ বা আঁতৰাই দিয়া হয়। চিনাক্ত কৰক।',
       bn: 'একটি দৃশ্য ভালো করে লক্ষ্য করুন। কিছুক্ষণ পর একটি বস্তু পরিবর্তিত, অপসারিত বা স্থানান্তরিত হবে। চিহ্নিত করুন।',
@@ -224,7 +224,7 @@ export const GAME_CATALOG: GameMetadata[] = [
     targetBrainArea: 'Hippocampus, Angular Gyrus & Narrative Semantic Network',
     estimatedMinutes: 4,
     iconType: 'book',
-    isAvailable: true,
+    isAvailable: false,
     description: {
       as: 'এটা চুটি গল্প পঢ়ক বা শুনক। তাৰ পিছত কি ঘটিছিল, কোনে কি কৰিছিল সেই সম্পৰ্কে সোধা প্ৰশ্নৰ উত্তৰ দিয়ক।',
       bn: 'একটি ছোট গল্প পড়ুন বা শুনুন। পরে গল্পে কী ঘটেছে এবং কারা জড়িত ছিল সে সম্পর্কে প্রশ্নের উত্তর দিন।',
