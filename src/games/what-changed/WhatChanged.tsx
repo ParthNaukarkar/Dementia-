@@ -13,7 +13,12 @@ import {
   Clock,
   Check,
   X,
-  Target
+  Target,
+  Play,
+  Square,
+  UserCheck,
+  Activity,
+  Stethoscope,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -29,7 +34,9 @@ import type {
   WhatChangedAIDynamicAction,
   SceneItem,
   TapEvent,
+  OasisPatientPersona,
 } from './types';
+import { REAL_WORLD_OASIS_PERSONAS } from './types';
 import type { SupportedLanguage } from '../../types/prescription';
 import { AdaptiveAssistanceEngine } from '../../engine/adaptive-assistance';
 
@@ -82,6 +89,14 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
   const [aiAdaptationFlash, setAiAdaptationFlash] = useState<boolean>(false);
   const [aiDynamicActions, setAiDynamicActions] = useState<WhatChangedAIDynamicAction[]>([]);
   const [showTestbed, setShowTestbed] = useState<boolean>(false);
+
+  // ─── Real-World OASIS-2 Patient Simulation State ───────────────────────────
+  const [selectedOasisPersona, setSelectedOasisPersona] = useState<OasisPatientPersona>(REAL_WORLD_OASIS_PERSONAS[0]);
+  const [isSimulatingPlayback, setIsSimulatingPlayback] = useState<boolean>(false);
+  const [simulatedGazeSlot, setSimulatedGazeSlot] = useState<number | null>(null);
+  const [simulatedTremorBurstActive, setSimulatedTremorBurstActive] = useState<boolean>(false);
+  const [simulationStatusMsg, setSimulationStatusMsg] = useState<string | null>(null);
+  const simulationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Micro-timing refs
   const trialStartTimeRef = useRef<number>(Date.now());
@@ -190,6 +205,10 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
     if (peekTimeoutRef.current) {
       clearTimeout(peekTimeoutRef.current);
       peekTimeoutRef.current = null;
+    }
+    if (simulationTimerRef.current) {
+      clearTimeout(simulationTimerRef.current);
+      simulationTimerRef.current = null;
     }
   }, []);
 
@@ -421,14 +440,15 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
   };
 
   // Handle Trial Submission
-  const handleSubmitChoice = () => {
-    if (phase !== 'DETECTION' || selectedSlotId === null) return;
+  const handleSubmitChoice = (overrideSlotId?: number) => {
+    const slotToSubmit = overrideSlotId !== undefined ? overrideSlotId : selectedSlotId;
+    if (phase !== 'DETECTION' || slotToSubmit === null) return;
     clearAllTimers();
     whatChangedAudio.stopAllSpeech();
 
     const now = Date.now();
     const deliberationTimeMs = now - detectionStartTimeRef.current;
-    const isCorrect = selectedSlotId === targetSlotId;
+    const isCorrect = slotToSubmit === targetSlotId;
     const studyDurationActualMs = Date.now() - studyStartTimeRef.current;
 
     if (isCorrect) {
@@ -481,7 +501,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
       itemCount: difficulty.itemCount,
       changeType: difficulty.changeType,
       targetSlotId,
-      selectedSlotId,
+      selectedSlotId: slotToSubmit,
       isCorrect,
       studyDurationActualMs,
       maskDurationMs: difficulty.maskDurationMs,
@@ -537,6 +557,138 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
     }
     onExit?.();
   };
+
+  // ─── Real-World OASIS Patient Simulation Runner ─────────────────────────────
+  useEffect(() => {
+    if (!isSimulatingPlayback) {
+      if (simulationTimerRef.current) clearTimeout(simulationTimerRef.current);
+      setSimulatedGazeSlot(null);
+      setSimulatedTremorBurstActive(false);
+      return;
+    }
+
+    if (phase === 'STUDY') {
+      const action = engine.simulateOasisPatientAction(
+        selectedOasisPersona,
+        { sceneA, sceneB, targetSlotId, changeType: difficulty.changeType },
+        difficulty
+      );
+      setSimulationStatusMsg(`[STUDY] ${selectedOasisPersona.name} studying scene items (${(action.studyDurationActualMs / 1000).toFixed(1)}s)...`);
+
+      // Simulated gaze saccade over study scene
+      const gazeInterval = setInterval(() => {
+        if (sceneA.length > 0) {
+          const randSlot = sceneA[Math.floor(Math.random() * sceneA.length)].slotId;
+          setSimulatedGazeSlot(randSlot);
+        }
+      }, 700);
+
+      simulationTimerRef.current = setTimeout(() => {
+        clearInterval(gazeInterval);
+        setSimulatedGazeSlot(null);
+        transitionToMaskAndDetection(sceneB, difficulty);
+      }, action.studyDurationActualMs);
+
+      return () => {
+        clearInterval(gazeInterval);
+        if (simulationTimerRef.current) clearTimeout(simulationTimerRef.current);
+      };
+    }
+
+    if (phase === 'DETECTION') {
+      const action = engine.simulateOasisPatientAction(
+        selectedOasisPersona,
+        { sceneA, sceneB, targetSlotId, changeType: difficulty.changeType },
+        difficulty
+      );
+
+      const note = action.clinicalObservation[language] || action.clinicalObservation.en;
+      setSimulationStatusMsg(`[DETECTION] ${note}`);
+
+      // Simulated visual search gaze scan
+      const gazeInterval = setInterval(() => {
+        if (sceneB.length > 0) {
+          const randSlot = sceneB[Math.floor(Math.random() * sceneB.length)].slotId;
+          setSimulatedGazeSlot(randSlot);
+        }
+      }, 850);
+
+      // Replay peek if patient needs reassurance
+      let replayTimer: ReturnType<typeof setTimeout> | null = null;
+      if (action.usedReplay) {
+        replayTimer = setTimeout(() => {
+          handlePeekSceneA();
+        }, 1200);
+      }
+
+      // Halo assistance trigger if patient is stuck
+      let haloTimer: ReturnType<typeof setTimeout> | null = null;
+      if (action.neededHaloAssistance) {
+        haloTimer = setTimeout(() => {
+          triggerAutoAssist(false);
+        }, Math.min(3500, action.deliberationTimeMs * 0.6));
+      }
+
+      // Tremor burst simulation if persona exhibits motor tremor
+      let tremorTimer: ReturnType<typeof setTimeout> | null = null;
+      if (action.hasTremorJitter) {
+        tremorTimer = setTimeout(() => {
+          setSimulatedTremorBurstActive(true);
+          const now = Date.now();
+          engine.filterTremorTap(now);
+          engine.filterTremorTap(now + 60);
+          engine.filterTremorTap(now + 120);
+          setTimeout(() => setSimulatedTremorBurstActive(false), 600);
+        }, Math.max(800, action.deliberationTimeMs - 600));
+      }
+
+      simulationTimerRef.current = setTimeout(() => {
+        clearInterval(gazeInterval);
+        setSimulatedGazeSlot(action.selectedSlotId);
+        setSelectedSlotId(action.selectedSlotId);
+
+        setTimeout(() => {
+          handleSubmitChoice(action.selectedSlotId);
+        }, 450);
+      }, action.deliberationTimeMs);
+
+      return () => {
+        clearInterval(gazeInterval);
+        if (replayTimer) clearTimeout(replayTimer);
+        if (haloTimer) clearTimeout(haloTimer);
+        if (tremorTimer) clearTimeout(tremorTimer);
+        if (simulationTimerRef.current) clearTimeout(simulationTimerRef.current);
+      };
+    }
+
+    if (phase === 'FEEDBACK') {
+      setSimulationStatusMsg(`[FEEDBACK] ${selectedOasisPersona.name} finished Trial ${currentTrialIndex + 1}. Transitioning...`);
+      simulationTimerRef.current = setTimeout(() => {
+        handleNextOrFinish();
+      }, 2400);
+
+      return () => {
+        if (simulationTimerRef.current) clearTimeout(simulationTimerRef.current);
+      };
+    }
+
+    if (phase === 'COMPLETE') {
+      setIsSimulatingPlayback(false);
+      setSimulationStatusMsg('Simulation complete. Clinical report generated.');
+    }
+  }, [
+    isSimulatingPlayback,
+    phase,
+    currentTrialIndex,
+    sceneA,
+    sceneB,
+    targetSlotId,
+    difficulty,
+    selectedOasisPersona,
+    engine,
+    language,
+    transitionToMaskAndDetection,
+  ]);
 
   // Toggle Mute
   const handleToggleMute = () => {
@@ -731,7 +883,136 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
                 ✨ Trigger Golden Spotlight Hint
               </button>
             </div>
+
+            {/* Real-World OASIS Longitudinal Patient Simulation */}
+            <div className="pt-3 border-t border-white/10 space-y-2.5">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-sky-300">
+                  <Activity className="w-3.5 h-3.5 text-sky-400" />
+                  <span>Washington University OASIS-2 Real Patient Archetypes:</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {isSimulatingPlayback ? (
+                    <button
+                      onClick={() => {
+                        setIsSimulatingPlayback(false);
+                        setSimulationStatusMsg('Simulation halted by user.');
+                      }}
+                      className="px-3 py-1 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer animate-pulse"
+                    >
+                      <Square className="w-3 h-3" />
+                      <span>Stop Simulation</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setIsSimulatingPlayback(true);
+                        setSimulationStatusMsg(`Initiating live simulation of ${selectedOasisPersona.name}...`);
+                      }}
+                      className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+                    >
+                      <Play className="w-3 h-3" />
+                      <span>▶ Run Real-World Gameplay Simulation</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Persona Selection Pills */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {REAL_WORLD_OASIS_PERSONAS.map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                      setSelectedOasisPersona(p);
+                      if (isSimulatingPlayback) {
+                        setIsSimulatingPlayback(false);
+                      }
+                    }}
+                    className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                      selectedOasisPersona.id === p.id
+                        ? 'bg-sky-950/80 border-sky-400 ring-2 ring-sky-400/50 text-white'
+                        : 'bg-white/5 hover:bg-white/10 border-white/10 text-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-base">{p.avatarIcon}</span>
+                      <span className="font-bold text-[11px] truncate">{p.name.split(' ')[0]}</span>
+                    </div>
+                    <div className="mt-1 text-[10px] text-slate-400 flex items-center justify-between">
+                      <span>MMSE {p.mmse}</span>
+                      <span className={`px-1 py-0.2 rounded font-black text-[9px] ${
+                        p.cdr === 0 ? 'bg-emerald-950 text-emerald-300' : p.cdr <= 0.5 ? 'bg-amber-950 text-amber-300' : 'bg-rose-950 text-rose-300'
+                      }`}>
+                        CDR {p.cdr}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Active Persona Details Card */}
+              <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-black text-white">{selectedOasisPersona.name}</span>
+                    <span className="text-[11px] text-sky-300 font-medium">Age {selectedOasisPersona.age} • {selectedOasisPersona.clinicalDiagnosis}</span>
+                    <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono text-slate-300">Edu: {selectedOasisPersona.educationYears}y</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-snug">
+                    {selectedOasisPersona.clinicalNotes[language] || selectedOasisPersona.clinicalNotes.en}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    // Apply persona baseline to human play
+                    clearAllTimers();
+                    whatChangedAudio.stopAllSpeech();
+                    let targetTier = 4;
+                    if (selectedOasisPersona.cdr === 0.0 && selectedOasisPersona.tremorJitterProbability < 0.2) targetTier = 7;
+                    else if (selectedOasisPersona.cdr === 0.5) targetTier = 4;
+                    else if (selectedOasisPersona.cdr === 1.0) targetTier = 2;
+                    else if (selectedOasisPersona.cdr >= 2.0) targetTier = 1;
+                    else if (selectedOasisPersona.tremorJitterProbability > 0.5) targetTier = 5;
+
+                    setManualTierOverride(targetTier);
+                    initTrial(currentTrialIndex, targetTier);
+                    setFeedbackBanner(`Applied ${selectedOasisPersona.name}'s baseline: Tier ${targetTier} configured.`);
+                    setTimeout(() => setFeedbackBanner(null), 4000);
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] shrink-0 cursor-pointer shadow-2xs flex items-center gap-1"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Play as this Persona</span>
+                </button>
+              </div>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* 2.5 LIVE OASIS RE-ENACTMENT STATUS RIBBON */}
+      {isSimulatingPlayback && simulationStatusMsg && (
+        <div className="p-3 rounded-2xl bg-gradient-to-r from-sky-950 via-indigo-950 to-slate-900 border border-sky-400/60 text-white shadow-lg flex items-center justify-between gap-3 animate-fadeIn">
+          <div className="flex items-center gap-2.5 text-xs sm:text-sm">
+            <span className="relative flex h-3 w-3 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            </span>
+            <span className="font-black text-sky-300 shrink-0">Live Patient Simulation ({selectedOasisPersona.name.split(' ')[0]}):</span>
+            <span className="font-medium text-slate-200">{simulationStatusMsg}</span>
+          </div>
+          <button
+            onClick={() => {
+              setIsSimulatingPlayback(false);
+              setSimulationStatusMsg('Simulation stopped.');
+            }}
+            className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-black cursor-pointer shrink-0 shadow-xs"
+          >
+            Halt
+          </button>
         </div>
       )}
 
@@ -785,17 +1066,27 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
 
             {/* Cultural Wooden Display Arena */}
             <div className={`grid gap-3 sm:gap-4 mx-auto p-4 sm:p-6 bg-amber-50/40 rounded-3xl border-2 border-amber-200/80 shadow-inner ${gridStyle}`}>
-              {sceneA.map(item => (
-                <div
-                  key={item.slotId}
-                  className={`h-24 sm:h-28 rounded-2xl flex flex-col items-center justify-center p-2 border-2 shadow-xs transition-all duration-300 ${item.color}`}
-                >
-                  <span className="text-3xl sm:text-4xl mb-1 select-none">{item.icon}</span>
-                  <span className="text-[10px] sm:text-xs font-extrabold text-center leading-tight line-clamp-1">
-                    {item.name[language]}
-                  </span>
-                </div>
-              ))}
+              {sceneA.map(item => {
+                const isGazeFocused = simulatedGazeSlot === item.slotId;
+                return (
+                  <div
+                    key={item.slotId}
+                    className={`h-24 sm:h-28 rounded-2xl flex flex-col items-center justify-center p-2 border-2 shadow-xs transition-all duration-300 relative ${item.color} ${
+                      isGazeFocused ? 'ring-4 ring-sky-400 scale-105 shadow-md' : ''
+                    }`}
+                  >
+                    {isGazeFocused && (
+                      <span className="absolute -bottom-2 px-1.5 py-0.5 rounded-full bg-sky-600 text-white font-black text-[9px] shadow-sm flex items-center gap-0.5 animate-bounce z-10">
+                        👁️ Gaze Scan
+                      </span>
+                    )}
+                    <span className="text-3xl sm:text-4xl mb-1 select-none">{item.icon}</span>
+                    <span className="text-[10px] sm:text-xs font-extrabold text-center leading-tight line-clamp-1">
+                      {item.name[language]}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Skip ahead button for confident patients */}
@@ -842,6 +1133,8 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
                 const isSelected = selectedSlotId === item.slotId;
                 const isTargetSpot = item.slotId === targetSlotId;
                 const shouldHaloGlow = isHaloVisible && isTargetSpot;
+                const isGazeFocused = simulatedGazeSlot === item.slotId;
+                const isTremorShaking = simulatedTremorBurstActive && isSelected;
 
                 return (
                   <button
@@ -858,13 +1151,31 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
                       shouldHaloGlow
                         ? 'ring-4 ring-amber-400 border-amber-500 shadow-lg animate-pulse'
                         : ''
+                    } ${
+                      isGazeFocused
+                        ? 'ring-4 ring-sky-400 scale-105'
+                        : ''
                     }`}
                   >
                     {/* Golden Halo Spotlight Beacon */}
                     {shouldHaloGlow && (
-                      <span className="absolute -top-2.5 -right-2 px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-black text-[9px] shadow-sm flex items-center gap-0.5">
+                      <span className="absolute -top-2.5 -right-2 px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-black text-[9px] shadow-sm flex items-center gap-0.5 z-10">
                         <Sparkles className="w-2.5 h-2.5" />
                         Hint
+                      </span>
+                    )}
+
+                    {/* Simulated Patient Gaze Focus */}
+                    {isGazeFocused && (
+                      <span className="absolute -bottom-2.5 px-1.5 py-0.5 rounded-full bg-sky-600 text-white font-black text-[9px] shadow-sm flex items-center gap-0.5 animate-bounce z-10">
+                        👁️ Gaze Focus
+                      </span>
+                    )}
+
+                    {/* Tremor Filter Ripple */}
+                    {isTremorShaking && (
+                      <span className="absolute -top-2.5 -left-2 px-1.5 py-0.5 rounded-full bg-rose-600 text-white font-black text-[9px] shadow-sm flex items-center gap-0.5 animate-pulse z-10">
+                        ⚡ Tremor Filter
                       </span>
                     )}
 
@@ -914,7 +1225,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
 
               {/* Submit Button */}
               <button
-                onClick={handleSubmitChoice}
+                onClick={() => handleSubmitChoice()}
                 disabled={selectedSlotId === null}
                 className={`px-5 py-2 rounded-xl font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 ${
                   selectedSlotId !== null
@@ -1057,6 +1368,38 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
                 <p className="text-[10px] text-slate-500 capitalize">{finalSessionSummary.patientSettingsAutonomyRating.replace(/_/g, ' ')}</p>
               </div>
             </div>
+
+            {/* OASIS-2 Trained Machine Learning Cognitive Staging Card */}
+            {finalSessionSummary.oasisClinicalClassification && (
+              <div className="p-4 bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-950 rounded-2xl text-white text-left space-y-2.5 border border-indigo-500/40 shadow-md">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Stethoscope className="w-4 h-4 text-cyan-400" />
+                    <span className="text-xs font-black uppercase tracking-wider text-cyan-300">
+                      OASIS-2 Machine Learning Cognitive Staging
+                    </span>
+                  </div>
+                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-white/10 text-emerald-300 border border-emerald-400/30">
+                    {(finalSessionSummary.oasisClinicalClassification.confidenceScore * 100).toFixed(1)}% Confidence
+                  </span>
+                </div>
+
+                <div className="text-lg font-black text-white flex items-center gap-2">
+                  <span>{finalSessionSummary.oasisClinicalClassification.predictedClass}</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-slate-300 font-medium">
+                  <span>Standardized MoCA Score Range:</span>
+                  <span className="font-bold text-amber-300">{finalSessionSummary.oasisClinicalClassification.estimatedMoCARange}</span>
+                </div>
+
+                {finalSessionSummary.oasisClinicalClassification.clinicalAlert && (
+                  <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs leading-snug">
+                    ⚠️ {finalSessionSummary.oasisClinicalClassification.clinicalAlert}
+                  </div>
+                )}
+              </div>
+            )}
 
             <button
               onClick={onExit}
