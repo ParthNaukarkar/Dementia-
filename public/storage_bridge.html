@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SmritiNER Storage Bridge</title>
+</head>
+<body>
+<script>
+  // Cross-port localStorage & Broadcast relay for SmritiNER
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.isSmritiSyncMessage) {
+      var msg = event.data.syncMessage;
+      try {
+        localStorage.setItem('smriti_sync_signal_latest', JSON.stringify(msg));
+        if (msg.payload && msg.payload.key && msg.payload.value) {
+          localStorage.setItem(msg.payload.key, msg.payload.value);
+        }
+        window.dispatchEvent(new CustomEvent('smriti_remote_sync', { detail: msg }));
+      } catch (e) {}
+    }
+  });
+</script>
+</body>
+</html>

@@ -67,34 +67,34 @@ export function setStoredRole(role: UserRole): void {
   localStorage.setItem(USER_ROLE_KEY, role);
 }
 
-// Initial Default Demo Setup (for quick evaluation / judges)
+// Initial Default Demo Setup (matches exact clinical profile from screenshot)
 export function ensureDemoProfiles(): { caretaker: CaretakerUser; patient: PatientProfile } {
   let caretaker = getStoredCaretaker();
-  if (!caretaker) {
+  if (!caretaker || caretaker.name === 'Parth') {
     caretaker = {
-      id: 'caretaker_parth_01',
-      name: 'Parth',
-      age: 23,
-      email: 'parth@smritiner.in',
+      id: 'caretaker_anita_01',
+      name: 'Anita Joshi',
+      age: 44,
+      email: 'anita.joshi@smritiner.in',
       createdAt: new Date().toISOString(),
     };
     saveStoredCaretaker(caretaker);
   }
 
   let patients = getStoredPatients();
-  let patient = patients[0];
-  if (!patient) {
+  let patient = patients.find(p => p.name === 'Meera Joshi') || patients[0];
+  if (!patient || patient.name.includes('Dadu')) {
     patient = {
-      id: 'patient_dadu_01',
+      id: '1',
       caretakerId: caretaker.id,
-      name: 'Dadu (Bhaben Baruah)',
-      age: 76,
-      gender: 'male',
-      primaryLanguage: 'as',
+      name: 'Meera Joshi',
+      age: 72,
+      gender: 'female',
+      primaryLanguage: 'en',
       diagnosisStage: 'mild_cognitive_impairment',
-      emergencyContact: '+91 98765 43210',
-      relationshipToCaretaker: 'Grandfather',
-      notes: 'Exhibits mild delayed recall difficulty; high compliance with regional music & bazaar games.',
+      emergencyContact: '9876543210',
+      relationshipToCaretaker: 'Mother',
+      notes: 'Patient demonstrates intact procedural and semantic recognition memory when presented with familiar Northeast cultural stimuli. Motor tremor debouncing active at 400ms.',
       createdAt: new Date().toISOString(),
     };
     saveStoredPatient(patient);

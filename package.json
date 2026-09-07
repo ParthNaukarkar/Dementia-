@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:patient": "vite --port 5173",
+    "dev:caregiver": "vite --port 5174",
+    "dev:both": "node scripts/start_both_portals.js",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"

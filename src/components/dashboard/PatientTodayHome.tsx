@@ -25,6 +25,7 @@ interface PatientTodayHomeProps {
   onLaunchGame: (gameId: GameId) => void;
   onOpenPrescriptionModal: () => void;
   dayStreak?: number;
+  showCognitiveIndex?: boolean;
 }
 
 export const PatientTodayHome: React.FC<PatientTodayHomeProps> = ({
@@ -39,6 +40,7 @@ export const PatientTodayHome: React.FC<PatientTodayHomeProps> = ({
   onLaunchGame,
   onOpenPrescriptionModal,
   dayStreak = 1,
+  showCognitiveIndex = false,
 }) => {
   const prescribedSet = new Set(prescription.prescribedGameIds);
   const todayGames = GAME_CATALOG.filter(g => prescribedSet.has(g.id));
@@ -319,95 +321,102 @@ export const PatientTodayHome: React.FC<PatientTodayHomeProps> = ({
           </p>
         </div>
 
-        {/* COGNITIVE PERFORMANCE INDEX (Exact Lumosity LPI from Image 1) */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 sm:p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                Cognitive Index
-              </h4>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Neuropsychological domains
-              </p>
+        {/* COGNITIVE PERFORMANCE INDEX (Shown in Caregiver Portal, hidden in Patient Portal) */}
+        {showCognitiveIndex ? (
+          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 sm:p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                  Cognitive Index
+                </h4>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Neuropsychological domains
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
             </div>
-            <ChevronRight className="w-4 h-4 text-slate-400" />
+
+            {/* Domain Bars */}
+            <div className="space-y-3 pt-1">
+              <div>
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>Memory</span>
+                  <span className="font-extrabold text-amber-700">959</span>
+                </div>
+                <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-amber-500" style={{ width: '85%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>Flexibility (Executive)</span>
+                  <span className="font-extrabold text-orange-700">813</span>
+                </div>
+                <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-orange-500" style={{ width: '74%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>Attention</span>
+                  <span className="font-extrabold text-blue-700">768</span>
+                </div>
+                <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-blue-500" style={{ width: '68%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>Spatial</span>
+                  <span className="font-extrabold text-emerald-700">692</span>
+                </div>
+                <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-emerald-500" style={{ width: '62%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>Processing Speed</span>
+                  <span className="font-extrabold text-purple-700">620</span>
+                </div>
+                <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-purple-500" style={{ width: '56%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>Financial / Math</span>
+                  <span className="font-extrabold text-slate-700">472</span>
+                </div>
+                <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-amber-400" style={{ width: '42%' }} />
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[10px] text-slate-400 text-center font-medium pt-2">
+              Calibrated against Washington University OASIS-2 longitudinal cohort
+            </p>
           </div>
-
-          {/* Domain Bars (Image 1) */}
-          <div className="space-y-3 pt-1">
-            
-            {/* Memory */}
-            <div>
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                <span>Memory</span>
-                <span className="font-extrabold text-amber-700">959</span>
-              </div>
-              <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full bg-amber-500" style={{ width: '85%' }} />
-              </div>
+        ) : (
+          <div className="bg-gradient-to-br from-purple-50/80 to-indigo-50/80 rounded-3xl border border-purple-200/80 p-5 sm:p-6 space-y-3 shadow-xs">
+            <div className="flex items-center gap-2 text-purple-900 font-extrabold text-xs uppercase tracking-wider">
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              <span>Daily Thought</span>
             </div>
-
-            {/* Flexibility */}
-            <div>
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                <span>Flexibility (Executive)</span>
-                <span className="font-extrabold text-orange-700">813</span>
-              </div>
-              <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full bg-orange-500" style={{ width: '74%' }} />
-              </div>
+            <p className="text-xs text-purple-950 font-medium leading-relaxed">
+              "Regular gentle practice keeps the mind active and joyful. Enjoy each step at your own pace today."
+            </p>
+            <div className="pt-2 text-[11px] text-purple-700 font-semibold">
+              Supervised with love by {caretakerName || 'Anita Joshi'}
             </div>
-
-            {/* Attention */}
-            <div>
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                <span>Attention</span>
-                <span className="font-extrabold text-blue-700">768</span>
-              </div>
-              <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full bg-blue-500" style={{ width: '68%' }} />
-              </div>
-            </div>
-
-            {/* Spatial */}
-            <div>
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                <span>Spatial</span>
-                <span className="font-extrabold text-emerald-700">692</span>
-              </div>
-              <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full bg-emerald-500" style={{ width: '62%' }} />
-              </div>
-            </div>
-
-            {/* Speed */}
-            <div>
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                <span>Processing Speed</span>
-                <span className="font-extrabold text-purple-700">620</span>
-              </div>
-              <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full bg-purple-500" style={{ width: '56%' }} />
-              </div>
-            </div>
-
-            {/* Math */}
-            <div>
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                <span>Financial / Math</span>
-                <span className="font-extrabold text-slate-700">472</span>
-              </div>
-              <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full bg-amber-400" style={{ width: '42%' }} />
-              </div>
-            </div>
-
           </div>
-
-          <p className="text-[10px] text-slate-400 text-center font-medium pt-2">
-            Calibrated against Washington University OASIS-2 longitudinal cohort
-          </p>
-        </div>
+        )}
 
       </div>
 
