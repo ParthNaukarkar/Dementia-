@@ -45,6 +45,7 @@ import { SmritiHaat, type SessionSummaryTelemetry } from './games/smriti-haat';
 import { SequenceRecall } from './games/sequence-recall';
 import { MemoryMatch } from './games/memory-match/MemoryMatch';
 import { BihuTaal } from './games/bihu-taal/BihuTaal';
+import { JigsawPuzzle } from './games/jigsaw-puzzle';
 import { InteractiveCognitiveExercise } from './components/games/InteractiveCognitiveExercise';
 import { WorkoutProgressHeader } from './components/workout/WorkoutProgressHeader';
 import { WorkoutIntermissionModal } from './components/workout/WorkoutIntermissionModal';
@@ -1417,12 +1418,43 @@ export function App() {
                       />
                     )}
 
+                    {/* Game 5: Jigsaw Puzzle */}
+                    {activeGameId === 'jigsaw-puzzle' && (
+                      <JigsawPuzzle
+                        language={selectedLanguage}
+                        totalPuzzles={3}
+                        onSessionComplete={(summary) => {
+                          const report = {
+                            ...summary,
+                            gameId: 'jigsaw-puzzle',
+                            gameTitle: 'Jigsaw Puzzle (Visuoconstructional Praxis)',
+                            totalRounds: summary.totalPuzzles,
+                            totalCorrect: summary.solvedPuzzles,
+                            autoAssistedRounds: summary.autoAssistedRounds,
+                            accuracyPercentage: summary.accuracyPercentage,
+                            averageLatencyMs: summary.meanSolveTimeSeconds * 1000,
+                            medianLatencyMs: summary.meanSolveTimeSeconds * 1000,
+                            perseverationErrors: summary.totalMisplacements,
+                            finalTheta: summary.finalTheta,
+                            estimatedMoCAMemoryScore: summary.spatialPraxisScore,
+                            processingSpeedProfile: summary.visuomotorProfile,
+                            caregiverEndedEarly: summary.caregiverEndedEarly,
+                            completedAt: summary.completedAt,
+                            rounds: []
+                          };
+                          handleRecordSessionSummary('jigsaw-puzzle', report);
+                        }}
+                        onExit={() => handleAdvanceWorkout('jigsaw-puzzle')}
+                      />
+                    )}
+
                     {/* Other Catalog Exercises */}
                     {activeGameId !== 'memory-match' &&
                      activeGameId !== 'word-recall' &&
                      activeGameId !== 'smriti-haat' &&
                      activeGameId !== 'sequence-recall' &&
-                     activeGameId !== 'bihu-taal' && (
+                     activeGameId !== 'bihu-taal' &&
+                     activeGameId !== 'jigsaw-puzzle' && (
                       <InteractiveCognitiveExercise
                         gameId={activeGameId}
                         language={selectedLanguage}
