@@ -51,6 +51,7 @@ import { WhatChanged } from './games/what-changed';
 import { PatternRecall } from './games/pattern-recall';
 import { OddOneOut } from './games/odd-one-out';
 import { WhereAmI } from './games/where-am-i';
+import { BrainStory } from './games/brain-story';
 import { InteractiveCognitiveExercise } from './components/games/InteractiveCognitiveExercise';
 import { WorkoutProgressHeader } from './components/workout/WorkoutProgressHeader';
 import { WorkoutIntermissionModal } from './components/workout/WorkoutIntermissionModal';
@@ -1579,6 +1580,28 @@ export function App() {
                       />
                     )}
 
+                    {/* Game 11: Brain Story (Narrative Memory) */}
+                    {activeGameId === 'brain-story' && (
+                      <BrainStory
+                        language={selectedLanguage}
+                        totalTrials={3}
+                        onSessionComplete={(summary) => {
+                          const report = {
+                            ...summary,
+                            gameId: 'brain-story',
+                            gameTitle: 'Brain Story (Monor Sadhukatha)',
+                            totalRounds: summary.totalTrials,
+                            totalCorrect: summary.correctQuestions,
+                            averageLatencyMs: summary.meanDeliberationMs,
+                            finalTheta: summary.finalTheta ?? (summary.accuracyPercentage >= 85 ? 1.15 : summary.accuracyPercentage >= 70 ? 0.45 : -0.25),
+                            completedAt: new Date().toISOString(),
+                          };
+                          handleRecordSessionSummary('brain-story', report);
+                        }}
+                        onExit={() => handleAdvanceWorkout('brain-story')}
+                      />
+                    )}
+
                     {/* Other Catalog Exercises */}
                     {activeGameId !== 'memory-match' &&
                      activeGameId !== 'word-recall' &&
@@ -1590,7 +1613,8 @@ export function App() {
                      activeGameId !== 'what-changed' &&
                      activeGameId !== 'pattern-recall' &&
                      activeGameId !== 'odd-one-out' &&
-                     activeGameId !== 'where-am-i' && (
+                     activeGameId !== 'where-am-i' &&
+                     activeGameId !== 'brain-story' && (
                       <InteractiveCognitiveExercise
                         gameId={activeGameId}
                         language={selectedLanguage}
