@@ -13,7 +13,9 @@ import {
   Timer,
   ImageIcon,
   Brain,
-  Zap
+  Zap,
+  Sliders,
+  Compass
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { 
@@ -21,7 +23,8 @@ import type {
   PuzzlePiece, 
   PiecePlacementEvent, 
   PuzzleTrialTelemetry, 
-  JigsawDifficulty 
+  JigsawDifficulty,
+  AIDynamicAction 
 } from './types';
 import { PUZZLE_IMAGES } from './images-catalog';
 import { JigsawPraxisEngine } from './engine';
@@ -48,7 +51,7 @@ function PieceRenderer({
 }) {
   return (
     <div
-      className="w-full h-full relative overflow-hidden"
+      className="w-full h-full relative overflow-hidden transition-transform duration-200"
       style={{
         transform: rotation ? `rotate(${rotation}deg)` : undefined,
         transformOrigin: 'center center',
@@ -68,6 +71,9 @@ function PieceRenderer({
   );
 }
 
+// Available piece count minimal tiers
+const PIECE_COUNT_TIERS = [2, 4, 6, 8, 9, 12, 16, 20, 24, 25, 30, 32, 36];
+
 export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   language = 'as',
   totalPuzzles = 4,
@@ -79,7 +85,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   // Initialize Engine
   const engine = useMemo(() => new JigsawPraxisEngine(initialTheta), [initialTheta]);
 
-  // Shuffled artwork playlist so elder never sees the same 3 in identical order
+  // Shuffled artwork playlist so elder never sees the same in identical order
   const shuffledImages = useMemo(() => {
     const list = [...PUZZLE_IMAGES];
     for (let i = list.length - 1; i > 0; i--) {
@@ -93,25 +99,35 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(0);
   const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
   const [showArtworkPicker, setShowArtworkPicker] = useState(false);
+  const [manualPieceCount, setManualPieceCount] = useState<number | null>(null);
   const [difficulty, setDifficulty] = useState<JigsawDifficulty>(() => engine.getDifficulty());
   const [pieces, setPieces] = useState<PuzzlePiece[]>([]);
   const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
   const [isGhostVisible, setIsGhostVisible] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
+  const [trayCategoryFilter, setTrayCategoryFilter] = useState<'all' | 'corners' | 'edges' | 'centers'>('all');
 
-  // Live AI Adaptation Messaging
+  // Live AI Adaptation Messaging & Alerts
   const [aiLiveReasoning, setAiLiveReasoning] = useState<string>('');
   const [aiAdaptationFlash, setAiAdaptationFlash] = useState(false);
+  const [feedbackBanner, setFeedbackBanner] = useState<string | null>(null);
+  const [aiDynamicActions, setAiDynamicActions] = useState<AIDynamicAction[]>([]);
 
   // Timers & Telemetry Tracking
   const [puzzleStartTime, setPuzzleStartTime] = useState<number>(Date.now());
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [misplacements, setMisplacements] = useState(0);
+  const [rotationalErrorsCount, setRotationalErrorsCount] = useState(0);
   const [rotationsUsed, setRotationsUsed] = useState(0);
   const [wasAutoAssisted, setWasAutoAssisted] = useState(false);
   const [autoAssistedPiecesCount, setAutoAssistedPiecesCount] = useState(0);
   const [placementHistory, setPlacementHistory] = useState<PiecePlacementEvent[]>([]);
   const [timeToFirstPlacementMs, setTimeToFirstPlacementMs] = useState<number | null>(null);
+
+  // Live analysis refs
+  const lastActionTimeRef = useRef<number>(Date.now());
+  const consecutiveFastSolvesRef = useRef<number>(0);
+  const lastPlacementTimeRef = useRef<number>(Date.now());
 
   // Completion State
   const [isPuzzleSolved, setIsPuzzleSolved] = useState(false);
@@ -157,10 +173,22 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       en: 'Ghost Guide',
     },
     rotatePiece: {
-      as: 'ঘূৰাওক (Rotate)',
-      bn: 'ঘোরান (Rotate)',
-      hi: 'घुमाएं (Rotate)',
+      as: 'ঘূৰাওক (Rotate 90°)',
+      bn: 'ঘোরান (Rotate 90°)',
+      hi: 'घुमाएं (Rotate 90°)',
       en: 'Rotate 90°',
+    },
+    straightenAll: {
+      as: 'সকলো পোন কৰক (0°)',
+      bn: 'সব সোজা করুন (0°)',
+      hi: 'सीधा करें (0°)',
+      en: 'Straighten All (0°)',
+    },
+    perturbAngles: {
+      as: 'কোণ ঘূৰাওক (Scramble)',
+      bn: 'কোণ ঘোরান (Scramble)',
+      hi: 'कोण बदलें (Scramble)',
+      en: 'Scramble Angles',
     },
     autoAssistBtn: {
       as: 'সহায় লওক (Help Me)',
@@ -189,7 +217,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     viewSummary: {
       as: 'ফলাফল চাওক ➔',
       bn: 'ফলাফল দেখুন ➔',
-      hi: 'परिणाम देखें ➔',
+      hi: 'পরিणाम देखें ➔',
       en: 'View Clinical Summary ➔',
     },
     exit: {
@@ -214,15 +242,27 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   }, [difficulty.autoAssistTimeoutMs, isPuzzleSolved]);
 
   // Initialize new puzzle
-  const initPuzzle = useCallback((_puzzleIdx: number) => {
-    const diff = engine.getDifficulty();
+  const initPuzzle = useCallback((_puzzleIdx: number, overridePieces?: number | null) => {
+    let diff: JigsawDifficulty;
+    if (overridePieces) {
+      diff = engine.getDifficultyForPieceCount(overridePieces);
+      engine.setDifficulty(diff);
+    } else {
+      diff = engine.getDifficulty();
+    }
     setDifficulty(diff);
 
-    const generated = engine.generatePieces(diff.gridCols, diff.gridRows, diff.allowRotation);
+    const generated = engine.generatePieces(
+      diff.gridCols, 
+      diff.gridRows, 
+      diff.allowRotation, 
+      diff.rotationModes
+    );
     setPieces(generated);
     setSelectedPieceId(null);
     setIsPuzzleSolved(false);
     setMisplacements(0);
+    setRotationalErrorsCount(0);
     setRotationsUsed(0);
     setWasAutoAssisted(false);
     setAutoAssistedPiecesCount(0);
@@ -230,17 +270,22 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     setTimeToFirstPlacementMs(null);
     setPuzzleStartTime(Date.now());
     setElapsedSeconds(0);
+    setFeedbackBanner(null);
+    setAiDynamicActions([]);
+    consecutiveFastSolvesRef.current = 0;
+    lastActionTimeRef.current = Date.now();
+    lastPlacementTimeRef.current = Date.now();
 
     jigsawAudio.speakGuidance('intro', language);
   }, [engine, language]);
 
-  // Load puzzle on index or artwork change
+  // Load puzzle on index or artwork change or piece count override
   useEffect(() => {
-    initPuzzle(currentPuzzleIndex);
+    initPuzzle(currentPuzzleIndex, manualPieceCount);
     return () => {
       if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
     };
-  }, [currentPuzzleIndex, selectedArtworkId, initPuzzle]);
+  }, [currentPuzzleIndex, selectedArtworkId, manualPieceCount, initPuzzle]);
 
   // Elapsed timer tick
   useEffect(() => {
@@ -271,11 +316,12 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   const handleSelectPiece = (pieceId: string) => {
     if (!engine.filterTremorTap()) return; // 400ms Tremor filter
     setSelectedPieceId(pieceId);
+    lastActionTimeRef.current = Date.now();
     resetAutoAssistTimer();
   };
 
-  // Handle Rotation of Selected Piece (Ceiling Difficulty)
-  const handleRotatePiece = (pieceId: string, e?: React.MouseEvent) => {
+  // Handle Single Piece Rotation
+  const handleRotateSinglePiece = (pieceId: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (!engine.filterTremorTap()) return;
 
@@ -288,11 +334,33 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     }));
 
     setRotationsUsed(r => r + 1);
+    lastActionTimeRef.current = Date.now();
     jigsawAudio.playRotateChime();
     resetAutoAssistTimer();
   };
 
-  // Core Placement Logic (Handles both Click-to-Place and Drag-and-Drop)
+  // Manual Straighten All Pieces (0 deg)
+  const handleStraightenAll = () => {
+    const { modifiedPieces, changedCount } = engine.straightenTrayPieces(pieces);
+    if (changedCount > 0) {
+      setPieces(modifiedPieces);
+      setRotationalErrorsCount(0);
+      lastActionTimeRef.current = Date.now();
+      jigsawAudio.playAutoAssistChime();
+    }
+  };
+
+  // Manual Perturb Angles (Challenge Trigger)
+  const handlePerturbAngles = () => {
+    const { modifiedPieces, changedCount } = engine.perturbTrayPieces(pieces, difficulty.rotationModes);
+    if (changedCount > 0) {
+      setPieces(modifiedPieces);
+      lastActionTimeRef.current = Date.now();
+      jigsawAudio.playRotateChime();
+    }
+  };
+
+  // Core Placement Logic
   const handlePlacePieceAt = (pieceId: string, targetCol: number, targetRow: number) => {
     const piece = pieces.find(p => p.id === pieceId);
     if (!piece || piece.isLocked) return;
@@ -306,11 +374,25 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     if (timeToFirstPlacementMs === null) {
       setTimeToFirstPlacementMs(deliberation);
     }
+    lastActionTimeRef.current = now;
 
-    const isCorrect = engine.evaluatePlacement(piece, targetCol, targetRow, piece.rotation);
+    const { isCorrect, wasCorrectPositionWrongAngle } = engine.evaluatePlacement(
+      piece, 
+      targetCol, 
+      targetRow, 
+      piece.rotation
+    );
 
     if (isCorrect) {
-      // Correct placement!
+      // Fast solve tracking
+      const solveDelta = now - lastPlacementTimeRef.current;
+      lastPlacementTimeRef.current = now;
+      if (solveDelta < 5000) {
+        consecutiveFastSolvesRef.current++;
+      } else {
+        consecutiveFastSolvesRef.current = 1;
+      }
+
       jigsawAudio.playPieceSnap();
       jigsawAudio.speakGuidance('snap', language);
 
@@ -329,6 +411,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
 
       setPieces(updatedPieces);
       setSelectedPieceId(null);
+      setFeedbackBanner(null);
 
       const event: PiecePlacementEvent = {
         pieceId: piece.id,
@@ -349,8 +432,32 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
         resetAutoAssistTimer();
       }
 
+    } else if (wasCorrectPositionWrongAngle) {
+      // Placed in correct slot, but orientation was wrong!
+      consecutiveFastSolvesRef.current = 0;
+      setRotationalErrorsCount(r => r + 1);
+      setMisplacements(m => m + 1);
+
+      jigsawAudio.playRotateChime();
+      setFeedbackBanner('🎯 Correct slot! Rotate the piece to upright (0°) to lock.');
+      setTimeout(() => setFeedbackBanner(null), 3500);
+
+      const event: PiecePlacementEvent = {
+        pieceId: piece.id,
+        targetCol,
+        targetRow,
+        isCorrect: false,
+        wasCorrectPositionWrongAngle: true,
+        deliberationMs: deliberation,
+        rotationAtPlacement: piece.rotation,
+        timestamp: now,
+      };
+      setPlacementHistory(prev => [...prev, event]);
+      resetAutoAssistTimer();
+
     } else {
-      // Gentle incorrect attempt
+      // Coordinate mismatch
+      consecutiveFastSolvesRef.current = 0;
       setMisplacements(m => m + 1);
       const event: PiecePlacementEvent = {
         pieceId: piece.id,
@@ -365,6 +472,69 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       resetAutoAssistTimer();
     }
   };
+
+  // Real-time AI Cognition & Dynamic Tray Orientation Monitor
+  useEffect(() => {
+    if (isPuzzleSolved || !difficulty.dynamicReorientationEnabled) return;
+
+    const checkInterval = setInterval(() => {
+      const idleSeconds = Math.floor((Date.now() - lastActionTimeRef.current) / 1000);
+      
+      const intervention = engine.analyzeLiveIntervention({
+        consecutiveFastSolves: consecutiveFastSolvesRef.current,
+        rotationalErrorsCount,
+        idleTimeSeconds: idleSeconds,
+        allowRotation: difficulty.allowRotation,
+        currentPieces: pieces,
+      });
+
+      if (intervention.action === 'perturb_tray') {
+        const { modifiedPieces, changedCount } = engine.perturbTrayPieces(pieces, difficulty.rotationModes);
+        if (changedCount > 0) {
+          setPieces(modifiedPieces);
+          consecutiveFastSolvesRef.current = 0;
+          lastActionTimeRef.current = Date.now();
+          const rationaleText = intervention.rationale[language] || intervention.rationale.en;
+          setAiLiveReasoning(rationaleText);
+          setAiAdaptationFlash(true);
+          setTimeout(() => setAiAdaptationFlash(false), 4500);
+          jigsawAudio.playRotateChime();
+          setAiDynamicActions(prev => [
+            ...prev,
+            {
+              type: 'perturb_tray',
+              timestamp: Date.now(),
+              rationale: intervention.rationale,
+              piecesAffected: changedCount,
+            }
+          ]);
+        }
+      } else if (intervention.action === 'straighten_tray') {
+        const { modifiedPieces, changedCount } = engine.straightenTrayPieces(pieces);
+        if (changedCount > 0) {
+          setPieces(modifiedPieces);
+          setRotationalErrorsCount(0);
+          lastActionTimeRef.current = Date.now();
+          const rationaleText = intervention.rationale[language] || intervention.rationale.en;
+          setAiLiveReasoning(rationaleText);
+          setAiAdaptationFlash(true);
+          setTimeout(() => setAiAdaptationFlash(false), 4500);
+          jigsawAudio.playAutoAssistChime();
+          setAiDynamicActions(prev => [
+            ...prev,
+            {
+              type: 'straighten_tray',
+              timestamp: Date.now(),
+              rationale: intervention.rationale,
+              piecesAffected: changedCount,
+            }
+          ]);
+        }
+      }
+    }, 2000);
+
+    return () => clearInterval(checkInterval);
+  }, [isPuzzleSolved, difficulty, pieces, rotationalErrorsCount, engine, language]);
 
   // Handle Full Puzzle Completion & Real-time AI Parameter Adaptation
   const handlePuzzleCompleted = (solvedPieces: PuzzlePiece[]) => {
@@ -390,12 +560,18 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     setAiAdaptationFlash(true);
     setTimeout(() => setAiAdaptationFlash(false), 5000);
 
+    const parietalSynthesisIndex = Math.max(10, Math.min(100, Math.round(
+      100 - (rotationalErrorsCount * 18) - (misplacements * 8)
+    )));
+
     const trialTelemetry: PuzzleTrialTelemetry = {
       trialIndex: currentPuzzleIndex + 1,
       puzzleImageId: currentImage.id,
       totalPieces: difficulty.totalPieces,
       piecesPlacedCorrectly: solvedPieces.filter(p => p.isLocked).length,
       misplacementsCount: misplacements,
+      rotationalErrorsCount,
+      parietalSynthesisIndex,
       timeToFirstPlacementMs: timeToFirstPlacementMs || totalSolveTimeMs,
       totalSolveTimeMs,
       rotationsUsed,
@@ -404,6 +580,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       thetaAfterTrial: Number(newTheta.toFixed(2)),
       difficultySnapshot: newDiff,
       aiAdaptiveReasoning: reasoning,
+      aiDynamicActions,
       placementHistory,
     };
 
@@ -435,16 +612,56 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     setIsMuted(next);
   };
 
+  // Filtered pieces in tray
+  const unplacedPieces = useMemo(() => {
+    const raw = pieces.filter(p => !p.isLocked);
+    if (difficulty.totalPieces < 16 || trayCategoryFilter === 'all') return raw;
+
+    const cols = difficulty.gridCols;
+    const rows = difficulty.gridRows;
+
+    if (trayCategoryFilter === 'corners') {
+      return raw.filter(p => 
+        (p.correctCol === 0 || p.correctCol === cols - 1) && 
+        (p.correctRow === 0 || p.correctRow === rows - 1)
+      );
+    }
+
+    if (trayCategoryFilter === 'edges') {
+      return raw.filter(p => 
+        p.correctCol === 0 || p.correctCol === cols - 1 || 
+        p.correctRow === 0 || p.correctRow === rows - 1
+      );
+    }
+
+    if (trayCategoryFilter === 'centers') {
+      return raw.filter(p => 
+        p.correctCol > 0 && p.correctCol < cols - 1 && 
+        p.correctRow > 0 && p.correctRow < rows - 1
+      );
+    }
+
+    return raw;
+  }, [pieces, difficulty.totalPieces, difficulty.gridCols, difficulty.gridRows, trayCategoryFilter]);
+
+  // Responsive column count for tray
+  const trayGridClass = useMemo(() => {
+    if (difficulty.totalPieces <= 4) return 'grid-cols-2';
+    if (difficulty.totalPieces <= 9) return 'grid-cols-2 sm:grid-cols-3';
+    if (difficulty.totalPieces <= 16) return 'grid-cols-3 sm:grid-cols-4';
+    return 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5';
+  }, [difficulty.totalPieces]);
+
   // Aspect ratio of the piece slot
   const cellAspectRatio = `${difficulty.gridRows} / ${difficulty.gridCols}`;
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-7 max-w-5xl mx-auto space-y-5 animate-fadeIn select-none">
+    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-7 max-w-6xl mx-auto space-y-5 animate-fadeIn select-none">
       
       {/* 1. TOP HEADER & ACCESSIBILITY CONTROLS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-xs">
               <Puzzle className="w-4 h-4" />
             </div>
@@ -452,7 +669,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
               {t.title[language]}
             </h2>
             <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 border border-amber-200">
-              {difficulty.gridCols}×{difficulty.gridRows} ({difficulty.totalPieces} Pieces)
+              Tier {difficulty.tierLevel}: {difficulty.gridCols}×{difficulty.gridRows} ({difficulty.totalPieces} Pcs)
             </span>
           </div>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -529,7 +746,45 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
         </div>
       </div>
 
-      {/* 2. ARTWORK PICKER DRAWER (GALLERY OF ALL 8 NORTHEAST ICONS) */}
+      {/* 2. FINE-GRAINED MINIMAL STEP TIER SELECTOR */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-bold scrollbar-none">
+        <span className="text-[11px] font-black uppercase text-slate-400 shrink-0 mr-1 flex items-center gap-1">
+          <Sliders className="w-3.5 h-3.5 text-amber-600" />
+          <span>Piece Tier:</span>
+        </span>
+
+        {/* Auto AI Pill */}
+        <button
+          onClick={() => setManualPieceCount(null)}
+          className={`px-2.5 py-1 rounded-lg border text-xs font-black shrink-0 transition-all cursor-pointer ${
+            manualPieceCount === null
+              ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
+              : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+          }`}
+        >
+          Auto AI (Adaptive)
+        </button>
+
+        {/* Minimal Tiers: 2, 4, 6, 8, 9, 12, 16, 20, 24, 25, 30, 32, 36 */}
+        {PIECE_COUNT_TIERS.map(cnt => {
+          const isSelected = manualPieceCount === cnt || (manualPieceCount === null && difficulty.totalPieces === cnt);
+          return (
+            <button
+              key={cnt}
+              onClick={() => setManualPieceCount(cnt)}
+              className={`px-2.5 py-1 rounded-lg border text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                isSelected
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              {cnt} Pcs
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 3. ARTWORK PICKER DRAWER */}
       {showArtworkPicker && (
         <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 animate-fadeIn">
           <div className="flex items-center justify-between">
@@ -558,7 +813,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
         </div>
       )}
 
-      {/* 3. LIVE AI ADAPTIVE REASONING & ACTIVE PARAMETERS HUD */}
+      {/* 4. LIVE AI ADAPTIVE REASONING & ACTIVE PARAMETERS HUD */}
       <div className={`p-3.5 rounded-2xl border transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-3 ${
         aiAdaptationFlash 
           ? 'bg-amber-100/90 border-amber-400 shadow-md ring-2 ring-amber-300' 
@@ -570,11 +825,11 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
           </div>
           <div className="min-w-0">
             <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-1">
-              <span>Live AI Adaptive Clinical Engine</span>
+              <span>Live AI Cognitive-Motor Analysis</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
             </span>
             <p className="text-xs text-slate-700 font-medium leading-relaxed truncate">
-              {aiLiveReasoning || `Real-time Bayesian 2PL IRT monitoring active (θ: ${engine.getTheta() >= 0 ? '+' : ''}${engine.getTheta().toFixed(2)}). Titrating piece count, ghost transparency, and magnetic snap.`}
+              {aiLiveReasoning || `Monitoring spatial synthesis & orientation angles (θ: ${engine.getTheta() >= 0 ? '+' : ''}${engine.getTheta().toFixed(2)}). Minimal-step parameter titration active.`}
             </p>
           </div>
         </div>
@@ -591,12 +846,20 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             Snap: <strong>{difficulty.snapMarginPx}px</strong>
           </span>
           <span className="text-[10px] font-bold bg-white text-slate-700 px-2 py-1 rounded-lg border border-slate-200">
-            Rotation: <strong>{difficulty.allowRotation ? '90° Enabled' : '0° Locked'}</strong>
+            Rotation: <strong>{difficulty.allowRotation ? (difficulty.rotationModes.length > 2 ? '4-Way (90°)' : '180° Inversion') : '0° Locked'}</strong>
           </span>
         </div>
       </div>
 
-      {/* 4. MAIN PUZZLE WORKSPACE */}
+      {/* Optional Feedback Alert Banner */}
+      {feedbackBanner && (
+        <div className="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-black flex items-center gap-2 animate-fadeIn">
+          <Compass className="w-4 h-4 text-indigo-600 animate-spin" />
+          <span>{feedbackBanner}</span>
+        </div>
+      )}
+
+      {/* 5. MAIN PUZZLE WORKSPACE */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* LEFT COLUMN: TARGET ASSEMBLY CANVAS (7 COLS) */}
@@ -612,8 +875,8 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             </span>
           </div>
 
-          {/* Assembly Board Container (1:1 Aspect Ratio) */}
-          <div className="relative w-full aspect-square max-w-[420px] rounded-3xl overflow-hidden border-4 border-slate-300 bg-slate-900 shadow-xl">
+          {/* Assembly Board Container */}
+          <div className="relative w-full aspect-square max-w-[430px] rounded-3xl overflow-hidden border-4 border-slate-300 bg-slate-900 shadow-xl">
             
             {/* Ghost Image Underlay */}
             {isGhostVisible && (
@@ -651,7 +914,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                         const pId = e.dataTransfer.getData('text/plain') || selectedPieceId;
                         if (pId) handlePlacePieceAt(pId, c, r);
                       }}
-                      className={`relative border-2 border-dashed border-slate-400/40 flex items-center justify-center transition-all cursor-pointer overflow-hidden ${
+                      className={`relative border border-dashed border-slate-400/40 flex items-center justify-center transition-all cursor-pointer overflow-hidden ${
                         !placedPiece && selectedPieceId ? 'hover:bg-amber-400/25 hover:border-amber-400' : ''
                       } ${
                         isTargetAssisted && !placedPiece 
@@ -659,7 +922,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                           : ''
                       }`}
                     >
-                      {/* Placed Locked Piece Rendering: Fills cell 100% edge-to-edge */}
+                      {/* Placed Locked Piece Rendering */}
                       {placedPiece ? (
                         <div className="w-full h-full relative">
                           <PieceRenderer
@@ -670,18 +933,15 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                             svgArt={currentImage.svgArt}
                             rotation={placedPiece.rotation}
                           />
-                          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md">
-                            <CheckCircle2 className="w-4 h-4" />
+                          <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
                           </div>
                         </div>
                       ) : (
                         /* Empty Slot Placeholder */
-                        <div className="text-center p-2">
-                          <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center mx-auto text-xs font-black text-white/80 shadow-xs">
+                        <div className="text-center p-1 pointer-events-none">
+                          <span className="text-[10px] font-bold text-white/40">
                             {r * difficulty.gridCols + c + 1}
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-300/80 mt-1 block">
-                            Slot ({c + 1}, {r + 1})
                           </span>
                         </div>
                       )}
@@ -699,26 +959,73 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
         </div>
 
         {/* RIGHT COLUMN: PIECE TRAY (5 COLS) */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="lg:col-span-5 space-y-3">
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-700">
               Pieces Tray ({pieces.filter(p => !p.isLocked).length} Left)
             </h3>
-            {difficulty.allowRotation && selectedPieceId && (
-              <button
-                onClick={(e) => handleRotatePiece(selectedPieceId, e)}
-                className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold flex items-center gap-1 cursor-pointer transition-all shadow-xs"
-              >
-                <RotateCw className="w-3.5 h-3.5" />
-                <span>{t.rotatePiece[language]}</span>
-              </button>
-            )}
+
+            {/* Tray Action Controls */}
+            <div className="flex items-center gap-1.5">
+              {difficulty.allowRotation && selectedPieceId && (
+                <button
+                  onClick={(e) => handleRotateSinglePiece(selectedPieceId, e)}
+                  className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold flex items-center gap-1 cursor-pointer transition-all shadow-xs"
+                >
+                  <RotateCw className="w-3 h-3" />
+                  <span>{t.rotatePiece[language]}</span>
+                </button>
+              )}
+
+              {/* Straighten All (0 deg) Button */}
+              {pieces.some(p => !p.isLocked && p.rotation !== 0) && (
+                <button
+                  onClick={handleStraightenAll}
+                  title="Straighten all tray pieces upright (0°)"
+                  className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-all"
+                >
+                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                  <span>{t.straightenAll[language]}</span>
+                </button>
+              )}
+
+              {/* Perturb Angles Manual Trigger */}
+              {difficulty.allowRotation && (
+                <button
+                  onClick={handlePerturbAngles}
+                  title="Randomize piece rotation angles"
+                  className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-all"
+                >
+                  <RotateCw className="w-3 h-3 text-indigo-500" />
+                  <span className="hidden sm:inline">{t.perturbAngles[language]}</span>
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Unplaced Pieces Tray: Pieces render with 100% matching slot aspect ratio */}
-          <div className="p-4 rounded-3xl bg-slate-50 border border-slate-200 min-h-[280px] grid grid-cols-2 gap-4 max-h-[460px] overflow-y-auto">
-            {pieces.filter(p => !p.isLocked).map(piece => {
+          {/* Piece Category Filter Tabs for 16+ Pieces */}
+          {difficulty.totalPieces >= 16 && (
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 text-[11px] font-black">
+              {(['all', 'corners', 'edges', 'centers'] as const).map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setTrayCategoryFilter(cat)}
+                  className={`flex-1 py-1 rounded-lg capitalize transition-all cursor-pointer ${
+                    trayCategoryFilter === cat 
+                      ? 'bg-white text-slate-900 shadow-xs' 
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Unplaced Pieces Tray */}
+          <div className={`p-3 rounded-3xl bg-slate-50 border border-slate-200 min-h-[300px] grid ${trayGridClass} gap-3 max-h-[480px] overflow-y-auto`}>
+            {unplacedPieces.map(piece => {
               const isSelected = selectedPieceId === piece.id;
 
               return (
@@ -730,7 +1037,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                     setSelectedPieceId(piece.id);
                   }}
                   onClick={() => handleSelectPiece(piece.id)}
-                  className={`relative rounded-2xl overflow-hidden border-3 cursor-pointer transition-all duration-150 shadow-md flex items-center justify-center bg-slate-900 ${
+                  className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-150 shadow-sm flex items-center justify-center bg-slate-900 group ${
                     isSelected
                       ? 'border-amber-500 ring-4 ring-amber-300 scale-103 shadow-xl'
                       : piece.isHighlighted
@@ -741,7 +1048,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                     aspectRatio: cellAspectRatio,
                   }}
                 >
-                  {/* Sliced Piece Visual: Sized to match slot exactly */}
+                  {/* Sliced Piece Visual */}
                   <PieceRenderer
                     col={piece.correctCol}
                     row={piece.correctRow}
@@ -751,39 +1058,64 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                     rotation={piece.rotation}
                   />
 
-                  {/* Selected Pill Badge */}
-                  {isSelected && (
-                    <div className="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black uppercase shadow-sm">
-                      Ready to Place
+                  {/* Individual Rotate Button in Card Corner */}
+                  {difficulty.allowRotation && (
+                    <button
+                      onClick={(e) => handleRotateSinglePiece(piece.id, e)}
+                      title="Rotate 90° Clockwise"
+                      className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-slate-900/80 hover:bg-indigo-600 text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer opacity-80 group-hover:opacity-100"
+                    >
+                      <RotateCw className="w-3 h-3" />
+                    </button>
+                  )}
+
+                  {/* Non-Zero Rotation Angle Badge */}
+                  {piece.rotation !== 0 && (
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-indigo-900/90 text-indigo-100 text-[9px] font-black">
+                      {piece.rotation}°
                     </div>
                   )}
 
-                  {/* Piece index hint badge */}
-                  <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-slate-900/80 text-white text-[10px] font-black shadow-xs">
-                    Piece {piece.correctRow * difficulty.gridCols + piece.correctCol + 1}
-                  </div>
+                  {/* Selected Pill Badge */}
+                  {isSelected && (
+                    <div className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-black uppercase shadow-xs">
+                      Selected
+                    </div>
+                  )}
                 </div>
               );
             })}
 
+            {/* When Tray Filter Returns Empty */}
+            {unplacedPieces.length === 0 && pieces.some(p => !p.isLocked) && (
+              <div className="col-span-full py-8 text-center text-slate-400">
+                <p className="text-xs font-bold">No pieces in this category filter.</p>
+                <button
+                  onClick={() => setTrayCategoryFilter('all')}
+                  className="mt-1 text-xs text-amber-700 font-bold underline cursor-pointer"
+                >
+                  Show All Pieces
+                </button>
+              </div>
+            )}
+
             {/* When All Pieces from Tray Are Placed */}
             {pieces.filter(p => !p.isLocked).length === 0 && (
-              <div className="col-span-2 flex flex-col items-center justify-center p-8 text-center text-slate-400">
+              <div className="col-span-full flex flex-col items-center justify-center p-8 text-center text-slate-400">
                 <CheckCircle2 className="w-10 h-10 text-emerald-500 mb-2" />
-                <p className="text-sm font-bold text-slate-700">All pieces placed into puzzle grid!</p>
+                <p className="text-sm font-bold text-slate-700">All pieces assembled into grid!</p>
               </div>
             )}
           </div>
 
           {/* Neuroplastic Scaffolding Information Card */}
-          <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 text-xs text-amber-900/90 space-y-1">
+          <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 text-xs text-amber-900/90 space-y-1">
             <div className="flex items-center gap-1.5 font-black text-amber-950">
-              <ShieldCheck className="w-4 h-4 text-amber-700" />
-              <span>Adaptive Dignity Support Active</span>
+              <Brain className="w-4 h-4 text-amber-700 shrink-0" />
+              <span>Parietal Visuomotor Stimulation</span>
             </div>
-            <p className="text-[11px] leading-relaxed">
-              Pieces match the puzzle grid slot dimensions with full-bleed vector precision.
-              Ghost guide opacity is dynamically titrated to <strong>{Math.round(difficulty.ghostOpacity * 100)}%</strong>.
+            <p className="text-[11px] leading-relaxed text-amber-900/80">
+              Fine-grained titration dynamically challenges mental rotation (Shepard-Metzler paradigm) while 400ms motor debouncing filters involuntary tremors.
             </p>
           </div>
 
@@ -791,29 +1123,24 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
 
       </div>
 
-      {/* 5. PUZZLE COMPLETED CELEBRATION BANNER */}
-      {isPuzzleSolved && (
-        <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-50 via-teal-50 to-amber-50 border-2 border-emerald-300 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 animate-scaleUp">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
-              🎉
-            </div>
-            <div>
-              <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
-                Solved in {elapsedSeconds} Seconds
-              </span>
-              <h3 className="text-xl font-black text-slate-900 mt-1">
-                {t.completedPuzzleTitle[language]}
-              </h3>
-              <p className="text-xs text-slate-600 font-medium">
-                {currentImage.subtitles[language]} · {misplacements} Misplacement{misplacements !== 1 ? 's' : ''}
-              </p>
-            </div>
+      {/* 6. PUZZLE SOLVED RECAP CARD */}
+      {isPuzzleSolved && !isSessionFinished && (
+        <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-300 shadow-md text-center space-y-4 animate-fadeIn">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center mx-auto text-2xl shadow-sm">
+            ✓
+          </div>
+          <div>
+            <h3 className="text-xl font-black text-emerald-950">
+              {t.completedPuzzleTitle[language]}
+            </h3>
+            <p className="text-xs text-emerald-800 font-medium mt-1">
+              Solved in {elapsedSeconds}s with {misplacements} attempt(s) and {rotationsUsed} rotation(s).
+            </p>
           </div>
 
           <button
             onClick={handleNextOrFinish}
-            className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+            className="px-8 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
           >
             <span>{currentPuzzleIndex + 1 < totalPuzzles ? t.nextPuzzle[language] : t.viewSummary[language]}</span>
             <ArrowRight className="w-4 h-4" />
@@ -821,7 +1148,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
         </div>
       )}
 
-      {/* 6. COMPREHENSIVE CLINICAL ANALYSIS MODAL */}
+      {/* 7. COMPREHENSIVE CLINICAL ANALYSIS MODAL */}
       {isSessionFinished && (
         <div className="p-8 rounded-3xl bg-white border-2 border-slate-300 shadow-2xl space-y-6 animate-fadeIn">
           
@@ -905,7 +1232,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             <p className="text-xs text-amber-900/90 leading-relaxed">
               Patient completed <strong>{sessionTrials.length} puzzles</strong> with an accuracy rate of <strong>{sessionTrials.length > 0 ? Math.round((sessionTrials.filter(t => t.piecesPlacedCorrectly === t.totalPieces).length / sessionTrials.length) * 100) : 100}%</strong>.
               Average construction solve time: <strong>{sessionTrials.length > 0 ? Math.round(sessionTrials.reduce((a, b) => a + b.totalSolveTimeMs, 0) / sessionTrials.length / 1000) : 0}s</strong>.
-              The AI titrated spatial difficulty across piece counts ({difficulty.gridCols}×{difficulty.gridRows}) and ghost underlay guidance, maintaining optimal neuroplastic challenge without triggering anxiety.
+              The AI evaluated {engine.compileSessionSummary(sessionTrials).totalRotationalErrors} rotational error(s) and executed {engine.compileSessionSummary(sessionTrials).totalAIDynamicInterventions} dynamic tray reorientations.
             </p>
           </div>
 

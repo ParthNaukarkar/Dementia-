@@ -25,15 +25,19 @@ export interface PuzzlePiece {
 }
 
 export interface JigsawDifficulty {
-  gridCols: number;          // 1 (floor) to 3 (ceiling)
-  gridRows: number;          // 2 (floor: 1x2=2 pcs) to 3 (ceiling: 3x3=9 pcs)
-  totalPieces: number;       // 2 to 9 pieces
+  tierLevel: number;         // 1 to 13 (fine-grained minimal step indexing)
+  gridCols: number;          // 2 to 8
+  gridRows: number;          // 1 to 6
+  totalPieces: number;       // 2, 4, 6, 8, 9, 12, 16, 20, 24, 25, 30, 32, 36
   ghostOpacity: number;      // 1.0 (floor: 100% full-color) to 0.0 (ceiling: 0% blank)
-  allowRotation: boolean;    // false (floor: 0 deg locked) to true (ceiling: 90 deg steps)
-  snapMarginPx: number;      // 80px (floor: super-magnetic) to 20px (ceiling: precision)
-  autoAssistTimeoutMs: number; // 25000ms to 45000ms
+  allowRotation: boolean;    // false (floor: 0 deg locked) to true (ceiling: rotations enabled)
+  rotationModes: (0 | 90 | 180 | 270)[];
+  snapMarginPx: number;      // 80px (floor: super-magnetic) to 15px (ceiling: precision)
+  autoAssistTimeoutMs: number; // 25000ms to 60000ms
   tremorDebounceMs: number;  // 400ms hardware motor filter
-  scaffoldingLevel: 'floor_full_assist' | 'moderate_guidance' | 'minimal_scaffolding';
+  scaffoldingLevel: 'floor_full_assist' | 'moderate_guidance' | 'minimal_scaffolding' | 'mastery_challenge';
+  trayOrientationPerturbation: 'none' | 'subtle_180' | 'full_90_180_270';
+  dynamicReorientationEnabled: boolean;
 }
 
 export interface PiecePlacementEvent {
@@ -41,9 +45,17 @@ export interface PiecePlacementEvent {
   targetCol: number;
   targetRow: number;
   isCorrect: boolean;
+  wasCorrectPositionWrongAngle?: boolean;
   deliberationMs: number;
   rotationAtPlacement: number;
   timestamp: number;
+}
+
+export interface AIDynamicAction {
+  type: 'perturb_tray' | 'straighten_tray' | 'tier_transition';
+  timestamp: number;
+  rationale: Record<SupportedLanguage, string>;
+  piecesAffected: number;
 }
 
 export interface PuzzleTrialTelemetry {
@@ -52,6 +64,8 @@ export interface PuzzleTrialTelemetry {
   totalPieces: number;
   piecesPlacedCorrectly: number;
   misplacementsCount: number;
+  rotationalErrorsCount: number;
+  parietalSynthesisIndex: number; // 0 to 100%
   timeToFirstPlacementMs: number;
   totalSolveTimeMs: number;
   rotationsUsed: number;
@@ -60,6 +74,7 @@ export interface PuzzleTrialTelemetry {
   thetaAfterTrial: number;
   difficultySnapshot: JigsawDifficulty;
   aiAdaptiveReasoning: Record<SupportedLanguage, string>;
+  aiDynamicActions: AIDynamicAction[];
   placementHistory: PiecePlacementEvent[];
 }
 
@@ -70,6 +85,9 @@ export interface JigsawSessionSummary {
   accuracyPercentage: number;
   meanSolveTimeSeconds: number;
   totalMisplacements: number;
+  totalRotationalErrors: number;
+  meanParietalSynthesisIndex: number;
+  totalAIDynamicInterventions: number;
   spatialPraxisScore: number;       // 0 to 5 points (WAIS-IV Block Design equivalent)
   estimatedCERADPraxisScore: number;// 0 to 14 standard points
   visuomotorProfile: VisuomotorProfile;

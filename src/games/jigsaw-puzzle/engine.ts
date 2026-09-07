@@ -22,93 +22,310 @@ export class JigsawPraxisEngine {
   }
 
   /**
-   * Translates continuous latent ability theta into the 7 clinical parameters.
+   * 13 Fine-Grained Minimal-Step Difficulty Tiers.
+   * Progression: 2 -> 4 -> 6 -> 8 -> 9 -> 12 -> 16 -> 20 -> 24 -> 25 -> 30 -> 32 -> 36 pieces.
+   * Parameters change minimally between consecutive tiers to ensure zero patient demoralization.
    */
   public deriveDifficultyFromTheta(theta: number): JigsawDifficulty {
-    // 1. Clinical Floor: Severe impairment or frustration (theta <= -0.8)
-    if (theta <= -0.8) {
+    // Tier 1: Clinical Floor: Severe impairment (theta <= -1.0)
+    if (theta <= -1.0) {
       return {
+        tierLevel: 1,
         gridCols: 2,
-        gridRows: 1, // 1x2 = 2 pieces total (Left & Right halves)
-        totalPieces: 2,
+        gridRows: 1,
+        totalPieces: 2, // 1x2 Left/Right split
         ghostOpacity: 1.0, // 100% full-color twin matching
-        allowRotation: false, // 0 deg locked upright
-        snapMarginPx: 80, // Super-magnetic snap (accommodates severe tremors)
-        autoAssistTimeoutMs: 25000, // Faster dignity assist before distress
+        allowRotation: false,
+        rotationModes: [0],
+        snapMarginPx: 80, // Super-magnetic snap
+        autoAssistTimeoutMs: 25000,
         tremorDebounceMs: 400,
         scaffoldingLevel: 'floor_full_assist',
+        trayOrientationPerturbation: 'none',
+        dynamicReorientationEnabled: false,
       };
     }
 
-    // 2. Mild-to-Moderate Impairment (Floor to Standard Baseline: -0.8 < theta < 0.8)
-    if (theta < 0.8) {
+    // Tier 2: Early Impairment (-1.0 < theta <= -0.5)
+    if (theta <= -0.5) {
       return {
+        tierLevel: 2,
         gridCols: 2,
-        gridRows: 2, // 2x2 = 4 pieces
+        gridRows: 2,
         totalPieces: 4,
-        ghostOpacity: 0.40, // 40% visible guiding outline
-        allowRotation: false, // Locked upright (no mental rotation demand)
+        ghostOpacity: 0.75,
+        allowRotation: false,
+        rotationModes: [0],
+        snapMarginPx: 70,
+        autoAssistTimeoutMs: 30000,
+        tremorDebounceMs: 400,
+        scaffoldingLevel: 'moderate_guidance',
+        trayOrientationPerturbation: 'none',
+        dynamicReorientationEnabled: false,
+      };
+    }
+
+    // Tier 3: Mild Impairment Step 1 (-0.5 < theta <= -0.1)
+    if (theta <= -0.1) {
+      return {
+        tierLevel: 3,
+        gridCols: 3,
+        gridRows: 2,
+        totalPieces: 6, // Minimal step from 4 -> 6
+        ghostOpacity: 0.60,
+        allowRotation: false,
+        rotationModes: [0],
         snapMarginPx: 60,
         autoAssistTimeoutMs: 35000,
         tremorDebounceMs: 400,
         scaffoldingLevel: 'moderate_guidance',
+        trayOrientationPerturbation: 'none',
+        dynamicReorientationEnabled: false,
       };
     }
 
-    // 3. Mild Cognitive Preservation (0.8 <= theta < 1.4)
-    if (theta < 1.4) {
+    // Tier 4: Mild Impairment Step 2 (-0.1 < theta <= 0.3)
+    if (theta <= 0.3) {
       return {
-        gridCols: 3,
-        gridRows: 2, // 3x2 = 6 pieces
-        totalPieces: 6,
-        ghostOpacity: 0.20,
+        tierLevel: 4,
+        gridCols: 4,
+        gridRows: 2,
+        totalPieces: 8, // Minimal step from 6 -> 8
+        ghostOpacity: 0.50,
         allowRotation: false,
-        snapMarginPx: 40,
-        autoAssistTimeoutMs: 45000,
+        rotationModes: [0],
+        snapMarginPx: 55,
+        autoAssistTimeoutMs: 38000,
+        tremorDebounceMs: 400,
+        scaffoldingLevel: 'moderate_guidance',
+        trayOrientationPerturbation: 'none',
+        dynamicReorientationEnabled: false,
+      };
+    }
+
+    // Tier 5: Standard Baseline (0.3 < theta <= 0.7)
+    if (theta <= 0.7) {
+      return {
+        tierLevel: 5,
+        gridCols: 3,
+        gridRows: 3,
+        totalPieces: 9, // Minimal step from 8 -> 9
+        ghostOpacity: 0.40,
+        allowRotation: false,
+        rotationModes: [0],
+        snapMarginPx: 50,
+        autoAssistTimeoutMs: 40000,
         tremorDebounceMs: 400,
         scaffoldingLevel: 'minimal_scaffolding',
+        trayOrientationPerturbation: 'none',
+        dynamicReorientationEnabled: false,
       };
     }
 
-    // 4. Ceiling: Intact Healthy Elder / High Preservation (theta >= 1.4)
+    // Tier 6: Preserved Intermediate (0.7 < theta <= 1.1)
+    if (theta <= 1.1) {
+      return {
+        tierLevel: 6,
+        gridCols: 4,
+        gridRows: 3,
+        totalPieces: 12, // Minimal step from 9 -> 12
+        ghostOpacity: 0.30,
+        allowRotation: true,
+        rotationModes: [0, 180],
+        snapMarginPx: 45,
+        autoAssistTimeoutMs: 44000,
+        tremorDebounceMs: 400,
+        scaffoldingLevel: 'minimal_scaffolding',
+        trayOrientationPerturbation: 'subtle_180',
+        dynamicReorientationEnabled: true,
+      };
+    }
+
+    // Tier 7: Advanced Visuospatial (1.1 < theta <= 1.5)
+    if (theta <= 1.5) {
+      return {
+        tierLevel: 7,
+        gridCols: 4,
+        gridRows: 4,
+        totalPieces: 16, // Minimal step from 12 -> 16
+        ghostOpacity: 0.20,
+        allowRotation: true,
+        rotationModes: [0, 90, 180, 270],
+        snapMarginPx: 38,
+        autoAssistTimeoutMs: 48000,
+        tremorDebounceMs: 400,
+        scaffoldingLevel: 'minimal_scaffolding',
+        trayOrientationPerturbation: 'full_90_180_270',
+        dynamicReorientationEnabled: true,
+      };
+    }
+
+    // Tier 8: High Cognitive Reserve (1.5 < theta <= 1.8)
+    if (theta <= 1.8) {
+      return {
+        tierLevel: 8,
+        gridCols: 5,
+        gridRows: 4,
+        totalPieces: 20, // Minimal step from 16 -> 20
+        ghostOpacity: 0.15,
+        allowRotation: true,
+        rotationModes: [0, 90, 180, 270],
+        snapMarginPx: 32,
+        autoAssistTimeoutMs: 50000,
+        tremorDebounceMs: 400,
+        scaffoldingLevel: 'mastery_challenge',
+        trayOrientationPerturbation: 'full_90_180_270',
+        dynamicReorientationEnabled: true,
+      };
+    }
+
+    // Tier 9: Superior Synthesis (1.8 < theta <= 2.1)
+    if (theta <= 2.1) {
+      return {
+        tierLevel: 9,
+        gridCols: 6,
+        gridRows: 4,
+        totalPieces: 24, // Minimal step from 20 -> 24
+        ghostOpacity: 0.10,
+        allowRotation: true,
+        rotationModes: [0, 90, 180, 270],
+        snapMarginPx: 28,
+        autoAssistTimeoutMs: 52000,
+        tremorDebounceMs: 400,
+        scaffoldingLevel: 'mastery_challenge',
+        trayOrientationPerturbation: 'full_90_180_270',
+        dynamicReorientationEnabled: true,
+      };
+    }
+
+    // Tier 10: Expert Praxis (2.1 < theta <= 2.4)
+    if (theta <= 2.4) {
+      return {
+        tierLevel: 10,
+        gridCols: 5,
+        gridRows: 5,
+        totalPieces: 25, // Minimal step from 24 -> 25
+        ghostOpacity: 0.05,
+        allowRotation: true,
+        rotationModes: [0, 90, 180, 270],
+        snapMarginPx: 24,
+        autoAssistTimeoutMs: 55000,
+        tremorDebounceMs: 400,
+        scaffoldingLevel: 'mastery_challenge',
+        trayOrientationPerturbation: 'full_90_180_270',
+        dynamicReorientationEnabled: true,
+      };
+    }
+
+    // Tier 11: Complex Grid (2.4 < theta <= 2.6)
+    if (theta <= 2.6) {
+      return {
+        tierLevel: 11,
+        gridCols: 6,
+        gridRows: 5,
+        totalPieces: 30, // Minimal step from 25 -> 30
+        ghostOpacity: 0.02,
+        allowRotation: true,
+        rotationModes: [0, 90, 180, 270],
+        snapMarginPx: 20,
+        autoAssistTimeoutMs: 58000,
+        tremorDebounceMs: 400,
+        scaffoldingLevel: 'mastery_challenge',
+        trayOrientationPerturbation: 'full_90_180_270',
+        dynamicReorientationEnabled: true,
+      };
+    }
+
+    // Tier 12: Master Grid (2.6 < theta <= 2.8)
+    if (theta <= 2.8) {
+      return {
+        tierLevel: 12,
+        gridCols: 8,
+        gridRows: 4,
+        totalPieces: 32, // Minimal step from 30 -> 32
+        ghostOpacity: 0.0,
+        allowRotation: true,
+        rotationModes: [0, 90, 180, 270],
+        snapMarginPx: 18,
+        autoAssistTimeoutMs: 60000,
+        tremorDebounceMs: 400,
+        scaffoldingLevel: 'mastery_challenge',
+        trayOrientationPerturbation: 'full_90_180_270',
+        dynamicReorientationEnabled: true,
+      };
+    }
+
+    // Tier 13: Grandmaster Ceiling (theta > 2.8)
     return {
-      gridCols: 3,
-      gridRows: 3, // 3x3 = 9 pieces
-      totalPieces: 9,
-      ghostOpacity: 0.0, // 0% opacity (pure spatial reconstruction from memory)
-      allowRotation: true, // Mental rotation enabled (90 deg increments)
-      snapMarginPx: 25,
-      autoAssistTimeoutMs: 50000,
+      tierLevel: 13,
+      gridCols: 6,
+      gridRows: 6,
+      totalPieces: 36, // Minimal step from 32 -> 36
+      ghostOpacity: 0.0,
+      allowRotation: true,
+      rotationModes: [0, 90, 180, 270],
+      snapMarginPx: 15,
+      autoAssistTimeoutMs: 60000,
       tremorDebounceMs: 400,
-      scaffoldingLevel: 'minimal_scaffolding',
+      scaffoldingLevel: 'mastery_challenge',
+      trayOrientationPerturbation: 'full_90_180_270',
+      dynamicReorientationEnabled: true,
     };
   }
 
   /**
-   * Tremor debouncing filter (400ms guard against parkinsonian / essential tremors).
+   * Directly retrieves difficulty parameters for a selected piece count.
+   * Matches one of the 13 fine-grained tiers.
+   */
+  public getDifficultyForPieceCount(pieceCount: number): JigsawDifficulty {
+    const thetaMap: Record<number, number> = {
+      2: -1.2,
+      4: -0.7,
+      6: -0.3,
+      8: 0.1,
+      9: 0.5,
+      12: 0.9,
+      16: 1.3,
+      20: 1.6,
+      24: 1.9,
+      25: 2.2,
+      30: 2.5,
+      32: 2.7,
+      36: 2.9,
+    };
+    const targetTheta = thetaMap[pieceCount] ?? 0.5;
+    return this.deriveDifficultyFromTheta(targetTheta);
+  }
+
+  /**
+   * Hardware Tremor Debounce Guard (400ms).
    */
   public filterTremorTap(now: number = Date.now()): boolean {
     if (now - this.lastTapTimestamp < this.currentDifficulty.tremorDebounceMs) {
       this.tremorTapsFilteredCount++;
-      return false; // Suppress tremor duplicate
+      return false; // Suppress duplicate motor tap
     }
     this.lastTapTimestamp = now;
     return true;
   }
 
   /**
-   * Slices a puzzle image into the designated grid of pieces.
+   * Slices puzzle into grid pieces with initial orientations matching rotation modes.
    */
-  public generatePieces(cols: number, rows: number, allowRotation: boolean): PuzzlePiece[] {
+  public generatePieces(
+    cols: number, 
+    rows: number, 
+    allowRotation: boolean,
+    rotationModes: (0 | 90 | 180 | 270)[] = [0]
+  ): PuzzlePiece[] {
     const pieces: PuzzlePiece[] = [];
     let idCounter = 0;
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         let initialRotation = 0;
-        if (allowRotation) {
-          const rotations = [0, 90, 180, 270];
-          initialRotation = rotations[Math.floor(Math.random() * rotations.length)];
+        if (allowRotation && rotationModes.length > 0) {
+          initialRotation = rotationModes[Math.floor(Math.random() * rotationModes.length)];
         }
 
         pieces.push({
@@ -128,17 +345,127 @@ export class JigsawPraxisEngine {
   }
 
   /**
-   * Evaluates piece placement against correct coordinates and rotation.
+   * Evaluates piece placement with precise rotation checking.
+   * Returns whether position matches and if rotation was the only error.
    */
   public evaluatePlacement(
     piece: PuzzlePiece,
     targetCol: number,
     targetRow: number,
     currentRotation: number
-  ): boolean {
+  ): { isCorrect: boolean; wasCorrectPositionWrongAngle: boolean } {
     const isCorrectPos = piece.correctCol === targetCol && piece.correctRow === targetRow;
     const isCorrectRot = currentRotation % 360 === 0;
-    return isCorrectPos && isCorrectRot;
+    return {
+      isCorrect: isCorrectPos && isCorrectRot,
+      wasCorrectPositionWrongAngle: isCorrectPos && !isCorrectRot,
+    };
+  }
+
+  /**
+   * High-Level Live Telemetry Analysis:
+   * Real-time monitoring of parietal synthesis and angular search patterns during gameplay.
+   * Determines if the AI should dynamically perturb tray piece orientations (on rapid flow)
+   * or auto-straighten them (on hesitation/angular struggle).
+   */
+  public analyzeLiveIntervention(params: {
+    consecutiveFastSolves: number;
+    rotationalErrorsCount: number;
+    idleTimeSeconds: number;
+    allowRotation: boolean;
+    currentPieces: PuzzlePiece[];
+  }): {
+    action: 'perturb_tray' | 'straighten_tray' | 'none';
+    rationale: Record<SupportedLanguage, string>;
+    piecesAffected: number;
+  } {
+    const unplaced = params.currentPieces.filter(p => !p.isLocked);
+    if (unplaced.length === 0) {
+      return {
+        action: 'none',
+        rationale: { as: '', bn: '', hi: '', en: '' },
+        piecesAffected: 0,
+      };
+    }
+
+    const hasRotatedPieces = unplaced.some(p => p.rotation !== 0);
+
+    // 1. Apraxia / Hesitation Relief: If patient hesitates (>12s) or has orientation errors
+    if ((params.idleTimeSeconds >= 12 || params.rotationalErrorsCount >= 1) && hasRotatedPieces) {
+      return {
+        action: 'straighten_tray',
+        piecesAffected: unplaced.length,
+        rationale: {
+          as: `কোণীয় দ্বিধাবোধ চিনাক্ত। স্থানিক স্পষ্টতাৰ বাবে AI এ ট্ৰে’ৰ সকলো টুকুৰা পোন (০°) কৰি দিলে।`,
+          bn: `কোণীয় দ্বিধাবোধ শনাক্ত। স্থানিক স্পষ্টতার জন্য AI ট্রে-র সব টুকরো সোজা (০°) করে দিল।`,
+          hi: `दिशा निर्धारण में समय लगा। AI ने सहायता के लिए ट्रे के सभी टुकड़ों को सीधा (0°) कर दिया।`,
+          en: `Angular hesitation detected. AI dynamically auto-aligned all tray pieces upright (0°) to relieve parietal fatigue.`,
+        },
+      };
+    }
+
+    // 2. High Parietal Synthesis Stimulus: If patient solves rapidly without angular errors
+    if (
+      params.allowRotation &&
+      params.consecutiveFastSolves >= 2 &&
+      params.rotationalErrorsCount === 0 &&
+      !hasRotatedPieces &&
+      unplaced.length >= 2
+    ) {
+      return {
+        action: 'perturb_tray',
+        piecesAffected: Math.min(4, unplaced.length),
+        rationale: {
+          as: `উচ্চ স্থানিক ক্ষমতা পৰিলক্ষিত! মানসিক ঘূৰ্ণন ক্ষমতা উদ্দীপিত কৰিবলৈ AI এ ট্ৰে’ৰ টুকুৰাবোৰৰ কোণ সলনি কৰিলে।`,
+          bn: `উচ্চ স্থানিক ক্ষমতা পরিলক্ষিত! মানসিক ঘূর্ণন ক্ষমতা উদ্দীপিত করতে AI ট্রে-র টুকরোগুলির কোণ পরিবর্তন করল।`,
+          hi: `उत्कृष्ट स्थानिक समझ! घूर्णन क्षमता को चुनौती देने के लिए AI ने ट्रे के टुकड़ों को घुमा दिया।`,
+          en: `Rapid spatial synthesis detected! AI dynamically perturbed tray piece angles (90°/180°/270°) to engage right parietal mental rotation.`,
+        },
+      };
+    }
+
+    return {
+      action: 'none',
+      rationale: { as: '', bn: '', hi: '', en: '' },
+      piecesAffected: 0,
+    };
+  }
+
+  /**
+   * Perturbs unplaced pieces in tray into rotated orientations.
+   */
+  public perturbTrayPieces(
+    pieces: PuzzlePiece[],
+    modes: (0 | 90 | 180 | 270)[] = [90, 180, 270]
+  ): { modifiedPieces: PuzzlePiece[]; changedCount: number } {
+    let changed = 0;
+    const modified = pieces.map(p => {
+      if (!p.isLocked) {
+        const nonZeroModes = modes.filter(m => m !== 0);
+        const nextRot = nonZeroModes.length > 0 
+          ? nonZeroModes[Math.floor(Math.random() * nonZeroModes.length)]
+          : 90;
+        changed++;
+        return { ...p, rotation: nextRot };
+      }
+      return p;
+    });
+    return { modifiedPieces: modified, changedCount: changed };
+  }
+
+  /**
+   * Straightens all unplaced pieces in tray upright to 0 degrees.
+   */
+  public straightenTrayPieces(pieces: PuzzlePiece[]): { modifiedPieces: PuzzlePiece[]; changedCount: number } {
+    let changed = 0;
+    const modified = pieces.map(p => {
+      if (!p.isLocked && p.rotation !== 0) {
+        changed++;
+        return { ...p, rotation: 0 };
+      }
+      return p;
+    });
+    return { modifiedPieces: modified, changedCount: changed };
   }
 
   /**
@@ -153,11 +480,11 @@ export class JigsawPraxisEngine {
     const prevTheta = this.currentTheta;
     const currentDiff = this.currentDifficulty;
 
-    const itemDifficultyB = (currentDiff.totalPieces - 4) * 0.45 
-      - currentDiff.ghostOpacity * 1.2 
-      + (currentDiff.allowRotation ? 0.8 : -0.5);
+    const itemDifficultyB = (currentDiff.tierLevel - 5) * 0.35 
+      - currentDiff.ghostOpacity * 1.0 
+      + (currentDiff.allowRotation ? 0.6 : -0.4);
 
-    const discriminationA = 1.25;
+    const discriminationA = 1.2;
 
     let reasoning: Record<SupportedLanguage, string>;
 
@@ -166,30 +493,32 @@ export class JigsawPraxisEngine {
       this.consecutiveErrors = 0;
 
       const expectedProb = 1 / (1 + Math.exp(-discriminationA * (this.currentTheta - itemDifficultyB)));
-      const delta = (1 - expectedProb) * 0.32;
+      const delta = (1 - expectedProb) * 0.28;
       this.currentTheta = Math.min(3.0, this.currentTheta + delta);
 
-      if (this.consecutiveSuccesses >= 2 || this.currentTheta >= 0.8) {
-        this.currentDifficulty = this.deriveDifficultyFromTheta(this.currentTheta);
+      // Titrate difficulty smoothly
+      this.currentDifficulty = this.deriveDifficultyFromTheta(this.currentTheta);
+
+      if (this.currentDifficulty.tierLevel > currentDiff.tierLevel) {
         reasoning = {
-          as: `উচ্চ স্থানিক ক্ষমতা পৰিলক্ষিত (θ: ${this.currentTheta.toFixed(2)})! AI এ টুকুৰা সংখ্যা ${this.currentDifficulty.totalPieces} লৈ বৃদ্ধি কৰি সহায়িকা ছবিৰ স্বচ্ছতা হ্ৰাস কৰিলে।`,
-          bn: `উচ্চ স্থানিক ক্ষমতা পরিলক্ষিত (θ: ${this.currentTheta.toFixed(2)})! AI টুকরো সংখ্যা ${this.currentDifficulty.totalPieces}-এ বৃদ্ধি করে সহায়ক ছবির স্বচ্ছতা হ্রাস করল।`,
-          hi: `उत्कृष्ट स्थानिक क्षमता देखी गई (θ: ${this.currentTheta.toFixed(2)})! AI ने टुकड़ों की संख्या बढ़ाकर ${this.currentDifficulty.totalPieces} की और सहायक चित्र की पारदर्शिता कम की।`,
-          en: `High spatial praxis observed (θ: ${this.currentTheta.toFixed(2)})! AI escalated piece count to ${this.currentDifficulty.totalPieces} and faded ghost guide to ${Math.round(this.currentDifficulty.ghostOpacity * 100)}% for cognitive stimulation.`,
+          as: `উচ্চ স্থানিক সমন্বয় পৰিলক্ষিত (θ: ${this.currentTheta.toFixed(2)})! AI এ স্তৰ ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} টুকুৰা) লৈ ন্যূনতম পৰিৱৰ্তন কৰি সহায়িকা স্বচ্ছতা হ্ৰাস কৰিলে।`,
+          bn: `উচ্চ স্থানিক সমন্বয় পরিলক্ষিত (θ: ${this.currentTheta.toFixed(2)})! AI স্তর ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} টুকরো)-এ মসৃণ পরিবর্তন করে সহায়ক স্বচ্ছতা হ্রাস করল।`,
+          hi: `उत्कृष्ट स्थानिक संतुलन (θ: ${this.currentTheta.toFixed(2)})! AI ने स्तर ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} टुकड़े) पर सूक्ष्म समायोजन किया।`,
+          en: `High spatial praxis observed (θ: ${this.currentTheta.toFixed(2)})! AI titrated smoothly to Tier ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} pieces) with ${Math.round(this.currentDifficulty.ghostOpacity * 100)}% ghost guide.`,
         };
       } else {
         reasoning = {
-          as: `সফল সমাধান। স্থানিক ক্ষমতা θ: ${prevTheta.toFixed(2)} ৰ পৰা ${this.currentTheta.toFixed(2)} লৈ উন্নত হ’ল।`,
-          bn: `সফল সমাধান। স্থানিক ক্ষমতা θ: ${prevTheta.toFixed(2)} থেকে ${this.currentTheta.toFixed(2)}-এ উন্নত হলো।`,
+          as: `সফল সমাধান। স্থানিক ক্ষমতা θ: ${prevTheta.toFixed(2)} ৰ পৰা ${this.currentTheta.toFixed(2)} লৈ বৃদ্ধি পালে।`,
+          bn: `সফল সমাধান। স্থানিক ক্ষমতা θ: ${prevTheta.toFixed(2)} থেকে ${this.currentTheta.toFixed(2)}-এ বৃদ্ধি পেল।`,
           hi: `सफल समाधान। स्थानिक क्षमता θ: ${prevTheta.toFixed(2)} से बढ़कर ${this.currentTheta.toFixed(2)} हो गई।`,
-          en: `Accurate solve. Spatial ability theta strengthened from ${prevTheta.toFixed(2)} to ${this.currentTheta.toFixed(2)}.`,
+          en: `Accurate solve. Spatial ability theta consolidated from ${prevTheta.toFixed(2)} to ${this.currentTheta.toFixed(2)}.`,
         };
       }
     } else {
       this.consecutiveErrors++;
       this.consecutiveSuccesses = 0;
 
-      const delta = (usedAutoAssist ? 0.45 : 0.25) + Math.min(0.2, misplacements * 0.05);
+      const delta = (usedAutoAssist ? 0.35 : 0.20) + Math.min(0.15, misplacements * 0.04);
       this.currentTheta = Math.max(-3.0, this.currentTheta - delta);
 
       this.currentDifficulty = this.deriveDifficultyFromTheta(this.currentTheta);
@@ -206,7 +535,7 @@ export class JigsawPraxisEngine {
           as: `স্থানিক সমন্বয় সহায় সক্ৰিয়। AI এ সহায়িকা ছবিৰ স্পষ্টতা ${Math.round(this.currentDifficulty.ghostOpacity * 100)}% লৈ বৃদ্ধি কৰিলে।`,
           bn: `স্থানিক সমন্বয় সাহায্য সক্রিয়। AI সহায়ক ছবির স্পষ্টতা ${Math.round(this.currentDifficulty.ghostOpacity * 100)}%-এ বৃদ্ধি করল।`,
           hi: `सहायक मार्गदर्शन सक्रिय। AI ने सहायक चित्र की स्पष्टता बढ़ाकर ${Math.round(this.currentDifficulty.ghostOpacity * 100)}% कर दी।`,
-          en: `Spatial guidance activated. AI increased ghost opacity to ${Math.round(this.currentDifficulty.ghostOpacity * 100)}% and expanded magnetic snap tolerance to ${this.currentDifficulty.snapMarginPx}px.`,
+          en: `Spatial guidance activated. AI adapted to Tier ${this.currentDifficulty.tierLevel} (${this.currentDifficulty.totalPieces} pieces) with ${Math.round(this.currentDifficulty.ghostOpacity * 100)}% ghost outline.`,
         };
       }
     }
@@ -236,10 +565,20 @@ export class JigsawPraxisEngine {
     const accuracyPercentage = totalPuzzles > 0 ? Math.round((solvedPuzzles / totalPuzzles) * 100) : 0;
     
     const totalMisplacements = trials.reduce((acc, t) => acc + t.misplacementsCount, 0);
+    const totalRotationalErrors = trials.reduce((acc, t) => acc + (t.rotationalErrorsCount || 0), 0);
     const autoAssistedRounds = trials.filter(t => t.wasAutoAssisted).length;
 
     const totalSolveTimeMs = trials.reduce((acc, t) => acc + t.totalSolveTimeMs, 0);
     const meanSolveTimeSeconds = totalPuzzles > 0 ? Math.round((totalSolveTimeMs / totalPuzzles) / 1000) : 0;
+
+    const meanParietalSynthesisIndex = totalPuzzles > 0
+      ? Math.round(trials.reduce((acc, t) => acc + (t.parietalSynthesisIndex || 0), 0) / totalPuzzles)
+      : 0;
+
+    const totalAIDynamicInterventions = trials.reduce(
+      (acc, t) => acc + (t.aiDynamicActions?.length || 0), 
+      0
+    );
 
     // WAIS-IV Block Design equivalent score (0 to 5 points)
     const spatialPraxisScore = Math.max(0, Math.min(5, Math.round((this.currentTheta + 2.5) * 1.0)));
@@ -276,6 +615,9 @@ export class JigsawPraxisEngine {
       accuracyPercentage,
       meanSolveTimeSeconds,
       totalMisplacements,
+      totalRotationalErrors,
+      meanParietalSynthesisIndex,
+      totalAIDynamicInterventions,
       spatialPraxisScore,
       estimatedCERADPraxisScore,
       visuomotorProfile,
@@ -292,6 +634,10 @@ export class JigsawPraxisEngine {
 
   public getDifficulty(): JigsawDifficulty {
     return this.currentDifficulty;
+  }
+
+  public setDifficulty(diff: JigsawDifficulty) {
+    this.currentDifficulty = diff;
   }
 
   public getTheta(): number {
@@ -316,3 +662,4 @@ export class JigsawPraxisEngine {
     return copy;
   }
 }
+

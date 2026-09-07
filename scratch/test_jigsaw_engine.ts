@@ -17,7 +17,7 @@ console.log('===================================================================
 
 // 1. Image Catalog Integrity
 console.log('>>> [1] Validating Cultural Artworks Catalog...');
-assert(PUZZLE_IMAGES.length >= 4, `Catalog contains ${PUZZLE_IMAGES.length} artworks (expected >= 4)`);
+assert(PUZZLE_IMAGES.length >= 8, `Catalog contains ${PUZZLE_IMAGES.length} artworks (expected >= 8)`);
 PUZZLE_IMAGES.forEach((img, i) => {
   assert(img.id.length > 0, `Artwork #${i+1} has valid ID: ${img.id}`);
   assert(img.svgArt.includes('<svg'), `Artwork #${i+1} contains valid SVG markup`);
@@ -29,16 +29,15 @@ console.log('\n>>> [2] Validating Baseline Engine Difficulty (theta = 0.0)...');
 const engine = new JigsawPraxisEngine(0.0);
 const baselineDiff = engine.getDifficulty();
 
-assert(baselineDiff.totalPieces === 4, `Baseline piece count is 4 (2x2 grid)`);
-assert(baselineDiff.gridCols === 2 && baselineDiff.gridRows === 2, `Grid is 2x2`);
-assert(baselineDiff.ghostOpacity === 0.40, `Baseline ghost guide opacity is 40%`);
+assert(baselineDiff.totalPieces === 8, `Baseline piece count at theta 0.0 is 8 (4x2 grid, Tier 4)`);
+assert(baselineDiff.gridCols === 4 && baselineDiff.gridRows === 2, `Grid is 4x2`);
+assert(baselineDiff.ghostOpacity === 0.50, `Baseline ghost guide opacity is 50%`);
 assert(baselineDiff.allowRotation === false, `Mental rotation is disabled at baseline (locked 0 deg)`);
-assert(baselineDiff.snapMarginPx === 60, `Snap tolerance is generous at 60px`);
+assert(baselineDiff.snapMarginPx === 55, `Snap tolerance is generous at 55px`);
 assert(baselineDiff.tremorDebounceMs === 400, `Tremor debouncing filter is active at 400ms`);
 
 // 3. Clinical Floor Titration (Struggling / Dementia Support Mode)
 console.log('\n>>> [3] Validating Adaptive Titration Down to Clinical Floor...');
-// Force drop theta below -0.8
 engine.setTheta(-1.2);
 const floorDiff = engine.getDifficulty();
 
@@ -51,19 +50,31 @@ assert(floorDiff.snapMarginPx === 80, `Snap margin expands to super-magnetic 80p
 assert(floorDiff.autoAssistTimeoutMs === 25000, `Auto-assist timeout accelerates to 25s to protect dignity`);
 assert(floorDiff.scaffoldingLevel === 'floor_full_assist', `Scaffolding level is 'floor_full_assist'`);
 
-// 4. Upward Escalation to Ceiling (High Ability)
-console.log('\n>>> [4] Validating Upward Titration to High Preservation Ceiling...');
-engine.setTheta(1.8);
+// 4. Fine-Grained Minimal Step Tiers (2 -> 4 -> 6 -> 8 -> 9 -> 12 -> 16 -> 20 -> 24 -> 25 -> 30 -> 32 -> 36)
+console.log('\n>>> [4] Validating Fine-Grained Minimal Step Tiers & Direct Piece Counts...');
+const expectedPieceCounts = [2, 4, 6, 8, 9, 12, 16, 20, 24, 25, 30, 32, 36];
+expectedPieceCounts.forEach(count => {
+  const diff = engine.getDifficultyForPieceCount(count);
+  assert(diff.totalPieces === count, `Direct lookup for ${count} pieces succeeds (tierLevel ${diff.tierLevel})`);
+  assert(diff.gridCols * diff.gridRows === count, `Grid dimensions ${diff.gridCols}x${diff.gridRows} equal ${count}`);
+});
+
+// 5. Upward Escalation to Ceiling (32 & 36 Pieces)
+console.log('\n>>> [5] Validating Upward Titration to High Preservation Ceiling...');
+engine.setTheta(2.7);
+const diff32 = engine.getDifficulty();
+assert(diff32.totalPieces === 32, `Theta 2.7 yields 32 pieces (8x4 grid, Tier 12)`);
+assert(diff32.allowRotation === true, `Rotation enabled for 32 pieces`);
+
+engine.setTheta(2.95);
 const ceilingDiff = engine.getDifficulty();
-
-assert(ceilingDiff.totalPieces === 9, `Ceiling piece count scales to 9 pieces (3x3 grid)`);
-assert(ceilingDiff.gridCols === 3 && ceilingDiff.gridRows === 3, `Grid is 3x3`);
+assert(ceilingDiff.totalPieces === 36, `Ceiling piece count scales to 36 pieces (6x6 grid, Tier 13)`);
 assert(ceilingDiff.ghostOpacity === 0.0, `Ghost opacity fades to 0% (pure mental reconstruction)`);
-assert(ceilingDiff.allowRotation === true, `Mental rotation enabled (90 deg increments)`);
-assert(ceilingDiff.snapMarginPx === 25, `Snap margin tightens to 25px`);
+assert(ceilingDiff.snapMarginPx === 15, `Snap margin tightens to 15px`);
+assert(ceilingDiff.trayOrientationPerturbation === 'full_90_180_270', `Dynamic tray perturbation active`);
 
-// 5. Tremor Filter Test
-console.log('\n>>> [5] Validating Tremor Debounce Filter (400ms)...');
+// 6. Tremor Filter Test
+console.log('\n>>> [6] Validating Tremor Debounce Filter (400ms)...');
 const t0 = 100000;
 const firstTap = engine.filterTremorTap(t0);
 const duplicateTremorTap = engine.filterTremorTap(t0 + 150); // 150ms after first tap
@@ -73,56 +84,89 @@ assert(firstTap === true, `First intentional tap accepted`);
 assert(duplicateTremorTap === false, `Rapid 150ms tremor mis-tap suppressed`);
 assert(legitimateSecondTap === true, `Second tap after 450ms accepted`);
 
-// 6. Piece Generation & Placement Evaluation
-console.log('\n>>> [6] Validating Piece Generation and Placement Logic...');
-const pieces = engine.generatePieces(2, 2, false);
-assert(pieces.length === 4, `Generated 4 pieces for 2x2 puzzle`);
+// 7. Piece Generation & Placement Evaluation (With Rotation Checks)
+console.log('\n>>> [7] Validating Piece Generation and Placement Logic (Including Angular Errors)...');
+const pieces = engine.generatePieces(4, 4, true, [0, 90, 180, 270]);
+assert(pieces.length === 16, `Generated 16 pieces for 4x4 puzzle`);
 
-const piece0 = pieces.find(p => p.correctCol === 0 && p.correctRow === 0)!;
-assert(piece0 !== undefined, `Found piece at (0, 0)`);
-const correctPlacement = engine.evaluatePlacement(piece0, 0, 0, 0);
-const wrongPosPlacement = engine.evaluatePlacement(piece0, 1, 1, 0);
-assert(correctPlacement === true, `Correct coordinate placement evaluates to true`);
-assert(wrongPosPlacement === false, `Incorrect coordinate placement evaluates to false`);
+const testPiece = pieces[0];
+// Correct pos, correct rot (0)
+const perfectPlacement = engine.evaluatePlacement(testPiece, testPiece.correctCol, testPiece.correctRow, 0);
+assert(perfectPlacement.isCorrect === true, `Placement at correct pos with 0 deg is correct`);
+assert(perfectPlacement.wasCorrectPositionWrongAngle === false, `Not wrong angle`);
 
-// 7. Dignity Auto-Assist Piece Identification
-console.log('\n>>> [7] Validating Dignity Auto-Assist Piece Target Selection...');
-const assistPiece = engine.getNextAssistPiece(pieces);
-assert(assistPiece !== null, `Auto-assist identifies an unplaced piece`);
-assert(assistPiece?.correctCol === 0 && assistPiece?.correctRow === 0, `Auto-assist prioritizes corner piece (0, 0)`);
+// Correct pos, wrong rot (90 deg)
+const rotatedPlacement = engine.evaluatePlacement(testPiece, testPiece.correctCol, testPiece.correctRow, 90);
+assert(rotatedPlacement.isCorrect === false, `Placement at correct pos with 90 deg fails`);
+assert(rotatedPlacement.wasCorrectPositionWrongAngle === true, `Identified as correct position with wrong angle!`);
 
-// 8. Clinical Session Summary Compilation
-console.log('\n>>> [8] Validating Clinical Session Summary Compilation...');
-engine.setTheta(0.4);
+// Wrong pos
+const wrongPosPlacement = engine.evaluatePlacement(testPiece, (testPiece.correctCol + 1) % 4, testPiece.correctRow, 0);
+assert(wrongPosPlacement.isCorrect === false, `Incorrect coordinates evaluate to false`);
+assert(wrongPosPlacement.wasCorrectPositionWrongAngle === false, `Not wrong angle (was wrong pos)`);
+
+// 8. Dynamic Live AI In-Game Analysis & Tray Manipulation
+console.log('\n>>> [8] Validating Real-time AI Dynamic Tray Orientation & Scaffolding...');
+// Unscrambling / auto-straighten on hesitation
+const scrambledPieces = engine.generatePieces(2, 2, false);
+scrambledPieces[0].rotation = 90;
+scrambledPieces[1].rotation = 180;
+
+const hesitationIntervention = engine.analyzeLiveIntervention({
+  consecutiveFastSolves: 0,
+  rotationalErrorsCount: 1,
+  idleTimeSeconds: 14,
+  allowRotation: true,
+  currentPieces: scrambledPieces,
+});
+
+assert(hesitationIntervention.action === 'straighten_tray', `AI intervenes to straighten tray on hesitation/errors`);
+const { modifiedPieces: straightened, changedCount } = engine.straightenTrayPieces(scrambledPieces);
+assert(changedCount === 2, `Straightened 2 rotated pieces`);
+assert(straightened.every(p => p.rotation === 0), `All pieces in tray are now 0 deg upright`);
+
+// Perturb tray on rapid solve flow
+const uprightPieces = engine.generatePieces(4, 4, false);
+const flowIntervention = engine.analyzeLiveIntervention({
+  consecutiveFastSolves: 3,
+  rotationalErrorsCount: 0,
+  idleTimeSeconds: 2,
+  allowRotation: true,
+  currentPieces: uprightPieces,
+});
+
+assert(flowIntervention.action === 'perturb_tray', `AI intervenes to perturb tray on rapid flow`);
+const { modifiedPieces: perturbed } = engine.perturbTrayPieces(uprightPieces, [90, 180, 270]);
+assert(perturbed.some(p => p.rotation !== 0), `Tray pieces successfully perturbed to non-zero rotations`);
+
+// 9. Clinical Session Summary Compilation
+console.log('\n>>> [9] Validating Comprehensive Clinical Session Summary Payload...');
+engine.setTheta(1.4);
 const dummyTrials: PuzzleTrialTelemetry[] = [
   {
     trialIndex: 1,
     puzzleImageId: 'kaziranga-rhino',
-    totalPieces: 4,
-    piecesPlacedCorrectly: 4,
-    misplacementsCount: 0,
-    timeToFirstPlacementMs: 3200,
-    totalSolveTimeMs: 14500,
-    rotationsUsed: 0,
-    wasAutoAssisted: false,
-    autoAssistedPiecesCount: 0,
-    thetaAfterTrial: 0.2,
-    difficultySnapshot: baselineDiff,
-    placementHistory: [],
-  },
-  {
-    trialIndex: 2,
-    puzzleImageId: 'brass-xorai',
-    totalPieces: 4,
-    piecesPlacedCorrectly: 4,
+    totalPieces: 16,
+    piecesPlacedCorrectly: 16,
     misplacementsCount: 1,
-    timeToFirstPlacementMs: 4100,
-    totalSolveTimeMs: 18200,
-    rotationsUsed: 0,
+    rotationalErrorsCount: 1,
+    parietalSynthesisIndex: 85,
+    timeToFirstPlacementMs: 2800,
+    totalSolveTimeMs: 24000,
+    rotationsUsed: 3,
     wasAutoAssisted: false,
     autoAssistedPiecesCount: 0,
-    thetaAfterTrial: 0.4,
-    difficultySnapshot: baselineDiff,
+    thetaAfterTrial: 1.4,
+    difficultySnapshot: engine.getDifficultyForPieceCount(16),
+    aiAdaptiveReasoning: { as: 'টেস্ট', bn: 'টেস্ট', hi: 'टेस्ट', en: 'Test' },
+    aiDynamicActions: [
+      {
+        type: 'perturb_tray',
+        timestamp: Date.now(),
+        rationale: { as: '', bn: '', hi: '', en: 'Parietal rotation challenge' },
+        piecesAffected: 4,
+      }
+    ],
     placementHistory: [],
   },
 ];
@@ -133,16 +177,17 @@ console.log('Session Summary Payload:', {
   spatialPraxisScore: `${summary.spatialPraxisScore} / 5`,
   ceradIndex: `${summary.estimatedCERADPraxisScore} / 14`,
   visuomotorProfile: summary.visuomotorProfile,
-  theta: summary.finalTheta,
+  totalRotationalErrors: summary.totalRotationalErrors,
+  meanParietalSynthesisIndex: `${summary.meanParietalSynthesisIndex}%`,
+  totalAIDynamicInterventions: summary.totalAIDynamicInterventions,
 });
 
 assert(summary.gameId === 'jigsaw-puzzle', `gameId is 'jigsaw-puzzle'`);
-assert(summary.totalPuzzles === 2, `Total puzzles count is 2`);
-assert(summary.solvedPuzzles === 2, `Solved puzzles count is 2`);
-assert(summary.accuracyPercentage === 100, `Accuracy is 100%`);
-assert(summary.spatialPraxisScore >= 0 && summary.spatialPraxisScore <= 5, `WAIS-IV Block design score is within [0, 5]`);
-assert(summary.estimatedCERADPraxisScore >= 0 && summary.estimatedCERADPraxisScore <= 14, `CERAD praxis score is within [0, 14]`);
-assert(summary.visuomotorProfile === 'fluid', `Visuomotor profile is 'fluid'`);
+assert(summary.totalPuzzles === 1, `Total puzzles count is 1`);
+assert(summary.solvedPuzzles === 1, `Solved puzzles count is 1`);
+assert(summary.totalRotationalErrors === 1, `Total rotational errors recorded accurately`);
+assert(summary.meanParietalSynthesisIndex === 85, `Mean parietal synthesis index recorded accurately`);
+assert(summary.totalAIDynamicInterventions === 1, `AI dynamic interventions count recorded accurately`);
 
 console.log('\n======================================================================');
 console.log('   ALL JIGSAW PRAXIS ENGINE VERIFICATION TESTS PASSED SUCCESSFULLY!   ');
