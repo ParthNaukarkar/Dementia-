@@ -47,6 +47,7 @@ import { MemoryMatch } from './games/memory-match/MemoryMatch';
 import { BihuTaal } from './games/bihu-taal/BihuTaal';
 import { JigsawPuzzle } from './games/jigsaw-puzzle';
 import { NumberRecall } from './games/number-recall';
+import { WhatChanged } from './games/what-changed';
 import { InteractiveCognitiveExercise } from './components/games/InteractiveCognitiveExercise';
 import { WorkoutProgressHeader } from './components/workout/WorkoutProgressHeader';
 import { WorkoutIntermissionModal } from './components/workout/WorkoutIntermissionModal';
@@ -1479,6 +1480,36 @@ export function App() {
                       />
                     )}
 
+                    {/* Game 7: What Changed? (Visual Change Blindness) */}
+                    {activeGameId === 'what-changed' && (
+                      <WhatChanged
+                        language={selectedLanguage}
+                        totalTrials={4}
+                        onSessionComplete={(summary) => {
+                          const report = {
+                            ...summary,
+                            gameId: 'what-changed',
+                            gameTitle: 'What Changed? (Visual Change Blindness)',
+                            totalRounds: summary.totalTrials,
+                            totalCorrect: summary.correctTrials,
+                            autoAssistedRounds: summary.autoAssistedTrialsCount,
+                            accuracyPercentage: summary.accuracyPercentage,
+                            averageLatencyMs: summary.meanDeliberationMs,
+                            medianLatencyMs: summary.meanDeliberationMs,
+                            perseverationErrors: 0,
+                            finalTheta: summary.finalTheta,
+                            estimatedMoCAMemoryScore: summary.estimatedMoCAVisualScore,
+                            processingSpeedProfile: summary.visuomotorProfile,
+                            caregiverEndedEarly: summary.caregiverEndedEarly,
+                            completedAt: summary.completedAt,
+                            rounds: []
+                          };
+                          handleRecordSessionSummary('what-changed', report);
+                        }}
+                        onExit={() => handleAdvanceWorkout('what-changed')}
+                      />
+                    )}
+
                     {/* Other Catalog Exercises */}
                     {activeGameId !== 'memory-match' &&
                      activeGameId !== 'word-recall' &&
@@ -1486,7 +1517,8 @@ export function App() {
                      activeGameId !== 'sequence-recall' &&
                      activeGameId !== 'bihu-taal' &&
                      activeGameId !== 'jigsaw-puzzle' &&
-                     activeGameId !== 'number-recall' && (
+                     activeGameId !== 'number-recall' &&
+                     activeGameId !== 'what-changed' && (
                       <InteractiveCognitiveExercise
                         gameId={activeGameId}
                         language={selectedLanguage}
