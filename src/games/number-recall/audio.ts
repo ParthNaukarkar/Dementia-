@@ -158,6 +158,24 @@ class NumberRecallAudio {
     } catch {}
   }
 
+  private static readonly DIGIT_WORDS: Record<SupportedLanguage, Record<string, string>> = {
+    as: { '0': 'শূন্য', '1': 'এক', '2': 'দুই', '3': 'তিনি', '4': 'চাৰি', '5': 'পাঁচ', '6': 'ছয়', '7': 'সাত', '8': 'আঠ', '9': 'ন' },
+    bn: { '0': 'শূন্য', '1': 'এক', '2': 'দুই', '3': 'তিন', '4': 'চার', '5': 'পাঁচ', '6': 'ছয়', '7': 'সাত', '8': 'আট', '9': 'নয়' },
+    hi: { '0': 'शून्य', '1': 'एक', '2': 'दो', '3': 'तीन', '4': 'चार', '5': 'पाँच', '6': 'छह', '7': 'सात', '8': 'आठ', '9': 'नौ' },
+    en: { '0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four', '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine' },
+  };
+
+  /**
+   * Safely stops any ongoing speech synthesis.
+   */
+  public stopAllSpeech() {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
+  }
+
   /**
    * Speaks an individual digit in the chosen language at the given pacing rate.
    */
@@ -166,7 +184,8 @@ class NumberRecallAudio {
 
     try {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(digit);
+      const word = NumberRecallAudio.DIGIT_WORDS[lang]?.[digit] || digit;
+      const utterance = new SpeechSynthesisUtterance(word);
       utterance.rate = Math.max(0.65, Math.min(1.1, rate));
       utterance.pitch = 1.0;
 

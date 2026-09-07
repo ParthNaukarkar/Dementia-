@@ -92,6 +92,32 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
   const consecutiveFastSolvesRef = useRef<number>(0);
   const autoAssistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Presentation & Countdown Timer Guards
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const presentationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const presentationStepTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recallTransitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clear all active presentation timers
+  const clearAllPresentationTimers = useCallback(() => {
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    if (presentationTimeoutRef.current) {
+      clearTimeout(presentationTimeoutRef.current);
+      presentationTimeoutRef.current = null;
+    }
+    if (presentationStepTimeoutRef.current) {
+      clearTimeout(presentationStepTimeoutRef.current);
+      presentationStepTimeoutRef.current = null;
+    }
+    if (recallTransitionTimeoutRef.current) {
+      clearTimeout(recallTransitionTimeoutRef.current);
+      recallTransitionTimeoutRef.current = null;
+    }
+  }, []);
+
   // Session Accumulator
   const [sessionTrials, setSessionTrials] = useState<NumberRecallTrialTelemetry[]>([]);
   const [finalSessionSummary, setFinalSessionSummary] = useState<NumberRecallSessionSummary | null>(null);
@@ -174,6 +200,9 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
 
   // 1. Initialize New Sequence Presentation
   const initTrial = useCallback((_trialIdx: number, overrideTier?: number | null) => {
+    clearAllPresentationTimers();
+    numberRecallAudio.stopAllSpeech();
+
     let diff: NumberRecallDifficulty;
     if (overrideTier) {
       diff = engine.getDifficultyForTierLevel(overrideTier);
@@ -200,22 +229,30 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
     setPhase('COUNTDOWN');
     setCountdownNum(3);
 
+    // Vernacular guidance spoken during countdown so speech finishes naturally before presentation
+    if (!isMuted && diff.audioSpeechEnabled !== false) {
+      numberRecallAudio.speakGuidance('study', language);
+    }
+
     let count = 3;
-    const interval = setInterval(() => {
+    countdownIntervalRef.current = setInterval(() => {
       count -= 1;
       if (count > 0) {
         setCountdownNum(count);
       } else {
-        clearInterval(interval);
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
+        }
         startPresentation(seq, diff);
       }
     }, 800);
-  }, [engine]);
+  }, [engine, clearAllPresentationTimers, isMuted, language]);
 
   // 2. Sequential Digit Presentation Loop
   const startPresentation = (seq: string, diff: NumberRecallDifficulty) => {
+    clearAllPresentationTimers();
     setPhase('PRESENTATION');
-    numberRecallAudio.speakGuidance('study', language);
 
     let currentIndex = 0;
 
@@ -224,19 +261,21 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
         // Presentation finished! Transition to RECALL phase
         setActiveDigitIndex(-1);
         setIsDigitShowing(false);
-        setTimeout(() => {
+        recallTransitionTimeoutRef.current = setTimeout(() => {
           setPhase('RECALL');
           recallStartTimeRef.current = Date.now();
           lastKeypressTimeRef.current = Date.now();
           lastActionTimeRef.current = Date.now();
           
-          if (diff.recallMode === 'backward') {
-            numberRecallAudio.speakGuidance('recall_backward', language);
-          } else {
-            numberRecallAudio.speakGuidance('recall_forward', language);
+          if (!isMuted) {
+            if (diff.recallMode === 'backward') {
+              numberRecallAudio.speakGuidance('recall_backward', language);
+            } else {
+              numberRecallAudio.speakGuidance('recall_forward', language);
+            }
           }
           resetAutoAssistTimer();
-        }, 500);
+        }, 350);
         return;
       }
 
@@ -247,21 +286,21 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
       const digitNum = parseInt(digitChar, 10);
       numberRecallAudio.playDigitTone(digitNum);
       
-      // Vernacular speech readout if enabled
-      if (!isMuted) {
+      // Spoken readout only if audio enabled for this tier (suppressed on rapid visual-flash tiers like Tier 9)
+      if (!isMuted && diff.audioSpeechEnabled !== false && diff.displaySpeedMs > 700) {
         numberRecallAudio.speakDigit(digitChar, language, diff.speechRate);
       }
 
       // Hide after displaySpeedMs
-      setTimeout(() => {
+      presentationTimeoutRef.current = setTimeout(() => {
         setIsDigitShowing(false);
         currentIndex += 1;
         // Wait for inter-stimulus interval gap (isiGapMs)
-        setTimeout(showNextDigit, diff.isiGapMs);
+        presentationStepTimeoutRef.current = setTimeout(showNextDigit, diff.isiGapMs);
       }, diff.displaySpeedMs);
     };
 
-    setTimeout(showNextDigit, 400);
+    presentationStepTimeoutRef.current = setTimeout(showNextDigit, 250);
   };
 
   // Patient-Profile Adaptive Assistance Derivation
@@ -319,9 +358,11 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
     trialStartTimeRef.current = Date.now();
     initTrial(currentTrialIndex, manualTierOverride);
     return () => {
+      clearAllPresentationTimers();
+      numberRecallAudio.stopAllSpeech();
       if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
     };
-  }, [currentTrialIndex, manualTierOverride, initTrial]);
+  }, [currentTrialIndex, manualTierOverride, initTrial, clearAllPresentationTimers]);
 
   // Real-time AI Cognition & Dynamic Scaffolding Monitor (every 2s during RECALL)
   useEffect(() => {
@@ -462,6 +503,8 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
   const handleReplayAudio = () => {
     if (replaysUsedThisTrial >= difficulty.maxReplaysAllowed) return;
     setReplaysUsedThisTrial(c => c + 1);
+    clearAllPresentationTimers();
+    numberRecallAudio.stopAllSpeech();
     setPhase('PRESENTATION');
     startPresentation(targetSequence, difficulty);
   };
@@ -469,6 +512,8 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
   // Handle Trial Submission & AI Bayesian Update
   const handleSubmitRecall = () => {
     if (phase !== 'RECALL') return;
+    clearAllPresentationTimers();
+    numberRecallAudio.stopAllSpeech();
     if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
 
     const now = Date.now();
@@ -593,6 +638,8 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
 
   // Caregiver / Patient Early Exit with Telemetry Preservation
   const handleExitSession = () => {
+    clearAllPresentationTimers();
+    numberRecallAudio.stopAllSpeech();
     if (sessionTrials.length > 0) {
       const summary = engine.compileSessionSummary(sessionTrials, true);
       setFinalSessionSummary(summary);
@@ -797,8 +844,13 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
                   <button
                     key={t.tierLevel}
                     onClick={() => {
-                      setManualTierOverride(t.tierLevel);
-                      initTrial(currentTrialIndex, t.tierLevel);
+                      clearAllPresentationTimers();
+                      numberRecallAudio.stopAllSpeech();
+                      if (manualTierOverride === t.tierLevel) {
+                        initTrial(currentTrialIndex, t.tierLevel);
+                      } else {
+                        setManualTierOverride(t.tierLevel);
+                      }
                     }}
                     className={`px-2 py-1 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer ${
                       difficulty.tierLevel === t.tierLevel
@@ -973,39 +1025,48 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
             </div>
 
             {/* Digit Input Boxes with Optional Faint Ghost Watermark */}
-            <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
-              {Array.from({ length: difficulty.digitCount }).map((_, idx) => {
-                const char = userEnteredSequence[idx];
-                const watermarkChar = expectedSeqDisplay[idx];
-                const isCurrent = idx === userEnteredSequence.length;
+            {(() => {
+              const isCompact = difficulty.digitCount >= 7;
+              return (
+                <div className={`flex items-center justify-center ${isCompact ? 'gap-1 sm:gap-2' : 'gap-2 sm:gap-3'} flex-wrap`}>
+                  {Array.from({ length: difficulty.digitCount }).map((_, idx) => {
+                    const char = userEnteredSequence[idx];
+                    const watermarkChar = expectedSeqDisplay[idx];
+                    const isCurrent = idx === userEnteredSequence.length;
 
-                return (
-                  <div
-                    key={idx}
-                    className={`w-12 h-14 sm:w-14 sm:h-16 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-black transition-all border-2 ${
-                      char
-                        ? 'bg-white border-indigo-600 text-indigo-950 shadow-sm'
-                        : isCurrent
-                        ? 'bg-indigo-50/50 border-indigo-400 ring-2 ring-indigo-200 scale-105'
-                        : 'bg-white border-slate-200 text-slate-400'
-                    }`}
-                  >
-                    {char ? (
-                      char
-                    ) : isGhostWatermarkVisible && difficulty.ghostWatermarkOpacity > 0 ? (
-                      <span
-                        className="text-indigo-400/40 select-none"
-                        style={{ opacity: difficulty.ghostWatermarkOpacity }}
+                    return (
+                      <div
+                        key={idx}
+                        className={`${
+                          isCompact
+                            ? 'w-10 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl'
+                            : 'w-12 h-14 sm:w-14 sm:h-16 text-2xl sm:text-3xl'
+                        } rounded-2xl flex items-center justify-center font-black transition-all border-2 ${
+                          char
+                            ? 'bg-white border-indigo-600 text-indigo-950 shadow-sm'
+                            : isCurrent
+                            ? 'bg-indigo-50/50 border-indigo-400 ring-2 ring-indigo-200 scale-105'
+                            : 'bg-white border-slate-200 text-slate-400'
+                        }`}
                       >
-                        {watermarkChar}
-                      </span>
-                    ) : (
-                      ''
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                        {char ? (
+                          char
+                        ) : isGhostWatermarkVisible && difficulty.ghostWatermarkOpacity > 0 ? (
+                          <span
+                            className="text-indigo-400/40 select-none"
+                            style={{ opacity: difficulty.ghostWatermarkOpacity }}
+                          >
+                            {watermarkChar}
+                          </span>
+                        ) : (
+                          ''
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
 
             {/* Large 64pt Elder-Accessible Numeric Dialpad */}
             <div className="grid grid-cols-3 gap-2.5 max-w-xs mx-auto pt-2">

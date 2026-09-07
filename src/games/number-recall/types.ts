@@ -42,6 +42,7 @@ export interface NumberRecallDifficulty {
   recallMode: RecallMode;               // 'forward' or 'backward'
   ghostWatermarkOpacity: number;        // 0.50 (Tier 1 floor) down to 0.0 (Tier 4+)
   speechRate: number;                   // 0.70 (slow Dignity pacing) to 1.0 (standard)
+  audioSpeechEnabled?: boolean;         // Visual flash only if false (e.g. Tier 9 ceiling & Tier 7)
   maxReplaysAllowed: number;            // 3 down to 0
   allowBackspace: boolean;              // true
   autoAssistTimeoutMs: number;          // 25000ms down to 12000ms
