@@ -129,7 +129,7 @@ export class AdaptiveGameFlowEngine {
     // ─── Flow Adaptation Policy ──────────────────────────────────────────
 
     // Priority 1: Palliative Fallback (Severe Frustration / Confusion)
-    if (fatigueScore > 0.75 || (completedSummary?.accuracyPercentage != null && completedSummary.accuracyPercentage < 40 && abilityTheta < -1.0)) {
+    if (fatigueScore > 0.75 || (completedSummary?.accuracyPercentage != null && completedSummary.accuracyPercentage < 40 && (abilityTheta < -1.0 || completedSummary?.finalTheta == null))) {
       reason = 'palliative_scaffolding';
       // Route to gentle reminiscence or forgiving visual scene
       const palliativeChoices: GameId[] = ['brain-story', 'where-am-i', 'what-changed'];

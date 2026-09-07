@@ -124,10 +124,29 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
   // File upload state for Medical Reports
   const [selectedReportFile, setSelectedReportFile] = useState<File | null>(null);
 
+  // Local reactive state for daily sessions and latest clinical report
+  const [currentDailySessions, setCurrentDailySessions] = useState<Record<string, any>>(() =>
+    dailySessions && Object.keys(dailySessions).length > 0 ? dailySessions : DailySessionManager.getDailySessions()
+  );
+  const [currentReport, setCurrentReport] = useState<any | null>(lastSessionReport);
+
+  // Synchronize state when props update
+  useEffect(() => {
+    if (dailySessions && Object.keys(dailySessions).length > 0) {
+      setCurrentDailySessions(dailySessions);
+    }
+  }, [dailySessions]);
+
+  useEffect(() => {
+    if (lastSessionReport) {
+      setCurrentReport(lastSessionReport);
+    }
+  }, [lastSessionReport]);
+
   // Calculate composite score dynamically from today's real sessions
   const compositeScore: DailyCompositeScoreResult = useMemo(() => {
     return DailySessionManager.calculateDailyCompositeScore();
-  }, [dailySessions]);
+  }, [currentDailySessions, dailySessions]);
 
   // Sync listener: reload medications/routines/scores when updated from patient portal
   useEffect(() => {
@@ -137,7 +156,11 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
       } else if (msg.type === 'ROUTINE_MUTATED') {
         setRoutines(getStoredRoutine(patient.id));
       } else if (msg.type === 'SESSION_COMPLETED') {
-        DailySessionManager.getDailySessions();
+        const updated = DailySessionManager.getDailySessions();
+        setCurrentDailySessions({ ...updated });
+        if (msg.payload?.summary) {
+          setCurrentReport(msg.payload.summary);
+        }
       } else if (msg.type === 'REPORTS_MUTATED') {
         setReports(getStoredReports(patient.id));
       }
@@ -146,21 +169,10 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
     return () => unsubscribe();
   }, [patient.id]);
 
-  // 7-day trend data with baseline 78
-  const chartData = [
-    { day: 'Mon', score: 76, baseline: 78, gamesPlayedCount: 3 },
-    { day: 'Tue', score: 82, baseline: 78, gamesPlayedCount: 3 },
-    { day: 'Wed', score: 79, baseline: 78, gamesPlayedCount: 2 },
-    { day: 'Thu', score: 74, baseline: 78, gamesPlayedCount: 1 },
-    { day: 'Fri', score: 77, baseline: 78, gamesPlayedCount: 2 },
-    { day: 'Sat', score: 80, baseline: 78, gamesPlayedCount: 3 },
-    {
-      day: 'Today',
-      score: compositeScore.score,
-      baseline: 78,
-      gamesPlayedCount: compositeScore.gamesPlayedCount,
-    },
-  ];
+  // 7-day authentic performance trend generated from real patient session history & clinical baseline
+  const chartData = useMemo(() => {
+    return DailySessionManager.get7DayPerformanceTrend(78);
+  }, [currentDailySessions]);
 
   // Handlers for Medications
   const handleToggleMed = (medId: string) => {
@@ -169,7 +181,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
     );
     setMedications(updated);
     saveStoredMedications(patient.id, updated);
-    portalSync.broadcast('MEDICATION_MUTATED', { medId }, 'caregiver');
+    portalSync.broadcast('MEDICATION_MUTATED', { medId, patientId: patient.id, allMeds: updated }, 'caregiver');
   };
 
   const handleAddMedicationSubmit = (e: React.FormEvent) => {
@@ -185,8 +197,9 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
       takenToday: false,
     });
 
-    setMedications(getStoredMedications(patient.id));
-    portalSync.broadcast('MEDICATION_MUTATED', { createdId: created.id }, 'caregiver');
+    const updatedMeds = getStoredMedications(patient.id);
+    setMedications(updatedMeds);
+    portalSync.broadcast('MEDICATION_MUTATED', { createdId: created.id, patientId: patient.id, allMeds: updatedMeds }, 'caregiver');
 
     // Reset and close
     setNewMedName('');
@@ -198,8 +211,9 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
   const handleDeleteMedication = (medId: string) => {
     if (window.confirm(t.deleteConfirm)) {
       deleteStoredMedication(patient.id, medId);
-      setMedications(getStoredMedications(patient.id));
-      portalSync.broadcast('MEDICATION_MUTATED', { deletedId: medId }, 'caregiver');
+      const updatedMeds = getStoredMedications(patient.id);
+      setMedications(updatedMeds);
+      portalSync.broadcast('MEDICATION_MUTATED', { deletedId: medId, patientId: patient.id, allMeds: updatedMeds }, 'caregiver');
     }
   };
 
@@ -210,7 +224,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
     );
     setRoutines(updated);
     saveStoredRoutine(patient.id, updated);
-    portalSync.broadcast('ROUTINE_MUTATED', { routineId }, 'caregiver');
+    portalSync.broadcast('ROUTINE_MUTATED', { routineId, patientId: patient.id, allRoutines: updated }, 'caregiver');
   };
 
   const handleAddRoutineSubmit = (e: React.FormEvent) => {
@@ -224,8 +238,9 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
       completed: false,
     });
 
-    setRoutines(getStoredRoutine(patient.id));
-    portalSync.broadcast('ROUTINE_MUTATED', { createdId: created.id }, 'caregiver');
+    const updatedRoutines = getStoredRoutine(patient.id);
+    setRoutines(updatedRoutines);
+    portalSync.broadcast('ROUTINE_MUTATED', { createdId: created.id, patientId: patient.id, allRoutines: updatedRoutines }, 'caregiver');
 
     // Reset and close
     setNewRoutineActivity('');
@@ -235,8 +250,9 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
   const handleDeleteRoutine = (routineId: string) => {
     if (window.confirm('Delete this routine activity?')) {
       deleteStoredRoutine(patient.id, routineId);
-      setRoutines(getStoredRoutine(patient.id));
-      portalSync.broadcast('ROUTINE_MUTATED', { deletedId: routineId }, 'caregiver');
+      const updatedRoutines = getStoredRoutine(patient.id);
+      setRoutines(updatedRoutines);
+      portalSync.broadcast('ROUTINE_MUTATED', { deletedId: routineId, patientId: patient.id, allRoutines: updatedRoutines }, 'caregiver');
     }
   };
 
@@ -268,6 +284,9 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
   const medsTotal = medications.length;
   const routineDone = routines.filter((r) => r.completed).length;
   const routineTotal = routines.length;
+
+  const pendingMedsCount = medications.filter((m) => !m.takenToday).length;
+  const activeAlertsCount = pendingMedsCount + (compositeScore.score < 75 && !compositeScore.isBaseline ? 1 : 0);
 
   const scoreDiff = compositeScore.score - 78;
 
@@ -378,9 +397,11 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
               <Bell className={`w-4 h-4 ${activeTab === 'alerts' ? 'text-[#7c3aed]' : 'text-indigo-300'}`} />
               <span>{t.alerts}</span>
             </div>
-            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500 text-white">
-              2
-            </span>
+            {activeAlertsCount > 0 && (
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500 text-white">
+                {activeAlertsCount}
+              </span>
+            )}
           </button>
 
           {/* 6. Patient Profile (Active state in screenshot) */}
@@ -677,7 +698,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                       {t.clinicalNotes}
                     </span>
                     <p className="leading-relaxed">
-                      Meera Joshi responds with high alertness to Northeast cultural memory stimuli (Assam tea garden patterns, Bihu rhythmic cues). Keep morning workout timing consistent.
+                      Meera Joshi responds with high alertness to Northeast cultural memory stimuli (Assam tea garden patterns, traditional folk memory cues). Keep morning workout timing consistent.
                     </p>
                   </div>
                 </div>
@@ -793,7 +814,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     </div>
                     <div className="flex items-baseline gap-2">
                       <span className="text-3xl font-black text-amber-600">
-                        2
+                        {activeAlertsCount}
                       </span>
                       <span className="text-xs font-semibold text-slate-400">
                         Requiring Attention
@@ -952,9 +973,9 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     <MyBrainAnalytics
                       language={language}
                       patient={patient}
-                      lastSessionReport={lastSessionReport}
+                      lastSessionReport={currentReport}
                       dailyComposite={compositeScore}
-                      dailySessions={dailySessions}
+                      dailySessions={currentDailySessions}
                     />
                   </div>
                 )}
@@ -1493,10 +1514,10 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
       <ClinicalSessionReportModal
         isOpen={isClinicalReportModalOpen}
         onClose={() => setIsClinicalReportModalOpen(false)}
-        report={lastSessionReport}
+        report={currentReport}
         patient={patient}
         dailyComposite={compositeScore}
-        dailySessions={dailySessions}
+        dailySessions={currentDailySessions}
       />
 
     </div>

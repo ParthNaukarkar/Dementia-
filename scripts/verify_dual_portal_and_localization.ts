@@ -176,11 +176,64 @@ assert(updatedScore.score > 78, `Score recalculated strictly from played game (S
 assert(updatedScore.isBaseline === false, 'isBaseline is false after game played');
 
 console.log('\n===========================================================');
-console.log(`🏁 TEST RESULTS: ${passed} Passed, ${failed} Failed`);
+console.log('🧪 VERIFYING FIXES FROM FULL TEST REPORT');
+console.log('===========================================================');
+
+import { AdaptiveGameFlowEngine } from '../src/engine/adaptive-game-flow';
+import { GAME_CATALOG } from '../src/data/gameCatalog';
+import { GAME_DOMAIN_MAP } from '../src/engine/adaptive-game-flow';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// 1. Verify Pattern-Recall Domain Standardized to 'attention'
+const patternRecallCatalog = GAME_CATALOG.find(g => g.id === 'pattern-recall');
+assert(!!patternRecallCatalog, 'pattern-recall exists in GAME_CATALOG');
+assert(patternRecallCatalog?.domain === 'attention', `pattern-recall domain is standardized to "attention" (Actual: "${patternRecallCatalog?.domain}")`);
+assert(GAME_DOMAIN_MAP['pattern-recall'] === 'attention', `GAME_DOMAIN_MAP['pattern-recall'] matches "attention" (Actual: "${GAME_DOMAIN_MAP['pattern-recall']}")`);
+
+// 2. Verify AI Adaptive Game Flow Recommendation Engine
+const mockSummary = {
+  accuracyPercentage: 35,
+  averageLatencyMs: 8500,
+  finalTheta: -1.4,
+  autoAssistedRounds: 2,
+};
+const aiRecommendation = AdaptiveGameFlowEngine.recommendNextGame({
+  completedGameId: 'smriti-haat',
+  completedSummary: mockSummary,
+  currentPlaylist: ['smriti-haat', 'sequence-recall', 'odd-one-out'],
+  completedGameIds: ['smriti-haat'],
+  sessionReports: { 'smriti-haat': mockSummary },
+});
+assert(!!aiRecommendation.nextGameId, `AI adaptive engine recommended next game: ${aiRecommendation.nextGameId}`);
+assert(aiRecommendation.reason === 'palliative_scaffolding', `AI engine detected high fatigue/confusion and deployed palliative scaffolding (Reason: ${aiRecommendation.reason})`);
+assert(Array.isArray(aiRecommendation.adjustedPlaylist) && aiRecommendation.adjustedPlaylist.length > 0, 'Adjusted playlist returned dynamically');
+
+// 3. Verify 7-Day Performance Trend Dynamic Generation
+const trendData = DailySessionManager.get7DayPerformanceTrend(78);
+assert(Array.isArray(trendData) && trendData.length === 7, `7-Day trend returns exactly 7 data points (Actual: ${trendData.length})`);
+assert(trendData[6].isToday === true, 'Last point is designated as today (isToday === true)');
+assert(trendData[6].score === updatedScore.score, `Today's score in trend (${trendData[6].score}) matches real composite score (${updatedScore.score})`);
+assert(trendData.every(pt => pt.baseline === 78), 'Baseline across all trend points is 78');
+
+// 4. Verify Static Invariants in Source Files
+const caregiverPortalCode = fs.readFileSync(path.resolve(process.cwd(), 'src/components/portals/CaregiverPortal.tsx'), 'utf-8');
+const patientPortalCode = fs.readFileSync(path.resolve(process.cwd(), 'src/components/portals/PatientPortal.tsx'), 'utf-8');
+
+assert(!caregiverPortalCode.includes('Bihu'), 'Verified: CaregiverPortal does not contain obsolete Bihu references');
+assert(caregiverPortalCode.includes('DailySessionManager.get7DayPerformanceTrend(78)'), 'Verified: CaregiverPortal uses get7DayPerformanceTrend(78) for chart');
+assert(caregiverPortalCode.includes('setCurrentDailySessions'), 'Verified: CaregiverPortal has reactive setCurrentDailySessions state');
+
+assert(patientPortalCode.includes('lastFlowRecommendation?.nextGameId'), 'Verified: PatientPortal utilizes lastFlowRecommendation.nextGameId in workout flow');
+assert(patientPortalCode.includes('activeWorkoutPlaylist'), 'Verified: PatientPortal tracks activeWorkoutPlaylist dynamically');
+assert(patientPortalCode.includes('Exercise Not Available'), 'Verified: PatientPortal contains unknown game fallback boundary');
+
+console.log('\n===========================================================');
+console.log(`🏁 FINAL TEST RESULTS: ${passed} Passed, ${failed} Failed`);
 console.log('===========================================================');
 
 if (failed > 0) {
   process.exit(1);
 } else {
-  console.log('🎉 ALL 103 DUAL-PORT, LOCALIZATION, AND STORAGE VERIFICATIONS PASSED!\n');
+  console.log(`🎉 ALL ${passed} TEST SUITE CHECKS PASSED FLAWLESSLY!\n`);
 }

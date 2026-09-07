@@ -11,11 +11,44 @@
     if (event.data && event.data.isSmritiSyncMessage) {
       var msg = event.data.syncMessage;
       try {
+        // Trigger storage event on target origin with unique key
+        var syncKey = 'smriti_sync_signal_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        localStorage.setItem(syncKey, JSON.stringify(msg));
         localStorage.setItem('smriti_sync_signal_latest', JSON.stringify(msg));
-        if (msg.payload && msg.payload.key && msg.payload.value) {
-          localStorage.setItem(msg.payload.key, msg.payload.value);
+
+        // Auto-mirror domain data if included in payload
+        if (msg.payload) {
+          if (msg.payload.key && msg.payload.value) {
+            localStorage.setItem(msg.payload.key, msg.payload.value);
+          }
+          if (msg.payload.todayDateKey && msg.payload.allTodaySessions) {
+            localStorage.setItem('smriti_daily_sessions_v2_' + msg.payload.todayDateKey, JSON.stringify(msg.payload.allTodaySessions));
+          }
+          if (msg.payload.playedDates) {
+            localStorage.setItem('smriti_played_dates_index_v2', JSON.stringify(msg.payload.playedDates));
+          }
+          if (msg.payload.allMeds && msg.payload.patientId) {
+            localStorage.setItem('smriti_medications_v2_' + msg.payload.patientId, JSON.stringify(msg.payload.allMeds));
+          }
+          if (msg.payload.allRoutines && msg.payload.patientId) {
+            localStorage.setItem('smriti_routine_v2_' + msg.payload.patientId, JSON.stringify(msg.payload.allRoutines));
+          }
+          if (msg.type === 'PRESCRIPTION_MUTATED' && msg.payload.prescribedGameIds) {
+            localStorage.setItem('smriti_prescription_v2', JSON.stringify(msg.payload));
+          }
+          if (msg.type === 'LANGUAGE_CHANGED' && msg.payload.language) {
+            localStorage.setItem('smriti_language_preference', msg.payload.language);
+          }
         }
+
         window.dispatchEvent(new CustomEvent('smriti_remote_sync', { detail: msg }));
+
+        // Clean up temporary sync key after 15 seconds
+        setTimeout(function() {
+          try {
+            localStorage.removeItem(syncKey);
+          } catch(e) {}
+        }, 15000);
       } catch (e) {}
     }
   });

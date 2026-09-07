@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Sparkles,
   Heart,
+  AlertTriangle,
 } from 'lucide-react';
 
 import type { SupportedLanguage, PatientPrescription, GameId } from '../../types/prescription';
@@ -72,11 +73,19 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [activeGameId, setActiveGameId] = useState<GameId | null>(null);
   const [isWorkoutMode, setIsWorkoutMode] = useState<boolean>(false);
   const [workoutCurrentIndex, setWorkoutCurrentIndex] = useState<number>(0);
+  const [activeWorkoutPlaylist, setActiveWorkoutPlaylist] = useState<GameId[]>(() => prescription.prescribedGameIds);
   const [completedWorkoutGames, setCompletedWorkoutGames] = useState<GameId[]>([]);
   const [workoutSessionSummaries, setWorkoutSessionSummaries] = useState<Record<string, any>>({});
   const [isIntermissionOpen, setIsIntermissionOpen] = useState<boolean>(false);
   const [isWorkoutCelebrationOpen, setIsWorkoutCelebrationOpen] = useState<boolean>(false);
   const [lastFlowRecommendation, setLastFlowRecommendation] = useState<FlowRecommendation | null>(null);
+
+  // Synchronize active workout playlist when prescription changes outside workout
+  useEffect(() => {
+    if (!isWorkoutMode) {
+      setActiveWorkoutPlaylist(prescription.prescribedGameIds);
+    }
+  }, [prescription, isWorkoutMode]);
 
   // Medications and Routine
   const [medications, setMedications] = useState<MedicationItem[]>(() =>
@@ -86,8 +95,17 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     getStoredRoutine(patient.id)
   );
 
-  // Streak & completed games today
-  const dayStreak = 3;
+  // Dynamic streak calculation from played dates index
+  const dayStreak = (() => {
+    try {
+      const datesRaw = localStorage.getItem('smriti_played_dates_index_v2');
+      const dates: string[] = datesRaw ? JSON.parse(datesRaw) : [];
+      return Math.max(1, dates.length);
+    } catch {
+      return 1;
+    }
+  })();
+
   const completedTodayGameIds = Object.keys(DailySessionManager.getDailySessions()) as GameId[];
   const isWorkoutCompletedToday =
     prescription.prescribedGameIds.length > 0 &&
@@ -101,12 +119,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       } else if (msg.type === 'ROUTINE_MUTATED') {
         setRoutines(getStoredRoutine(patient.id));
       } else if (msg.type === 'PRESCRIPTION_MUTATED') {
-        // Prescription updated by caregiver
+        if (msg.payload?.prescribedGameIds && !isWorkoutMode) {
+          setActiveWorkoutPlaylist(msg.payload.prescribedGameIds);
+        }
       }
     });
 
     return () => unsubscribe();
-  }, [patient.id]);
+  }, [patient.id, isWorkoutMode]);
 
   // Handlers for Medications
   const handleToggleMed = (medId: string) => {
@@ -115,7 +135,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     );
     setMedications(updated);
     saveStoredMedications(patient.id, updated);
-    portalSync.broadcast('MEDICATION_MUTATED', { medId, by: 'patient' }, 'patient');
+    portalSync.broadcast('MEDICATION_MUTATED', { medId, patientId: patient.id, allMeds: updated, by: 'patient' }, 'patient');
   };
 
   // Handlers for Routine
@@ -125,56 +145,74 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     );
     setRoutines(updated);
     saveStoredRoutine(patient.id, updated);
-    portalSync.broadcast('ROUTINE_MUTATED', { routineId, by: 'patient' }, 'patient');
+    portalSync.broadcast('ROUTINE_MUTATED', { routineId, patientId: patient.id, allRoutines: updated, by: 'patient' }, 'patient');
   };
 
   // Workout Flow Handlers
   const handleBeginWorkout = () => {
-    if (prescription.prescribedGameIds.length === 0) return;
+    const playlist: GameId[] = prescription.prescribedGameIds.length > 0 ? prescription.prescribedGameIds : ['memory-match', 'sequence-recall', 'what-changed'];
     setIsWorkoutMode(true);
     setWorkoutCurrentIndex(0);
-    setActiveGameId(prescription.prescribedGameIds[0]);
+    setActiveWorkoutPlaylist([...playlist]);
+    setActiveGameId(playlist[0]);
   };
 
   const handleRecordSessionSummary = (gameId: GameId, summary: any) => {
     // 1. Record session in DailySessionManager (only counts played games)
-    DailySessionManager.recordSession(summary, true);
+    const dailyComposite = DailySessionManager.recordSession(summary, true);
 
-    // 2. Broadcast to Caregiver Portal
+    // 2. Broadcast to Caregiver Portal with full data mirroring payload
     portalSync.broadcast(
       'SESSION_COMPLETED',
       {
         gameId,
         summary,
-        dailyComposite: DailySessionManager.calculateDailyCompositeScore(),
+        dailyComposite,
+        todayDateKey: DailySessionManager.getTodayDateKey(),
+        allTodaySessions: DailySessionManager.getDailySessions(),
+        playedDates: JSON.parse(localStorage.getItem('smriti_played_dates_index_v2') || '[]'),
       },
       'patient'
     );
 
     // 3. Update local session summaries
-    setWorkoutSessionSummaries((prev) => ({
-      ...prev,
+    const updatedSummaries = {
+      ...workoutSessionSummaries,
       [gameId]: summary,
-    }));
+    };
+    setWorkoutSessionSummaries(updatedSummaries);
 
-    if (!completedWorkoutGames.includes(gameId)) {
-      setCompletedWorkoutGames((prev) => [...prev, gameId]);
-    }
+    const updatedCompleted = completedWorkoutGames.includes(gameId)
+      ? completedWorkoutGames
+      : [...completedWorkoutGames, gameId];
+    setCompletedWorkoutGames(updatedCompleted);
 
     if (isWorkoutMode) {
-      const isLast = workoutCurrentIndex + 1 >= prescription.prescribedGameIds.length;
+      const currentPlaylist = activeWorkoutPlaylist.length > 0 ? activeWorkoutPlaylist : prescription.prescribedGameIds;
+
+      // Dynamically evaluate patient telemetry using the AI Adaptive Flow Engine
+      const recommendation = AdaptiveGameFlowEngine.recommendNextGame({
+        completedGameId: gameId,
+        completedSummary: summary,
+        currentPlaylist,
+        completedGameIds: updatedCompleted,
+        sessionReports: updatedSummaries,
+        patientLanguage: language,
+      });
+
+      setLastFlowRecommendation(recommendation);
+
+      // Adjust playlist on the fly based on clinical AI recommendation
+      if (recommendation.adjustedPlaylist && recommendation.adjustedPlaylist.length > 0) {
+        setActiveWorkoutPlaylist(recommendation.adjustedPlaylist);
+      }
+
+      const totalRounds = recommendation.adjustedPlaylist?.length || currentPlaylist.length;
+      const isLast = workoutCurrentIndex + 1 >= totalRounds;
+
       if (isLast) {
         setIsWorkoutCelebrationOpen(true);
       } else {
-        const recommendation = AdaptiveGameFlowEngine.recommendNextGame({
-          completedGameId: gameId,
-          completedSummary: summary,
-          currentPlaylist: prescription.prescribedGameIds,
-          completedGameIds: [...completedWorkoutGames, gameId],
-          sessionReports: { [gameId]: summary },
-          patientLanguage: language,
-        });
-        setLastFlowRecommendation(recommendation);
         setIsIntermissionOpen(true);
       }
     }
@@ -184,7 +222,18 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     setIsIntermissionOpen(false);
     const nextIdx = workoutCurrentIndex + 1;
     setWorkoutCurrentIndex(nextIdx);
-    setActiveGameId(prescription.prescribedGameIds[nextIdx]);
+
+    // Prioritize AI Adaptive Engine's recommendation, then fallback to adjusted playlist
+    const nextGame =
+      lastFlowRecommendation?.nextGameId ||
+      activeWorkoutPlaylist[nextIdx] ||
+      prescription.prescribedGameIds[nextIdx];
+
+    if (nextGame) {
+      setActiveGameId(nextGame);
+    } else {
+      setIsWorkoutCelebrationOpen(true);
+    }
   };
 
   const handleExitWorkout = () => {
@@ -327,13 +376,15 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             {isWorkoutMode && (
               <WorkoutProgressHeader
                 currentIndex={workoutCurrentIndex}
-                totalExercises={prescription.prescribedGameIds.length}
+                totalExercises={activeWorkoutPlaylist.length || prescription.prescribedGameIds.length}
                 currentGameTitle={
                   GAME_CATALOG.find((g) => g.id === activeGameId)?.title[language] || activeGameId || ''
                 }
                 nextGameTitle={
-                  workoutCurrentIndex + 1 < prescription.prescribedGameIds.length
-                    ? GAME_CATALOG.find((g) => g.id === prescription.prescribedGameIds[workoutCurrentIndex + 1])?.title[language] || null
+                  lastFlowRecommendation?.nextGameId
+                    ? GAME_CATALOG.find((g) => g.id === lastFlowRecommendation.nextGameId)?.title[language] || null
+                    : workoutCurrentIndex + 1 < activeWorkoutPlaylist.length
+                    ? GAME_CATALOG.find((g) => g.id === activeWorkoutPlaylist[workoutCurrentIndex + 1])?.title[language] || null
                     : null
                 }
                 onNextExercise={handleStartNextFromIntermission}
@@ -507,6 +558,32 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   else setActiveGameId(null);
                 }}
               />
+            )}
+
+            {/* Fallback Graceful State if game ID is unrecognized */}
+            {activeGameId && ![
+              'smriti-haat', 'memory-match', 'sequence-recall', 'jigsaw-puzzle',
+              'number-recall', 'what-changed', 'pattern-recall', 'odd-one-out',
+              'where-am-i', 'brain-story', 'word-recall'
+            ].includes(activeGameId) && (
+              <div className="bg-white p-8 rounded-3xl border border-rose-200 shadow-sm text-center space-y-4 max-w-lg mx-auto">
+                <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center mx-auto">
+                  <AlertTriangle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Exercise Not Available</h3>
+                  <p className="text-xs text-slate-500 mt-1">The requested exercise "{activeGameId}" could not be loaded.</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setActiveGameId(null);
+                    setIsWorkoutMode(false);
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer hover:bg-slate-800"
+                >
+                  Return to Dashboard
+                </button>
+              </div>
             )}
 
           </div>
@@ -725,28 +802,34 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       <WorkoutIntermissionModal
         isOpen={isIntermissionOpen}
         completedGameTitle={
-          GAME_CATALOG.find((g) => g.id === prescription.prescribedGameIds[workoutCurrentIndex])?.title[language] ||
-          prescription.prescribedGameIds[workoutCurrentIndex] ||
+          GAME_CATALOG.find((g) => g.id === activeGameId)?.title[language] ||
+          activeGameId ||
           ''
         }
         completedIndex={workoutCurrentIndex}
-        totalExercises={prescription.prescribedGameIds.length}
+        totalExercises={activeWorkoutPlaylist.length || prescription.prescribedGameIds.length}
         nextGameTitle={
-          workoutCurrentIndex + 1 < prescription.prescribedGameIds.length
-            ? GAME_CATALOG.find((g) => g.id === prescription.prescribedGameIds[workoutCurrentIndex + 1])?.title[language] || ''
-            : ''
+          (lastFlowRecommendation?.nextGameId &&
+            GAME_CATALOG.find((g) => g.id === lastFlowRecommendation.nextGameId)?.title[language]) ||
+          (workoutCurrentIndex + 1 < activeWorkoutPlaylist.length &&
+            GAME_CATALOG.find((g) => g.id === activeWorkoutPlaylist[workoutCurrentIndex + 1])?.title[language]) ||
+          ''
         }
         nextGameSubtitle={
-          workoutCurrentIndex + 1 < prescription.prescribedGameIds.length
-            ? GAME_CATALOG.find((g) => g.id === prescription.prescribedGameIds[workoutCurrentIndex + 1])?.subtitle[language]
+          lastFlowRecommendation?.nextGameId
+            ? GAME_CATALOG.find((g) => g.id === lastFlowRecommendation.nextGameId)?.subtitle[language]
+            : workoutCurrentIndex + 1 < activeWorkoutPlaylist.length
+            ? GAME_CATALOG.find((g) => g.id === activeWorkoutPlaylist[workoutCurrentIndex + 1])?.subtitle[language]
             : undefined
         }
         nextGameDomain={
-          workoutCurrentIndex + 1 < prescription.prescribedGameIds.length
-            ? GAME_CATALOG.find((g) => g.id === prescription.prescribedGameIds[workoutCurrentIndex + 1])?.domainLabel[language]
+          lastFlowRecommendation?.domain
+            ? (GAME_CATALOG.find((g) => g.id === lastFlowRecommendation.nextGameId)?.domainLabel[language] || lastFlowRecommendation.domain)
+            : workoutCurrentIndex + 1 < activeWorkoutPlaylist.length
+            ? GAME_CATALOG.find((g) => g.id === activeWorkoutPlaylist[workoutCurrentIndex + 1])?.domainLabel[language]
             : undefined
         }
-        nextGameEstimatedMinutes={3}
+        nextGameEstimatedMinutes={lastFlowRecommendation?.estimatedMinutes || 3}
         onStartNext={handleStartNextFromIntermission}
         onExitWorkout={handleExitWorkout}
         flowReason={lastFlowRecommendation?.reason}

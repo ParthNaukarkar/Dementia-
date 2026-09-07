@@ -118,7 +118,12 @@ class PortalSyncRelay {
 
     // 2. Storage event trigger (same port / same origin cross-tab)
     try {
+      const syncKey = `smriti_sync_signal_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      localStorage.setItem(syncKey, JSON.stringify(message));
       localStorage.setItem('smriti_sync_signal_latest', JSON.stringify(message));
+      setTimeout(() => {
+        try { localStorage.removeItem(syncKey); } catch {}
+      }, 15000);
     } catch {}
 
     // 3. Cross-port postMessage to bridge iframe
