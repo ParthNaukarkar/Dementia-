@@ -297,10 +297,11 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
     setWasAutoAssisted(true);
     setAutoAssistedPairsCount(c => c + 1);
 
-    // Find unmatched cards
+    // Find unmatched cards (or prioritize the matching partner of already-flipped card)
     const unmatched = cards.filter(c => !c.isMatched);
     if (unmatched.length === 0) return;
-    const assistTarget = unmatched[0];
+    const flippedCard = flippedCardIds.length > 0 ? cards.find(c => c.id === flippedCardIds[0]) : null;
+    const assistTarget = flippedCard ? flippedCard : unmatched[0];
     const targetKey = assistTarget.pairKey;
 
     if (profileConfig.scaffoldingLevel === 'direct_beacon') {
@@ -326,7 +327,13 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
       setDimmedCardIds(distractors);
       setActiveAssistPairKey(targetKey);
       memoryMatchAudio.playAutoAssistChime();
-      setFeedbackBanner('AI Live Assist: Dimmed non-matching cards to focus your gaze.');
+      const dimMsg = {
+        en: 'AI Live Assist: Dimmed non-matching cards to focus your gaze.',
+        as: 'AI সহায়: চকুৰ দৃষ্টি কেন্দ্ৰীভূত কৰিবলৈ অমিল কাৰ্ডবোৰ ধূসৰ কৰা হ’ল।',
+        bn: 'AI সহায়তা: দৃষ্টি নিবদ্ধ করতে অমিল কার্ডগুলি আবছা করা হলো।',
+        hi: 'AI सहायता: ध्यान केंद्रित करने के लिए बेमेल कार्डों को धुंधला कर दिया गया है।',
+      };
+      setFeedbackBanner(dimMsg[language] || dimMsg.en);
       setTimeout(() => {
         setFeedbackBanner(null);
         setDimmedCardIds([]);
@@ -358,9 +365,21 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
     } else {
       // Level 1: Subtle Cue
       setActiveAssistPairKey(targetKey);
-      setFeedbackBanner('💡 Hint: One matching pair has been gently illuminated.');
+      const hintMsg = {
+        en: '💡 Hint: One matching pair has been gently illuminated.',
+        as: '💡 সংকেত: এটা মিল থকা যোৰা মৃদুভাৱে উজ্বলাই তোলা হৈছে।',
+        bn: '💡 ইঙ্গিত: একটি মিল থাকা জোড়া মৃদুভাবে আলোকিত করা হয়েছে।',
+        hi: '💡 संकेत: एक मेल खाता हुआ जोड़ा धीरे से चमकाया गया है।',
+      };
+      setFeedbackBanner(hintMsg[language] || hintMsg.en);
       setTimeout(() => setFeedbackBanner(null), 3500);
     }
+
+    // Re-arm auto assist timer so if patient remains stuck in later half, guidance continues
+    if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
+    autoAssistTimerRef.current = setTimeout(() => {
+      triggerAdaptiveAssistance(profileConfig);
+    }, Math.min(8000, profileConfig.assistTimeoutMs));
   };
 
   // Mount & Tier Initialization
@@ -469,6 +488,8 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
           // Check if round complete
           if (nextMatched === currentTier.pairCount) {
             handleRoundComplete(updatedCards);
+          } else {
+            scheduleAutoAssist();
           }
         }, 500);
 

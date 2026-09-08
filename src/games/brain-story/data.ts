@@ -521,7 +521,8 @@ export class StoryGenerator {
     preferredStoryId?: string
   ): BrainStoryGeneratedTrial {
     const storyList = REMINISCENCE_STORIES;
-    let story = storyList[(trialIndex - 1) % storyList.length];
+    const safeIdx = Math.max(0, Math.floor(trialIndex || 1) - 1) % storyList.length;
+    let story = storyList[safeIdx] || storyList[0];
 
     if (preferredStoryId) {
       const found = storyList.find(s => s.id === preferredStoryId);

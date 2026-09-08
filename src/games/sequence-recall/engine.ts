@@ -41,7 +41,7 @@ export class SequenceRecallEngine {
       direction: 'FORWARD',
       scaffoldingLevel: 'high',
       tremorDebounceMs: 400,       // 400ms physical tremor filter
-      autoAssistTimeoutMs: 45000   // 45s dignity guard
+      autoAssistTimeoutMs: 12000   // 12s dignity guard
     };
 
     this.startNewTrial();

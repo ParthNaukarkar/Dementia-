@@ -206,15 +206,22 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
       autoAssist: profile.multiStageTimeouts.autoCompleteMs,
     };
 
+    const stepStartTime = performance.now();
     let stagePromptDone = false;
     let stageBlurDone = false;
     let stageBeaconDone = false;
     let stageAutoAssistDone = false;
 
     const timer = window.setInterval(() => {
-      const elapsedMs = performance.now() - recallStartTimeRef.current;
-      const elapsedSec = Math.floor(elapsedMs / 1000);
+      const elapsedMs = performance.now() - stepStartTime;
+      const totalElapsedMs = performance.now() - recallStartTimeRef.current;
+      const elapsedSec = Math.floor(totalElapsedMs / 1000);
       setDeliberationSeconds(elapsedSec);
+
+      // If all targets are already selected, no further hints needed
+      if (selectedIds.length >= targets.length && targets.length > 0) {
+        return;
+      }
 
       // Stage 2: Gentle Vernacular Voice Reassurance (16s in clinical, 4s in rapid)
       if (elapsedMs >= limits.voice && !stagePromptDone) {
@@ -264,7 +271,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
     return () => {
       window.clearInterval(timer);
     };
-  }, [phase, roundNumber, language, demoPacing]);
+  }, [phase, roundNumber, language, demoPacing, selectedIds.length, targets.length]);
 
   // Listen for active subtitles from the voice engine
   useEffect(() => {

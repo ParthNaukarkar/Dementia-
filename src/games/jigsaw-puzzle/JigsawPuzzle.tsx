@@ -339,6 +339,16 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     };
   }, [currentPuzzleIndex, selectedArtworkId, manualPieceCount, initPuzzle]);
 
+  // Arm auto-assist timer whenever pieces change (initial load, after snap, or in later half)
+  useEffect(() => {
+    if (!isPuzzleSolved && pieces.length > 0) {
+      resetAutoAssistTimer();
+    }
+    return () => {
+      if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
+    };
+  }, [pieces, isPuzzleSolved, resetAutoAssistTimer]);
+
   // Elapsed timer tick
   useEffect(() => {
     if (isPuzzleSolved) return;
@@ -379,10 +389,24 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       // Level 1 / 2: Highlight piece and target cell
       setPieces(prev => prev.map(p => p.id === targetPiece.id ? { ...p, isHighlighted: true } : { ...p, isHighlighted: false }));
       setSelectedPieceId(targetPiece.id);
+      const hintText = {
+        en: '💡 Hint: The glowing piece fits into the glowing target slot.',
+        as: '💡 সংকেত: উজ্বল টুকুৰাটো উজ্বল বাকচটোত বহুৱাওক।',
+        bn: '💡 ইঙ্গিত: উজ্জ্বল টুকরোটি উজ্জ্বল ঘরে বসান।',
+        hi: '💡 संकेत: चमकता हुआ टुकड़ा चमकते हुए बॉक्स में बैठेगा।',
+      };
+      setFeedbackBanner(hintText[language] || hintText.en);
+      setTimeout(() => setFeedbackBanner(null), 4500);
     }
 
     jigsawAudio.playAutoAssistChime();
     jigsawAudio.speakGuidance('assist', language);
+
+    // Re-arm auto assist timer so if elder is still stuck on the next or current piece, help continues
+    if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
+    autoAssistTimerRef.current = setTimeout(() => {
+      triggerAutoAssist(false, activeProfile);
+    }, Math.min(10000, activeProfile.assistTimeoutMs));
   };
 
   // Handle Piece Selection from Tray

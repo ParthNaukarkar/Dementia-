@@ -190,8 +190,8 @@ export const ODD_ONE_OUT_TIERS: OddOneOutDifficulty[] = [
     choicesCount: 6,
     ruleClueAvailable: true,
     ruleClueAutoVisible: false,
-    spotlightAllowed: false, // Disabled at ceiling
-    spotlightEliminatesCount: 0,
+    spotlightAllowed: true,
+    spotlightEliminatesCount: 1,
     distractorStrategy: 'perceptual_abstract_ceiling',
     autoAssistTimeoutMs: 7000,
     tremorDebounceMs: 400,

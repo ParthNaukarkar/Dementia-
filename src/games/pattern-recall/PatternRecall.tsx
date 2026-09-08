@@ -245,13 +245,19 @@ export const PatternRecall: React.FC<PatternRecallProps> = ({
   };
 
   // Auto-assist for prolonged hesitation
-  const handleAutoAssist = (trial: PatternRecallGeneratedTrial, diff: PatternRecallDifficulty) => {
+  const handleAutoAssist = (
+    trial: PatternRecallGeneratedTrial,
+    diff: PatternRecallDifficulty,
+    currentSelection: number[] = selectedCells
+  ) => {
     setAutoAssistTriggered(true);
-    if (diff.beaconAllowed && !beaconHintUsed) {
-      triggerBeaconHint(trial, diff);
-    } else if (diff.peeksAllowed > 0 && peeksUsedCount < diff.peeksAllowed) {
-      triggerPeekReplay(diff);
-    }
+    triggerBeaconHint(trial, diff, currentSelection);
+
+    // Re-arm auto-assist so if elder remains stuck on subsequent tiles, help repeats
+    if (assistTimerRef.current) clearTimeout(assistTimerRef.current);
+    assistTimerRef.current = setTimeout(() => {
+      handleAutoAssist(trial, diff, selectedCells);
+    }, Math.min(8000, diff.autoAssistTimeoutMs || 8000));
   };
 
   const handleStartGame = () => {
@@ -275,14 +281,18 @@ export const PatternRecall: React.FC<PatternRecallProps> = ({
   // Trigger Golden Beacon Hint
   const triggerBeaconHint = (
     trial: PatternRecallGeneratedTrial | null = currentTrial,
-    diff: PatternRecallDifficulty = currentDifficulty
+    diff: PatternRecallDifficulty = currentDifficulty,
+    currentSelection: number[] = selectedCells
   ) => {
-    if (!trial || !diff.beaconAllowed || beaconHintUsed || gameState !== 'recall') return;
+    if (!trial || gameState !== 'recall') return;
 
-    const beaconTiles = engine.getBeaconHintTiles(trial, selectedCells, diff.beaconIlluminatesCount);
-    setBeaconTileIndices(beaconTiles);
-    setBeaconHintUsed(true);
-    patternRecallAudio.playBeaconChime();
+    const count = Math.max(1, diff.beaconIlluminatesCount || 1);
+    const beaconTiles = engine.getBeaconHintTiles(trial, currentSelection, count);
+    if (beaconTiles.length > 0) {
+      setBeaconTileIndices(beaconTiles);
+      setBeaconHintUsed(true);
+      patternRecallAudio.playBeaconChime();
+    }
   };
 
   // Handle Cell Tap
@@ -317,6 +327,12 @@ export const PatternRecall: React.FC<PatternRecallProps> = ({
     // Auto-check when selection count reaches target pattern length
     if (updatedSelection.length === currentTrial.patternLength) {
       evaluateTrial(updatedSelection, now);
+    } else {
+      // Re-arm auto-assist timer so if patient is stuck in the later half on subsequent tiles, help fires!
+      if (assistTimerRef.current) clearTimeout(assistTimerRef.current);
+      assistTimerRef.current = setTimeout(() => {
+        handleAutoAssist(currentTrial, currentDifficulty, updatedSelection);
+      }, Math.min(8000, currentDifficulty.autoAssistTimeoutMs || 8000));
     }
   };
 

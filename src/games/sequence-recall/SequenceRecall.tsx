@@ -265,6 +265,7 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
   // Dignity Auto-Assist Inactivity Guard (Profile-Adaptive)
   useEffect(() => {
     if (phase === 'RECALL') {
+      const timeout = Math.min(12000, liveProfileConfig.assistTimeoutMs || 12000);
       autoAssistTimerRef.current = setTimeout(() => {
         const hintItem = engine.triggerAutoAssist();
         if (hintItem) {
@@ -272,8 +273,14 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
           setShowEncouragementBanner(true);
           sequenceAudio.playAttentionTone();
           setTimeout(() => setShowEncouragementBanner(false), 4000);
+
+          // Re-arm so if elder remains frozen on the step, beacon pulses continuously
+          autoAssistTimerRef.current = setTimeout(() => {
+            const nextHint = engine.triggerAutoAssist();
+            if (nextHint) setAutoAssistItemId(nextHint);
+          }, 8000);
         }
-      }, liveProfileConfig.assistTimeoutMs);
+      }, timeout);
     } else {
       if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
       setAutoAssistItemId(null);

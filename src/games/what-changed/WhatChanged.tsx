@@ -311,9 +311,10 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
     if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
     if (phase !== 'DETECTION') return;
 
+    const timeout = Math.min(12000, liveAssistanceProfile.assistTimeoutMs || 12000);
     autoAssistTimerRef.current = setTimeout(() => {
       triggerAutoAssist(false, liveAssistanceProfile);
-    }, liveAssistanceProfile.assistTimeoutMs);
+    }, timeout);
   }, [liveAssistanceProfile, phase]);
 
   // Dignity Auto-Assist Trigger (Profile-Adaptive)
@@ -324,15 +325,40 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
 
     if (activeProfile.profile === 'severe_amnesic') {
       whatChangedAudio.speakGuidance('hint', language);
-      setFeedbackBanner('AI Live Assist: Golden spotlight revealed the changed spot.');
+      const msg = {
+        en: 'AI Live Assist: Golden spotlight revealed the changed spot.',
+        as: 'AI সহায়: সোণালী পোহৰে সলনি হোৱা স্থান প্ৰকাশ কৰিলে।',
+        bn: 'AI সহায়তা: সোনালি আলো পরিবর্তিত স্থানটি দেখিয়ে দিল।',
+        hi: 'AI सहायता: सुनहरे प्रकाश ने बदले हुए स्थान को दर्शाया।',
+      };
+      setFeedbackBanner(msg[language] || msg.en);
       setTimeout(() => setFeedbackBanner(null), 4000);
     } else if (activeProfile.profile === 'motor_tremor_slowed') {
-      setFeedbackBanner('🛡️ Motor grace active. Tap the highlighted item when ready.');
+      const msg = {
+        en: '🛡️ Motor grace active. Tap the highlighted item when ready.',
+        as: '🛡️ মটৰ স্থিৰতা সক্ৰিয়। সাজু হ’লে উজ্বলাই তোলা বস্তুটো স্পৰ্শ কৰক।',
+        bn: '🛡️ মোটর স্থিতি সক্রিয়। প্রস্তুত হলে চিহ্নিত বস্তুটি স্পর্শ করুন।',
+        hi: '🛡️ मोटर संतुलन सक्रिय। तैयार होने पर चमकती वस्तु को स्पर्श करें।',
+      };
+      setFeedbackBanner(msg[language] || msg.en);
       setTimeout(() => setFeedbackBanner(null), 4500);
     } else {
-      setFeedbackBanner('💡 Notice the gentle golden spotlight glow on the changed item.');
+      const msg = {
+        en: '💡 Notice the gentle golden spotlight glow on the changed item.',
+        as: '💡 সলনি হোৱা বস্তুটোৰ ওপৰত মৃদু সোণালী পোহৰ লক্ষ্য কৰক।',
+        bn: '💡 পরিবর্তিত বস্তুটির উপর মৃদু সোনালি আলো লক্ষ্য করুন।',
+        hi: '💡 बदली हुई वस्तु पर हल्के सुनहरे प्रकाश पर ध्यान दें।',
+      };
+      setFeedbackBanner(msg[language] || msg.en);
       setTimeout(() => setFeedbackBanner(null), 3500);
     }
+
+    // Re-arm auto-assist timer so guidance continues if patient remains frozen
+    if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
+    autoAssistTimerRef.current = setTimeout(() => {
+      whatChangedAudio.playHaloPulse();
+      whatChangedAudio.speakGuidance('hint', language);
+    }, 8000);
   };
 
   // Load trial on mount or index change

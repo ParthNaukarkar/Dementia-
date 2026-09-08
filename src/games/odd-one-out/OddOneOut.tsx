@@ -217,7 +217,13 @@ export const OddOneOut: React.FC<OddOneOutProps> = ({
       setRuleClueRevealed(true);
       oddOneOutAudio.playClueChime();
       oddOneOutAudio.speakGuidance(trial.ruleExplanation[language], language);
-    } else if (diff.spotlightAllowed && !spotlightHintUsed) {
+
+      // Stage 2: If patient is STILL stuck after hearing the clue, trigger spotlight distractor elimination!
+      if (assistTimerRef.current) clearTimeout(assistTimerRef.current);
+      assistTimerRef.current = setTimeout(() => {
+        triggerSpotlightHint(trial, diff);
+      }, Math.min(8000, diff.autoAssistTimeoutMs || 8000));
+    } else {
       triggerSpotlightHint(trial, diff);
     }
   };
@@ -236,11 +242,19 @@ export const OddOneOut: React.FC<OddOneOutProps> = ({
 
   // Trigger Golden Spotlight Distractor Eliminator
   const triggerSpotlightHint = (trial: OddOneOutGeneratedTrial | null = currentTrial, diff: OddOneOutDifficulty = currentDifficulty) => {
-    if (!trial || !diff.spotlightAllowed || spotlightHintUsed) return;
-    const eliminated = engine.getSpotlightEliminations(trial, diff.spotlightEliminatesCount);
+    if (!trial || spotlightHintUsed) return;
+    const count = Math.max(1, diff.spotlightEliminatesCount || 1);
+    const eliminated = engine.getSpotlightEliminations(trial, count);
     setEliminatedIndices(eliminated);
     setSpotlightHintUsed(true);
     oddOneOutAudio.playSpotlightChime();
+
+    // Re-arm so if patient remains stuck after distractor elimination, reassurance continues
+    if (assistTimerRef.current) clearTimeout(assistTimerRef.current);
+    assistTimerRef.current = setTimeout(() => {
+      oddOneOutAudio.playSpotlightChime();
+      oddOneOutAudio.speakGuidance(trial.ruleExplanation[language], language);
+    }, 8000);
   };
 
   // Handle Item Tap

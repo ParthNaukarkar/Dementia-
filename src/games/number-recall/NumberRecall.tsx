@@ -82,6 +82,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
   const [aiDynamicActions, setAiDynamicActions] = useState<NumberRecallAIDynamicAction[]>([]);
   const [showTestbed, setShowTestbed] = useState<boolean>(false);
   const [feedbackBanner, setFeedbackBanner] = useState<string | null>(null);
+  const [highlightedDialpadDigit, setHighlightedDialpadDigit] = useState<string | null>(null);
 
   // Micro-timing refs
   const trialStartTimeRef = useRef<number>(Date.now());
@@ -223,6 +224,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
     setProactiveHelpRequested(false);
     setLastTrialFeedback(null);
     setAiDynamicActions([]);
+    setHighlightedDialpadDigit(null);
     keystrokesRef.current = [];
 
     // Start 3s countdown before presentation
@@ -279,28 +281,27 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
         return;
       }
 
-      // Flash current digit
       setActiveDigitIndex(currentIndex);
       setIsDigitShowing(true);
+
       const digitChar = seq[currentIndex];
-      const digitNum = parseInt(digitChar, 10);
-      numberRecallAudio.playDigitTone(digitNum);
-      
-      // Spoken readout only if audio enabled for this tier (suppressed on rapid visual-flash tiers like Tier 9)
-      if (!isMuted && diff.audioSpeechEnabled !== false && diff.displaySpeedMs > 700) {
+      const digitVal = parseInt(digitChar, 10);
+      numberRecallAudio.playDigitTone(digitVal);
+
+      if (!isMuted && diff.audioSpeechEnabled !== false) {
         numberRecallAudio.speakDigit(digitChar, language, diff.speechRate);
       }
 
-      // Hide after displaySpeedMs
-      presentationTimeoutRef.current = setTimeout(() => {
+      presentationStepTimeoutRef.current = setTimeout(() => {
         setIsDigitShowing(false);
-        currentIndex += 1;
-        // Wait for inter-stimulus interval gap (isiGapMs)
-        presentationStepTimeoutRef.current = setTimeout(showNextDigit, diff.isiGapMs);
+        presentationTimeoutRef.current = setTimeout(() => {
+          currentIndex++;
+          showNextDigit();
+        }, diff.isiGapMs);
       }, diff.displaySpeedMs);
     };
 
-    presentationStepTimeoutRef.current = setTimeout(showNextDigit, 250);
+    presentationTimeoutRef.current = setTimeout(showNextDigit, 400);
   };
 
   // Patient-Profile Adaptive Assistance Derivation
@@ -321,9 +322,10 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
     if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
     if (phase !== 'RECALL') return;
 
+    const timeout = Math.min(12000, liveAssistanceProfile.assistTimeoutMs || 12000);
     autoAssistTimerRef.current = setTimeout(() => {
       triggerAutoAssist(false, liveAssistanceProfile);
-    }, liveAssistanceProfile.assistTimeoutMs);
+    }, timeout);
   }, [liveAssistanceProfile, phase]);
 
   // Dignity Auto-Assist Trigger (Profile-Adaptive)
@@ -333,23 +335,48 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
     const nextCharIndex = userEnteredSequence.length;
     if (nextCharIndex < expected.length) {
       const hintDigit = expected[nextCharIndex];
+      setHighlightedDialpadDigit(hintDigit);
+      setIsGhostWatermarkVisible(true);
       numberRecallAudio.playDigitTone(parseInt(hintDigit, 10));
 
       if (activeProfile.profile === 'severe_amnesic') {
         // Level 3: Auto-reveal watermark + spoken digit in vernacular + hint banner
-        setIsGhostWatermarkVisible(true);
         numberRecallAudio.speakDigit(hintDigit, language, 0.85);
-        setFeedbackBanner(`AI Live Assist: Watermark revealed. Next digit is "${hintDigit}".`);
+        const msg = {
+          en: `AI Live Assist: Watermark revealed. Next digit is "${hintDigit}".`,
+          as: `AI সহায়: জলছাপ প্ৰকাশ কৰা হ’ল। পৰৱৰ্তী সংখ্যাটো হ’ল "${hintDigit}"।`,
+          bn: `AI সহায়তা: জলছাপ প্রকাশ করা হলো। পরবর্তী সংখ্যাটি হলো "${hintDigit}"।`,
+          hi: `AI सहायता: वॉटरमार्क प्रकट हुआ। अगला अंक "${hintDigit}" है।`,
+        };
+        setFeedbackBanner(msg[language] || msg.en);
         setTimeout(() => setFeedbackBanner(null), 4000);
       } else if (activeProfile.profile === 'motor_tremor_slowed') {
         // Motor profile: Reassure patient without rushing
-        setFeedbackBanner(`🛡️ Motor grace active. Tap "${hintDigit}" on the dialpad when ready.`);
+        const msg = {
+          en: `🛡️ Motor grace active. Tap "${hintDigit}" on the dialpad when ready.`,
+          as: `🛡️ মটৰ স্থিৰতা সক্ৰিয়। সাজু হ’লে ডায়েলপেডত "${hintDigit}" টিপক।`,
+          bn: `🛡️ মোটর স্থিতি সক্রিয়। প্রস্তুত হলে ডায়ালপ্যাডে "${hintDigit}" চাপুন।`,
+          hi: `🛡️ मोटर संतुलन सक्रिय। तैयार होने पर डायलपैड पर "${hintDigit}" दबाएं।`,
+        };
+        setFeedbackBanner(msg[language] || msg.en);
         setTimeout(() => setFeedbackBanner(null), 4500);
       } else {
         // Level 1 / 2: Standard hint banner
-        setFeedbackBanner(`💡 Hint: The next digit is "${hintDigit}"`);
+        const msg = {
+          en: `💡 Hint: The next digit is "${hintDigit}"`,
+          as: `💡 সংকেত: পৰৱৰ্তী সংখ্যাটো হ’ল "${hintDigit}"`,
+          bn: `💡 ইঙ্গিত: পরবর্তী সংখ্যাটি হলো "${hintDigit}"`,
+          hi: `💡 संकेत: अगला अंक "${hintDigit}" है`,
+        };
+        setFeedbackBanner(msg[language] || msg.en);
         setTimeout(() => setFeedbackBanner(null), 3500);
       }
+
+      // Re-arm auto-assist timer so subsequent digits in the later half are guided
+      if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
+      autoAssistTimerRef.current = setTimeout(() => {
+        triggerAutoAssist(false, activeProfile);
+      }, Math.min(8000, activeProfile.assistTimeoutMs));
     }
   };
 
@@ -428,6 +455,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
     const latencyFromPrev = now - lastKeypressTimeRef.current;
     lastKeypressTimeRef.current = now;
     lastActionTimeRef.current = now;
+    setHighlightedDialpadDigit(null);
     resetAutoAssistTimer();
 
     const nextSeq = userEnteredSequence + digit;
@@ -457,6 +485,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
     const now = Date.now();
     lastKeypressTimeRef.current = now;
     lastActionTimeRef.current = now;
+    setHighlightedDialpadDigit(null);
     resetAutoAssistTimer();
 
     setUserEnteredSequence(prev => prev.slice(0, -1));
@@ -1070,15 +1099,22 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
 
             {/* Large 64pt Elder-Accessible Numeric Dialpad */}
             <div className="grid grid-cols-3 gap-2.5 max-w-xs mx-auto pt-2">
-              {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
-                <button
-                  key={num}
-                  onClick={() => handleInputDigit(num)}
-                  className="h-14 sm:h-16 rounded-2xl bg-white hover:bg-indigo-50 border-2 border-slate-200 hover:border-indigo-400 text-2xl sm:text-3xl font-black text-slate-800 shadow-xs active:scale-95 transition-all cursor-pointer flex items-center justify-center"
-                >
-                  {num}
-                </button>
-              ))}
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => {
+                const isHinted = highlightedDialpadDigit === num;
+                return (
+                  <button
+                    key={num}
+                    onClick={() => handleInputDigit(num)}
+                    className={`h-14 sm:h-16 rounded-2xl border-2 text-2xl sm:text-3xl font-black shadow-xs active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
+                      isHinted
+                        ? 'bg-amber-50 border-amber-500 text-amber-900 ring-4 ring-amber-400 animate-pulse scale-105'
+                        : 'bg-white hover:bg-indigo-50 border-slate-200 hover:border-indigo-400 text-slate-800'
+                    }`}
+                  >
+                    {num}
+                  </button>
+                );
+              })}
 
               {/* Backspace Button */}
               <button
@@ -1090,12 +1126,21 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
               </button>
 
               {/* Zero Button */}
-              <button
-                onClick={() => handleInputDigit('0')}
-                className="h-14 sm:h-16 rounded-2xl bg-white hover:bg-indigo-50 border-2 border-slate-200 hover:border-indigo-400 text-2xl sm:text-3xl font-black text-slate-800 shadow-xs active:scale-95 transition-all cursor-pointer flex items-center justify-center"
-              >
-                0
-              </button>
+              {(() => {
+                const isZeroHinted = highlightedDialpadDigit === '0';
+                return (
+                  <button
+                    onClick={() => handleInputDigit('0')}
+                    className={`h-14 sm:h-16 rounded-2xl border-2 text-2xl sm:text-3xl font-black shadow-xs active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
+                      isZeroHinted
+                        ? 'bg-amber-50 border-amber-500 text-amber-900 ring-4 ring-amber-400 animate-pulse scale-105'
+                        : 'bg-white hover:bg-indigo-50 border-slate-200 hover:border-indigo-400 text-slate-800'
+                    }`}
+                  >
+                    0
+                  </button>
+                );
+              })()}
 
               {/* Submit / Done Button */}
               <button

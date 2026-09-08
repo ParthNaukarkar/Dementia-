@@ -207,6 +207,8 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationLog, setSimulationLog] = useState<string[]>([]);
   const [autoAssistTriggered, setAutoAssistTriggered] = useState(false);
+  const [dimmedOptionIndices, setDimmedOptionIndices] = useState<number[]>([]);
+  const [beaconOptionIndex, setBeaconOptionIndex] = useState<number | null>(null);
 
   const assistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -238,6 +240,8 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
     setCluesUsedCount(0);
     setIsClueVisible(false);
     setAutoAssistTriggered(false);
+    setDimmedOptionIndices([]);
+    setBeaconOptionIndex(null);
     setTimeToFirstTap(0);
     setTotalTapsCount(0);
     setTrialSelectedOptions([]);
@@ -293,6 +297,8 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
     const now = Date.now();
     setTrialStartTime(now);
     setGameState('question');
+    setDimmedOptionIndices([]);
+    setBeaconOptionIndex(null);
 
     // Arm Auto-Assist Timer
     armAutoAssistTimer(currentTrial, currentDifficulty);
@@ -303,14 +309,43 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
     if (assistTimerRef.current) clearTimeout(assistTimerRef.current);
     assistTimerRef.current = setTimeout(() => {
       handleAutoAssistIntervention(trial, diff);
-    }, diff.autoAssistTimeoutMs);
+    }, Math.min(10000, diff.autoAssistTimeoutMs || 10000));
   };
 
-  const handleAutoAssistIntervention = (_trial: BrainStoryGeneratedTrial | null, diff: BrainStoryDifficulty) => {
+  const handleAutoAssistIntervention = (trial: BrainStoryGeneratedTrial | null, diff: BrainStoryDifficulty) => {
     setAutoAssistTriggered(true);
-    if (diff.clueHintAllowed && !isClueVisible) {
+    if (!isClueVisible) {
+      // Stage 1: Reveal clue
       setIsClueVisible(true);
       setCluesUsedCount(prev => prev + 1);
+      brainStoryAudio.playClueChime();
+
+      // Re-arm timer for Stage 2 (distractor reduction)
+      if (assistTimerRef.current) clearTimeout(assistTimerRef.current);
+      assistTimerRef.current = setTimeout(() => {
+        handleAutoAssistIntervention(trial, diff);
+      }, Math.min(8000, diff.autoAssistTimeoutMs || 8000));
+    } else if (trial && dimmedOptionIndices.length === 0) {
+      // Stage 2: Dim out 1 incorrect option
+      const activeQ = trial.activeQuestions[activeQuestionIndex];
+      const optCount = (activeQ.options[language] || activeQ.options.en).length;
+      const wrongIndices = Array.from({ length: optCount }, (_, i) => i).filter(idx => idx !== activeQ.correctOptionIndex);
+      if (wrongIndices.length > 0) {
+        const toDim = wrongIndices[Math.floor(Math.random() * wrongIndices.length)];
+        setDimmedOptionIndices([toDim]);
+        brainStoryAudio.playClueChime();
+
+        // Re-arm for Stage 3 (beacon highlight on correct option)
+        if (assistTimerRef.current) clearTimeout(assistTimerRef.current);
+        assistTimerRef.current = setTimeout(() => {
+          setBeaconOptionIndex(activeQ.correctOptionIndex);
+          brainStoryAudio.playClueChime();
+        }, 7000);
+      }
+    } else if (trial) {
+      // Stage 3: Pulse correct option
+      const activeQ = trial.activeQuestions[activeQuestionIndex];
+      setBeaconOptionIndex(activeQ.correctOptionIndex);
       brainStoryAudio.playClueChime();
     }
   };
@@ -371,11 +406,13 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
 
     const nextQIndex = activeQuestionIndex + 1;
     if (nextQIndex < currentTrial.activeQuestions.length) {
-      // Advance to next question in this story
+      // Advance to next question in this story (later half)
       setActiveQuestionIndex(nextQIndex);
       setSelectedOptionIndex(null);
       setIsQuestionCorrect(null);
       setIsClueVisible(false);
+      setDimmedOptionIndices([]);
+      setBeaconOptionIndex(null);
       setGameState('question');
       armAutoAssistTimer(currentTrial, currentDifficulty);
     } else {
@@ -938,10 +975,16 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
               {(activeQuestion.options[language] || activeQuestion.options.en).map((optionText, oIdx) => {
                 const isSelected = selectedOptionIndex === oIdx;
                 const isCorrectOption = oIdx === activeQuestion.correctOptionIndex;
+                const isDimmed = dimmedOptionIndices.includes(oIdx) && gameState === 'question';
+                const isBeacon = beaconOptionIndex === oIdx && gameState === 'question';
 
                 let optionStyle = 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-amber-50/50 hover:border-amber-300';
 
-                if (gameState === 'feedback') {
+                if (isDimmed) {
+                  optionStyle = 'bg-slate-100 border-dashed border-slate-300 text-slate-400 opacity-40 line-through pointer-events-none';
+                } else if (isBeacon) {
+                  optionStyle = 'bg-amber-50/90 border-amber-500 text-slate-900 ring-4 ring-amber-400 animate-pulse shadow-lg scale-102';
+                } else if (gameState === 'feedback') {
                   if (isCorrectOption) {
                     optionStyle = 'bg-emerald-50 border-emerald-500 text-emerald-950 font-bold ring-2 ring-emerald-300';
                   } else if (isSelected && !isCorrectOption) {

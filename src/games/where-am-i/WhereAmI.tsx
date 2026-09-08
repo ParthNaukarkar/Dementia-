@@ -203,11 +203,13 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
   const [tremorCount, setTremorCount] = useState(0);
   const [liveAutonomy, setLiveAutonomy] = useState(100);
   
-  // ─── Testbed & Real-World OASIS Simulation ─────────────────────────────
   const [isTestbedOpen, setIsTestbedOpen] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState<OasisWhereAmIPersona>(REAL_WORLD_WHERE_AM_I_PERSONAS[0]);
   const [isAutoSimulating, setIsAutoSimulating] = useState(false);
   const autoSimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoAssistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [beaconOptionId, setBeaconOptionId] = useState<string | null>(null);
+  const [autoAssistAlert, setAutoAssistAlert] = useState<string | null>(null);
 
   const t = UI_TEXT[language] || UI_TEXT.en;
 
@@ -218,6 +220,9 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
 
   // Generate trial
   const startTrial = useCallback((tier: WhereAmIDifficulty, historyIds: string[]) => {
+    if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
+    setBeaconOptionId(null);
+    setAutoAssistAlert(null);
     const trial = engine.generateTrial(tier, historyIds);
     setCurrentTrial(trial);
     setVisibleClueCount(trial.initialVisibleClues);
@@ -265,7 +270,7 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
     }
   }, [gameState, visibleClueCount, currentTrial, currentDifficulty, language]);
 
-  // Reveal next clue voluntarily
+    // Reveal next clue voluntarily
   const handleRevealNextClue = () => {
     if (!currentTrial) return;
     const maxClues = currentTrial.targetLocation.clues[language]?.length || 4;
@@ -285,15 +290,68 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
     const eliminated = engine.applyCompassHint(
       currentTrial.options,
       currentTrial.targetLocation.id,
-      currentDifficulty.compassEliminatesCount
+      Math.max(1, currentDifficulty.compassEliminatesCount || 1)
     );
     setCompassHintUsed(true);
     setEliminatedOptionIds(eliminated);
   };
 
+  // Dignity Auto-Assist Inactivity Guard for Hesitation
+  useEffect(() => {
+    if (gameState !== 'play' || !currentTrial) {
+      if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
+      return;
+    }
+
+    const timeoutMs = Math.min(12000, currentDifficulty.autoAssistTimeoutMs || 12000);
+    autoAssistTimerRef.current = setTimeout(() => {
+      // Reveal all clues if not yet visible
+      const maxClues = currentTrial.targetLocation.clues[language]?.length || 4;
+      setVisibleClueCount(maxClues);
+
+      // Trigger Compass Hint to eliminate 1 distractor
+      if (!compassHintUsed) {
+        whereAmIAudio.playCompassChime();
+        const eliminated = engine.applyCompassHint(
+          currentTrial.options,
+          currentTrial.targetLocation.id,
+          Math.max(1, currentDifficulty.compassEliminatesCount || 1)
+        );
+        setCompassHintUsed(true);
+        setEliminatedOptionIds(eliminated);
+        const alertMsg = {
+          en: '💡 Auto-Assist: Eliminated an incorrect location to help you navigate.',
+          as: '💡 স্বয়ংক্ৰিয় সহায়: বাট দেখুৱাবলৈ এটা ভুল স্থান আঁতৰাই দিয়া হ’ল।',
+          bn: '💡 স্বয়ংক্রিয় সহায়তা: পথ প্রদর্শনের জন্য ১টি ভুল স্থান বাদ দেওয়া হলো।',
+          hi: '💡 स्वचालित सहायता: सही दिशा हेतु एक गलत स्थल को हटा दिया गया है।',
+        };
+        setAutoAssistAlert(alertMsg[language] || alertMsg.en);
+        setTimeout(() => setAutoAssistAlert(null), 5000);
+
+        // Schedule stage 3 beacon if elder still pauses
+        autoAssistTimerRef.current = setTimeout(() => {
+          setBeaconOptionId(currentTrial.targetLocation.id);
+          whereAmIAudio.playCompassChime();
+        }, 8000);
+      } else {
+        // If compass was already used, pulse the correct target card directly
+        setBeaconOptionId(currentTrial.targetLocation.id);
+        whereAmIAudio.playCompassChime();
+      }
+    }, timeoutMs);
+
+    return () => {
+      if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
+    };
+  }, [gameState, currentTrial, compassHintUsed, currentDifficulty, engine, language]);
+
   // Option selection
   const handleOptionClick = (optionId: string) => {
     if (gameState !== 'play' || !currentTrial) return;
+
+    if (autoAssistTimerRef.current) clearTimeout(autoAssistTimerRef.current);
+    setAutoAssistAlert(null);
+    setBeaconOptionId(null);
 
     // 400ms Tremor Guard Filter
     const now = Date.now();
@@ -767,6 +825,14 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
           </div>
         )}
 
+        {/* Auto-Assist Guidance Alert */}
+        {autoAssistAlert && gameState === 'play' && (
+          <div className="p-3.5 rounded-2xl mb-4 bg-amber-50 border border-amber-300 text-amber-900 text-sm font-bold text-center flex items-center justify-center gap-2 animate-fadeIn shadow-xs">
+            <Compass className="w-4 h-4 text-amber-600 animate-spin" />
+            <span>{autoAssistAlert}</span>
+          </div>
+        )}
+
         {/* Location Choice Buttons */}
         <div className={`grid gap-3.5 ${
           (currentTrial?.options.length || 4) <= 2 
@@ -779,11 +845,14 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
             const isCorrectOption = option.id === currentTrial.targetLocation.id;
             const isSelected = option.id === selectedOptionId;
             const isEliminated = eliminatedOptionIds.includes(option.id);
+            const isBeaconGlow = beaconOptionId === option.id && gameState === 'play';
 
             let btnStyle = "relative p-5 rounded-2xl text-left border-2 font-bold text-base sm:text-lg transition-all shadow-sm flex items-center justify-between";
 
             if (isEliminated && gameState === 'play') {
               btnStyle += " bg-slate-50 border-slate-200 text-slate-300 line-through opacity-40 cursor-not-allowed";
+            } else if (isBeaconGlow) {
+              btnStyle += " bg-amber-50/90 border-amber-500 text-slate-900 ring-4 ring-amber-400 animate-pulse shadow-xl scale-102 cursor-pointer";
             } else if (gameState === 'play') {
               btnStyle += " bg-white border-slate-200 hover:border-amber-400 hover:shadow-md text-slate-800 active:scale-98 cursor-pointer";
             } else {
