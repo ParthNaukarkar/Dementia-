@@ -337,9 +337,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
         {/* ─── FOOTER METADATA ────────────────────────────────────────────── */}
         <div className="mt-12 text-center text-xs text-slate-500 flex flex-wrap items-center justify-center gap-3">
-          <span className="font-semibold text-slate-600">Smart India Hackathon 2024</span>
+          <span className="font-semibold text-slate-700">Smart India Hackathon</span>
           <span>•</span>
-          <span>Problem Statement SIH 26003</span>
+          <span className="font-semibold text-slate-700">Problem Statement ID: SIH 26003</span>
           <span>•</span>
           <span className="font-semibold text-slate-600">Ministry of Development of North Eastern Region (MDoNER)</span>
           <span>•</span>
