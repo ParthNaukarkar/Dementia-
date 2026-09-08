@@ -29,7 +29,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const t = getTranslation(language);
 
   // Caregiver credential form state (optional toggle)
-  const [caregiverEmail, setCaregiverEmail] = useState(caretaker.email || 'anita.joshi@smritiner.in');
+  const [caregiverEmail, setCaregiverEmail] = useState(caretaker.email || 'anita.joshi@neurosaathi.in');
   const [caregiverPassword, setCaregiverPassword] = useState('••••••••••••');
   const [showClinicianLogin, setShowClinicianLogin] = useState(false);
 
@@ -41,7 +41,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col font-sans select-none">
       
-      {/* ─── TOP SYSTEM NAVBAR (Matching Rest of SmritiNER UI) ───────────── */}
+      {/* ─── TOP SYSTEM NAVBAR (Matching Rest of NeuroSaathi UI) ─────────── */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           
@@ -53,7 +53,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-extrabold text-base text-slate-900 leading-tight">
-                  SmritiNER
+                  {t.appTitle}
                 </h1>
                 <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
                   SIH 26003
@@ -238,7 +238,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     </span>
                   </div>
                   <p className="text-xs text-slate-600 font-medium">
-                    {caretaker.email || 'anita.joshi@smritiner.in'}
+                    {caretaker.email || 'anita.joshi@neurosaathi.in'}
                   </p>
                   <p className="text-[11px] text-purple-700 font-bold truncate mt-0.5">
                     Monitoring: {patient.name} (Mother, Age {patient.age})
