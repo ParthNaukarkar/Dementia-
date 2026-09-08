@@ -137,6 +137,16 @@ export interface TranslationSchema {
   myRoutineToday: string;
   allDoneForToday: string;
   calmExercisePrompt: string;
+
+  // Authentication & Login
+  login: string;
+  logout: string;
+  patientLogin: string;
+  caregiverLogin: string;
+  selectRole: string;
+  welcomeBack: string;
+  loginAsPatient: string;
+  loginAsCaregiver: string;
 }
 
 export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
@@ -265,7 +275,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
     myMedsToday: 'My Medicines Today',
     myRoutineToday: 'My Schedule Today',
     allDoneForToday: 'All scheduled exercises finished for today. Wonderful work!',
-    calmExercisePrompt: 'Select any game below to play at your own pace.'
+    calmExercisePrompt: 'Select any game below to play at your own pace.',
+
+    login: 'Log In',
+    logout: 'Log Out',
+    patientLogin: 'Patient Login',
+    caregiverLogin: 'Caregiver Login',
+    selectRole: 'Select Portal Access',
+    welcomeBack: 'Welcome to SmritiNER',
+    loginAsPatient: 'Log In as Patient (Meera Joshi)',
+    loginAsCaregiver: 'Log In as Caregiver (Anita Joshi)',
   },
 
   // ─── ASSAMESE ────────────────────────────────────────────────────────────
@@ -393,7 +412,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
     myMedsToday: 'আজিৰ ঔষধসমূহ',
     myRoutineToday: 'আজিৰ কামৰ তালিকা',
     allDoneForToday: 'আজিৰ বাবে সকলো অনুশীলন শেষ হ\'ল। খুব ভাল কাম কৰিলে!',
-    calmExercisePrompt: 'তলৰ যিকোনো খেল নিজৰ সুবিধা অনুসৰি খেলিব পাৰে।'
+    calmExercisePrompt: 'তলৰ যিকোনো খেল নিজৰ সুবিধা অনুসৰি খেলিব পাৰে।',
+
+    login: 'লগ ইন',
+    logout: 'লগ আউট',
+    patientLogin: 'ৰোগীৰ প্ৰৱেশ (Patient Login)',
+    caregiverLogin: 'যত্নশীলৰ প্ৰৱেশ (Caregiver Login)',
+    selectRole: 'পৰ্টেল বাছনি কৰক',
+    welcomeBack: 'স্মৃতি-NER লৈ স্বাগতম',
+    loginAsPatient: 'ৰোগী হিচাপে প্ৰৱেশ (মীৰা যোশী)',
+    loginAsCaregiver: 'যত্নশীল হিচাপে প্ৰৱেশ (অনিতা যোশী)',
   },
 
   // ─── BENGALI ─────────────────────────────────────────────────────────────
@@ -521,7 +549,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
     myMedsToday: 'আজকের ওষুধ',
     myRoutineToday: 'আজকের রুটিন',
     allDoneForToday: 'আজকের সমস্ত মানসিক ব্যায়াম সম্পন্ন হয়েছে। দুর্দান্ত কাজ!',
-    calmExercisePrompt: 'নিচের যে কোনো খেলা আপনার সুবিধামত বেছে নিয়ে খেলুন।'
+    calmExercisePrompt: 'নিচের যে কোনো খেলা আপনার সুবিধামত বেছে নিয়ে খেলুন।',
+
+    login: 'লগ ইন',
+    logout: 'লগ আউট',
+    patientLogin: 'রোগীর প্রবেশ (Patient Login)',
+    caregiverLogin: 'কেয়ারগিভারের প্রবেশ (Caregiver Login)',
+    selectRole: 'পোর্টাল নির্বাচন করুন',
+    welcomeBack: 'স্মৃতি-NER এ স্বাগতম',
+    loginAsPatient: 'রোগী হিসেবে প্রবেশ (মীরা জোশী)',
+    loginAsCaregiver: 'কেয়ারগিভার হিসেবে প্রবেশ (অনিতা জোশী)',
   },
 
   // ─── HINDI ───────────────────────────────────────────────────────────────
@@ -649,7 +686,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
     myMedsToday: 'आज की दवाइयां',
     myRoutineToday: 'आज की दिनचर्या',
     allDoneForToday: 'आज के सभी निर्धारित मानसिक अभ्यास समाप्त हो चुके हैं। बहुत खूब!',
-    calmExercisePrompt: 'नीचे दिए गए किसी भी खेल को अपनी गति से खेलें।'
+    calmExercisePrompt: 'नीचे दिए गए किसी भी खेल को अपनी गति से खेलें।',
+
+    login: 'लॉग इन',
+    logout: 'लॉग आउट',
+    patientLogin: 'मरीज लॉगिन (Patient Login)',
+    caregiverLogin: 'देखभालकर्ता लॉगिन (Caregiver Login)',
+    selectRole: 'पोर्टल चुनें',
+    welcomeBack: 'स्मृति-NER में आपका स्वागत है',
+    loginAsPatient: 'मरीज के रूप में प्रवेश (मीरा जोशी)',
+    loginAsCaregiver: 'देखभालकर्ता के रूप में प्रवेश (अनीता जोशी)',
   }
 };
 

@@ -21,6 +21,7 @@ import {
   Sliders,
   X,
   ShieldCheck,
+  LogOut,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -70,6 +71,7 @@ interface CaregiverPortalProps {
   dailySessions?: Record<string, any>;
   lastSessionReport?: any;
   onOpenPatientPortal?: () => void;
+  onLogout?: () => void;
 }
 
 export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
@@ -82,6 +84,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
   dailySessions = {},
   lastSessionReport = null,
   onOpenPatientPortal,
+  onLogout,
 }) => {
   const t = getTranslation(language);
 
@@ -433,8 +436,8 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
         </nav>
 
         {/* Footer Profile (Matches Screenshot: Avatar A + Anita Joshi + Caregiver) */}
-        <div className="p-4 border-t border-indigo-900/40 bg-[#17153b]">
-          <div className="flex items-center gap-3">
+        <div className="p-4 border-t border-indigo-900/40 bg-[#17153b] flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="w-9 h-9 rounded-full bg-[#7c3aed] flex items-center justify-center text-white font-bold text-sm shrink-0">
               {caretaker.name.slice(0, 1).toUpperCase() || 'A'}
             </div>
@@ -447,6 +450,15 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
               </p>
             </div>
           </div>
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="p-1.5 rounded-lg text-indigo-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+              title={t.logout}
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
       </aside>
@@ -467,7 +479,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
               {activeTab === 'settings' && t.settings}
             </h2>
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-              Caregiver View • Port 5174
+              Caregiver View
             </span>
           </div>
 
@@ -489,14 +501,28 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
               ))}
             </div>
 
-            {/* Portal Switcher Button (Go to Patient Portal on Port 5173) */}
-            <button
-              onClick={onOpenPatientPortal}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-            >
-              <span>{t.switchToPatient}</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </button>
+            {/* Portal Switcher Button */}
+            {onOpenPatientPortal && (
+              <button
+                onClick={onOpenPatientPortal}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                <span>{t.switchToPatient}</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {/* Logout / Switch User */}
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 text-xs font-bold transition-all cursor-pointer"
+                title={t.logout}
+              >
+                <LogOut className="w-3.5 h-3.5 text-slate-500 hover:text-rose-600" />
+                <span>{t.logout}</span>
+              </button>
+            )}
           </div>
         </header>
 

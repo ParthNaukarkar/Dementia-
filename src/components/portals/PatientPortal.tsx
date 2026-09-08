@@ -10,6 +10,7 @@ import {
   Sparkles,
   Heart,
   AlertTriangle,
+  LogOut,
 } from 'lucide-react';
 
 import type { SupportedLanguage, PatientPrescription, GameId } from '../../types/prescription';
@@ -54,6 +55,7 @@ interface PatientPortalProps {
   caretaker: CaretakerUser;
   prescription: PatientPrescription;
   onOpenCaregiverPortal?: () => void;
+  onLogout?: () => void;
 }
 
 export const PatientPortal: React.FC<PatientPortalProps> = ({
@@ -63,6 +65,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   caretaker,
   prescription,
   onOpenCaregiverPortal,
+  onLogout,
 }) => {
   const t = getTranslation(language);
 
@@ -283,14 +286,28 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               ))}
             </div>
 
-            {/* Switch to Caregiver Portal (Port 5174) */}
-            <button
-              onClick={onOpenCaregiverPortal}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-            >
-              <span>{t.switchToCaregiver}</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </button>
+            {/* Switch to Caregiver Portal */}
+            {onOpenCaregiverPortal && (
+              <button
+                onClick={onOpenCaregiverPortal}
+                className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                <span>{t.switchToCaregiver}</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {/* Logout / Switch User */}
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 text-xs font-bold transition-all cursor-pointer"
+                title={t.logout}
+              >
+                <LogOut className="w-3.5 h-3.5 text-slate-500 hover:text-rose-600" />
+                <span>{t.logout}</span>
+              </button>
+            )}
           </div>
 
         </div>

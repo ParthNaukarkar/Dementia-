@@ -1,34 +1,47 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { CaregiverPortal } from './components/portals/CaregiverPortal';
 import { PatientPortal } from './components/portals/PatientPortal';
+import { LoginPage } from './components/auth/LoginPage';
 import { ensureDemoProfiles, getStoredSessionReport } from './utils/authStorage';
 import { getSavedPrescription, getDefaultPrescription, savePrescription } from './utils/prescriptionStorage';
 import { DailySessionManager } from './utils/dailySessionManager';
 import { portalSync, type PortalSyncMessage } from './utils/portalSync';
 import type { SupportedLanguage, PatientPrescription } from './types/prescription';
 import type { CaretakerUser, PatientProfile } from './types/auth';
-import { ArrowRightLeft, ExternalLink } from 'lucide-react';
+import { ArrowRightLeft, LogOut } from 'lucide-react';
+
+export type AuthView = 'login' | 'patient' | 'caregiver';
 
 export function App() {
   // Determine initial portal:
-  // 1. URL search param: ?portal=caregiver or ?portal=patient
-  // 2. URL pathname: /caregiver or /patient
-  // 3. Port: 5174 = caregiver, 5173 = patient
-  const detectInitialPortal = (): 'caregiver' | 'patient' => {
-    if (typeof window === 'undefined') return 'patient';
+  // 1. URL search param: ?portal=caregiver, ?portal=patient, or ?portal=login
+  // 2. URL pathname: /caregiver, /patient, or /login
+  // 3. Stored user session in localStorage ('smriti_auth_view')
+  // 4. Fallback to 'login'
+  const detectInitialView = (): AuthView => {
+    if (typeof window === 'undefined') return 'login';
     const params = new URLSearchParams(window.location.search);
     const portalParam = params.get('portal');
     if (portalParam === 'caregiver') return 'caregiver';
     if (portalParam === 'patient') return 'patient';
+    if (portalParam === 'login') return 'login';
 
     if (window.location.pathname.startsWith('/caregiver')) return 'caregiver';
     if (window.location.pathname.startsWith('/patient')) return 'patient';
+    if (window.location.pathname.startsWith('/login')) return 'login';
+
+    try {
+      const saved = localStorage.getItem('smriti_auth_view');
+      if (saved === 'patient' || saved === 'caregiver' || saved === 'login') {
+        return saved as AuthView;
+      }
+    } catch {}
 
     if (window.location.port === '5174') return 'caregiver';
-    return 'patient';
+    return 'login';
   };
 
-  const [currentPortal, setCurrentPortal] = useState<'caregiver' | 'patient'>(detectInitialPortal);
+  const [activeView, setActiveView] = useState<AuthView>(detectInitialView);
 
   // Vernacular Language State
   const [language, setLanguage] = useState<SupportedLanguage>(() => {
@@ -59,7 +72,7 @@ export function App() {
     getStoredSessionReport()
   );
 
-  // Setup cross-port bridge on mount
+  // Setup cross-port bridge on mount for legacy or dual-browser tabs
   useEffect(() => {
     const currentPort = window.location.port ? parseInt(window.location.port, 10) : 5173;
     const targetPort = currentPort === 5174 ? 5173 : 5174;
@@ -84,12 +97,23 @@ export function App() {
     return () => unsubscribe();
   }, []);
 
+  const updateView = (newView: AuthView) => {
+    setActiveView(newView);
+    try {
+      localStorage.setItem('smriti_auth_view', newView);
+      const url = new URL(window.location.href);
+      url.searchParams.set('portal', newView);
+      window.history.replaceState({}, '', url);
+    } catch {}
+  };
+
   const handleLanguageChange = (newLang: SupportedLanguage) => {
     setLanguage(newLang);
     try {
       localStorage.setItem('smriti_language_preference', newLang);
     } catch {}
-    portalSync.broadcast('LANGUAGE_CHANGED', { language: newLang }, currentPortal);
+    const sender = activeView === 'caregiver' ? 'caregiver' : 'patient';
+    portalSync.broadcast('LANGUAGE_CHANGED', { language: newLang }, sender);
   };
 
   const handleUpdatePrescription = (newRx: PatientPrescription) => {
@@ -97,88 +121,79 @@ export function App() {
     savePrescription(newRx);
   };
 
+  const handleLogin = (role: 'patient' | 'caregiver') => {
+    updateView(role);
+  };
+
+  const handleLogout = () => {
+    updateView('login');
+  };
+
   const handleSwitchToCaregiver = () => {
-    if (window.location.port === '5174') {
-      setCurrentPortal('caregiver');
-    } else {
-      try {
-        const url = `http://${window.location.hostname}:5174/?portal=caregiver`;
-        window.open(url, '_blank');
-      } catch {}
-      setCurrentPortal('caregiver');
-    }
+    updateView('caregiver');
   };
 
   const handleSwitchToPatient = () => {
-    if (window.location.port === '5173' || !window.location.port) {
-      setCurrentPortal('patient');
-    } else {
-      try {
-        const url = `http://${window.location.hostname}:5173/?portal=patient`;
-        window.open(url, '_blank');
-      } catch {}
-      setCurrentPortal('patient');
-    }
+    updateView('patient');
   };
 
   const togglePortalInPlace = () => {
-    setCurrentPortal((prev) => (prev === 'caregiver' ? 'patient' : 'caregiver'));
+    updateView(activeView === 'caregiver' ? 'patient' : 'caregiver');
   };
-
-  const currentPortNum = window.location.port || '5173';
 
   return (
     <div className="min-h-screen flex flex-col font-sans selection:bg-purple-100 selection:text-purple-900">
       
-      {/* ─── DUAL-PORT SYSTEM SWITCHER BAR ───────────────────────────────── */}
-      <div className="bg-slate-900 text-slate-300 text-xs px-4 py-2 flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 z-50">
-        <div className="flex items-center gap-2.5">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-bold text-white tracking-tight">NeuroSaathi Dual-Portal</span>
-          <span className="text-slate-500 hidden sm:inline">|</span>
-          <span className="text-slate-400 hidden sm:inline">
-            Active Port: <strong className="text-white">{currentPortNum}</strong> • Active View:{' '}
-            <strong className={currentPortal === 'caregiver' ? 'text-purple-400' : 'text-teal-400'}>
-              {currentPortal === 'caregiver' ? 'Caregiver Portal' : 'Patient Portal'}
-            </strong>
-          </span>
-        </div>
+      {/* ─── UNIFIED SINGLE-ORIGIN TOP BAR (When Logged In) ──────────────── */}
+      {activeView !== 'login' && (
+        <div className="bg-slate-900 text-slate-300 text-xs px-4 py-2 flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 z-50">
+          <div className="flex items-center gap-2.5">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-bold text-white tracking-tight">NeuroSaathi Unified Platform</span>
+            <span className="text-slate-500 hidden sm:inline">|</span>
+            <span className="text-slate-400 hidden sm:inline">
+              Single Localhost: <strong className="text-white">{window.location.port || '5173'}</strong> • Active Mode:{' '}
+              <strong className={activeView === 'caregiver' ? 'text-purple-400' : 'text-teal-400'}>
+                {activeView === 'caregiver' ? 'Caregiver Portal (Anita Joshi)' : 'Patient Portal (Meera Joshi)'}
+              </strong>
+            </span>
+          </div>
 
-        <div className="flex items-center gap-2">
-          {/* In-Place View Switcher */}
-          <button
-            onClick={togglePortalInPlace}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold transition-colors cursor-pointer"
-            title="Toggle portal view in-place"
-          >
-            <ArrowRightLeft className="w-3 h-3 text-purple-400" />
-            <span>Switch to {currentPortal === 'caregiver' ? 'Patient Portal' : 'Caregiver Portal'}</span>
-          </button>
-
-          {/* Port Jump Links */}
-          {currentPortal === 'patient' ? (
+          <div className="flex items-center gap-2">
+            {/* In-Place View Switcher */}
             <button
-              onClick={handleSwitchToCaregiver}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-950 hover:bg-purple-900 text-purple-200 border border-purple-800 font-bold transition-colors cursor-pointer"
+              onClick={togglePortalInPlace}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold transition-colors cursor-pointer"
+              title="Toggle portal view in-place"
             >
-              <span>Port 5174 (Caregiver)</span>
-              <ExternalLink className="w-3 h-3" />
+              <ArrowRightLeft className="w-3 h-3 text-purple-400" />
+              <span>Switch to {activeView === 'caregiver' ? 'Patient Portal' : 'Caregiver Portal'}</span>
             </button>
-          ) : (
-            <button
-              onClick={handleSwitchToPatient}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-950 hover:bg-teal-900 text-teal-200 border border-teal-800 font-bold transition-colors cursor-pointer"
-            >
-              <span>Port 5173 (Patient)</span>
-              <ExternalLink className="w-3 h-3" />
-            </button>
-          )}
-        </div>
-      </div>
 
-      {/* ─── CONDITIONAL PORTAL RENDERING ─────────────────────────────────── */}
+            {/* Logout / Switch User */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-800/80 font-bold transition-colors cursor-pointer"
+              title="Log out to Login / Role Selection Screen"
+            >
+              <LogOut className="w-3 h-3 text-rose-300" />
+              <span>Log Out</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── CONDITIONAL VIEW RENDERING ──────────────────────────────────── */}
       <div className="flex-1 flex flex-col">
-        {currentPortal === 'caregiver' ? (
+        {activeView === 'login' ? (
+          <LoginPage
+            language={language}
+            onLanguageChange={handleLanguageChange}
+            patient={patient}
+            caretaker={caretaker}
+            onSelectRole={handleLogin}
+          />
+        ) : activeView === 'caregiver' ? (
           <CaregiverPortal
             language={language}
             onLanguageChange={handleLanguageChange}
@@ -189,6 +204,7 @@ export function App() {
             dailySessions={dailySessions}
             lastSessionReport={lastSessionReport}
             onOpenPatientPortal={handleSwitchToPatient}
+            onLogout={handleLogout}
           />
         ) : (
           <PatientPortal
@@ -198,6 +214,7 @@ export function App() {
             caretaker={caretaker}
             prescription={prescription}
             onOpenCaregiverPortal={handleSwitchToCaregiver}
+            onLogout={handleLogout}
           />
         )}
       </div>
