@@ -28,7 +28,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 }) => {
   const t = getTranslation(language);
 
-  // Caregiver credential form state (optional demo form)
+  // Caregiver credential form state (optional toggle)
   const [caregiverEmail, setCaregiverEmail] = useState(caretaker.email || 'anita.joshi@smritiner.in');
   const [caregiverPassword, setCaregiverPassword] = useState('••••••••••••');
   const [showClinicianLogin, setShowClinicianLogin] = useState(false);
@@ -39,233 +39,241 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-slate-100 flex flex-col font-sans select-none">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col font-sans select-none">
       
-      {/* ─── TOP SYSTEM HEADER & LANGUAGE SWITCHER ────────────────────────── */}
-      <header className="px-6 py-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-4 bg-slate-950/40 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-teal-400 p-0.5 shadow-lg shadow-purple-500/20 flex items-center justify-center">
-            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-              <Brain className="w-5 h-5 text-teal-300" />
+      {/* ─── TOP SYSTEM NAVBAR (Matching Rest of SmritiNER UI) ───────────── */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          
+          {/* Logo & Platform Identity */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 via-purple-600 to-indigo-700 flex items-center justify-center text-white shadow-sm">
+              <Brain className="w-5 h-5 fill-white text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="font-extrabold text-base text-slate-900 leading-tight">
+                  SmritiNER
+                </h1>
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                  SIH 26003
+                </span>
+              </div>
+              <p className="text-[11px] font-bold text-teal-700 uppercase tracking-wider">
+                MDoNER Cognitive Rehabilitation Platform
+              </p>
             </div>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-base font-extrabold tracking-tight text-white">
-                SmritiNER
-              </h1>
-              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                SIH 26003
-              </span>
+
+          {/* Right Controls: Single Localhost Status & 4-Language Switcher */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Unified Localhost 5173</span>
             </div>
-            <p className="text-xs text-slate-400">
-              MDoNER Clinical Cognitive Rehabilitation Platform
-            </p>
-          </div>
-        </div>
 
-        {/* Language selector & Single-Port Badge */}
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Single Localhost Active • Port 5173</span>
+            {/* 4-Language Selector */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <Languages className="w-3.5 h-3.5 text-slate-500 mx-1.5" />
+              {(['en', 'as', 'bn', 'hi'] as SupportedLanguage[]).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => onLanguageChange(lang)}
+                  className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    language === lang
+                      ? 'bg-white text-slate-900 shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {lang.toUpperCase()}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex items-center bg-white/5 p-1 rounded-xl border border-white/10 backdrop-blur-md">
-            <Languages className="w-3.5 h-3.5 text-slate-400 mx-2" />
-            {(['en', 'as', 'bn', 'hi'] as SupportedLanguage[]).map((lang) => (
-              <button
-                key={lang}
-                onClick={() => onLanguageChange(lang)}
-                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  language === lang
-                    ? 'bg-purple-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {lang.toUpperCase()}
-              </button>
-            ))}
-          </div>
         </div>
       </header>
 
-      {/* ─── HERO GREETING SECTION ────────────────────────────────────────── */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-10 sm:py-14 flex flex-col justify-center">
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-teal-300 mb-4 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>Dual-Portal Unified Authentication</span>
+      {/* ─── MAIN LOGIN CONTAINER ────────────────────────────────────────── */}
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-10 sm:py-12 flex flex-col justify-center">
+        
+        {/* Welcome Banner */}
+        <div className="text-center max-w-2xl mx-auto mb-10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-black uppercase tracking-wider mb-3 shadow-2xs">
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            <span>Dual-Portal Authentication • Single Origin</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white mb-3">
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mb-2">
             {t.welcomeBack}
           </h2>
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-            {t.selectRole}. Both portals now operate concurrently on a single origin with zero-latency synchronization.
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-medium">
+            {t.selectRole} to enter your personalized dashboard.
           </p>
         </div>
 
-        {/* ─── DUAL ROLE CARDS ─────────────────────────────────────────────── */}
+        {/* ─── DUAL ROLE SELECTION CARDS ──────────────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-stretch">
           
-          {/* ═══ CARD 1: PATIENT LOGIN (MEERA JOSHI) ════════════════════════ */}
-          <div className="relative rounded-3xl bg-gradient-to-b from-slate-900/90 to-slate-950/90 border-2 border-teal-500/30 hover:border-teal-400/60 transition-all duration-300 shadow-2xl shadow-teal-950/30 p-6 sm:p-8 flex flex-col justify-between group">
-            
-            {/* Top Badge */}
+          {/* ═══ CARD 1: PATIENT LOGIN (MEERA JOSHI) ═══════════════════════ */}
+          <div className="bg-white rounded-3xl border-2 border-teal-200 hover:border-teal-400 p-6 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-teal-500 to-emerald-500" />
+
             <div>
-              <div className="flex items-center justify-between mb-6">
+              {/* Header Badge */}
+              <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-300 group-hover:scale-105 transition-transform">
-                    <Heart className="w-6 h-6 fill-teal-400/30 text-teal-300" />
+                  <div className="w-11 h-11 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600 group-hover:scale-105 transition-transform">
+                    <Heart className="w-5 h-5 fill-teal-500 text-teal-600" />
                   </div>
                   <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-teal-400 block">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-teal-700 block">
                       Elder-Friendly Mode
                     </span>
-                    <h3 className="text-xl font-black text-white">
+                    <h3 className="text-xl font-extrabold text-slate-900">
                       {t.patientLogin}
                     </h3>
                   </div>
                 </div>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-teal-950 border border-teal-800 text-teal-200 font-semibold">
+                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
                   1-Click Access
                 </span>
               </div>
 
               {/* Patient Profile Snapshot */}
-              <div className="p-4 rounded-2xl bg-teal-950/30 border border-teal-500/20 mb-6 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white font-extrabold text-xl shadow-md shrink-0">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-50/70 to-emerald-50/70 border border-teal-100 mb-6 flex items-center gap-4">
+                <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-black text-xl shadow-sm shrink-0">
                   {patient.name.slice(0, 1)}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-base text-white truncate">
+                    <h4 className="font-extrabold text-base text-slate-900 truncate">
                       {patient.name}
                     </h4>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300">
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white text-teal-800 border border-teal-200 shadow-2xs">
                       Age {patient.age}
                     </span>
                   </div>
-                  <p className="text-xs text-teal-200/80 font-medium">
+                  <p className="text-xs text-slate-600 font-medium">
                     {patient.relationshipToCaretaker} of {caretaker.name}
                   </p>
-                  <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                  <p className="text-[11px] text-teal-700 font-bold truncate mt-0.5">
                     Stage: Mild Cognitive Impairment (MCI)
                   </p>
                 </div>
               </div>
 
-              {/* Clinical Features List */}
+              {/* Features List */}
               <div className="space-y-2.5 mb-8">
-                <div className="flex items-start gap-2.5 text-xs text-slate-300">
-                  <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-                  <span><strong>Daily 3-Round Brain Workout</strong> tailored for attention and recall</span>
+                <div className="flex items-start gap-2.5 text-xs text-slate-700">
+                  <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                  <span><strong>Daily 3-Round Brain Workout</strong> with calming audio cues</span>
                 </div>
-                <div className="flex items-start gap-2.5 text-xs text-slate-300">
-                  <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-                  <span><strong>10 Northeast Culturally Anchored Games</strong> (Smriti Haat, Jigsaw, etc.)</span>
+                <div className="flex items-start gap-2.5 text-xs text-slate-700">
+                  <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                  <span><strong>10 Northeast Cultural Games:</strong> Smriti Haat, Jigsaw, etc.</span>
                 </div>
-                <div className="flex items-start gap-2.5 text-xs text-slate-300">
-                  <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-                  <span><strong>Calm Elder Interface:</strong> 400ms tremor debounce & clear contrast</span>
+                <div className="flex items-start gap-2.5 text-xs text-slate-700">
+                  <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                  <span><strong>Medication & Schedule Checklist:</strong> Easy visual tracking</span>
                 </div>
-                <div className="flex items-start gap-2.5 text-xs text-slate-300">
-                  <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-                  <span><strong>Medication & Routine Tracker:</strong> Simple visual checklist</span>
+                <div className="flex items-start gap-2.5 text-xs text-slate-700">
+                  <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                  <span><strong>Calm Elder Interface:</strong> 400ms motor tremor debouncing</span>
                 </div>
               </div>
             </div>
 
-            {/* Big 1-Click Action Button */}
+            {/* Action Button */}
             <div>
               <button
                 onClick={() => onSelectRole('patient')}
-                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-extrabold text-base flex items-center justify-center gap-3 transition-all duration-200 shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 cursor-pointer transform active:scale-[0.98]"
+                className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-700 hover:from-teal-700 hover:to-emerald-700 text-white font-extrabold text-base flex items-center justify-center gap-2.5 transition-all shadow-md hover:shadow-lg cursor-pointer transform active:scale-[0.98]"
               >
                 <span>{t.loginAsPatient}</span>
-                <ArrowRight className="w-5 h-5 text-teal-100" />
+                <ArrowRight className="w-5 h-5 text-white" />
               </button>
-              <p className="text-center text-[11px] text-slate-400 mt-2.5">
-                Zero complex passwords required • Direct access for {patient.name}
+              <p className="text-center text-[11px] text-slate-500 font-medium mt-2">
+                No password required • Instant elder access
               </p>
             </div>
           </div>
 
-          {/* ═══ CARD 2: CAREGIVER LOGIN (ANITA JOSHI) ═══════════════════════ */}
-          <div className="relative rounded-3xl bg-gradient-to-b from-slate-900/90 to-slate-950/90 border-2 border-purple-500/30 hover:border-purple-400/60 transition-all duration-300 shadow-2xl shadow-purple-950/30 p-6 sm:p-8 flex flex-col justify-between group">
-            
-            {/* Top Badge */}
+          {/* ═══ CARD 2: CAREGIVER LOGIN (ANITA JOSHI) ═════════════════════ */}
+          <div className="bg-white rounded-3xl border-2 border-indigo-200 hover:border-purple-400 p-6 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#7c3aed] to-[#4338ca]" />
+
             <div>
-              <div className="flex items-center justify-between mb-6">
+              {/* Header Badge */}
+              <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 group-hover:scale-105 transition-transform">
-                    <Brain className="w-6 h-6 text-purple-300" />
+                  <div className="w-11 h-11 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700 group-hover:scale-105 transition-transform">
+                    <Brain className="w-5 h-5 text-[#7c3aed]" />
                   </div>
                   <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-purple-400 block">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-purple-700 block">
                       Clinical Monitoring
                     </span>
-                    <h3 className="text-xl font-black text-white">
+                    <h3 className="text-xl font-extrabold text-slate-900">
                       {t.caregiverLogin}
                     </h3>
                   </div>
                 </div>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-purple-950 border border-purple-800 text-purple-200 font-semibold">
+                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-purple-50 text-purple-800 border border-purple-200">
                   Clinician Portal
                 </span>
               </div>
 
               {/* Caregiver Profile Snapshot */}
-              <div className="p-4 rounded-2xl bg-purple-950/30 border border-purple-500/20 mb-6 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center text-white font-extrabold text-xl shadow-md shrink-0">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-50/70 to-indigo-50/70 border border-purple-100 mb-6 flex items-center gap-4">
+                <div className="w-13 h-13 rounded-2xl bg-[#7c3aed] flex items-center justify-center text-white font-black text-xl shadow-sm shrink-0">
                   {caretaker.name.slice(0, 1)}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-base text-white truncate">
+                    <h4 className="font-extrabold text-base text-slate-900 truncate">
                       {caretaker.name}
                     </h4>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white text-purple-800 border border-purple-200 shadow-2xs">
                       Primary Caregiver
                     </span>
                   </div>
-                  <p className="text-xs text-purple-200/80 font-medium">
+                  <p className="text-xs text-slate-600 font-medium">
                     {caretaker.email || 'anita.joshi@smritiner.in'}
                   </p>
-                  <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                  <p className="text-[11px] text-purple-700 font-bold truncate mt-0.5">
                     Monitoring: {patient.name} (Mother, Age {patient.age})
                   </p>
                 </div>
               </div>
 
-              {/* Clinical Features List */}
+              {/* Features List */}
               <div className="space-y-2.5 mb-8">
-                <div className="flex items-start gap-2.5 text-xs text-slate-300">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                  <span><strong>Cognitive Composite Index (0-100)</strong> with 7-day trend analytics</span>
+                <div className="flex items-start gap-2.5 text-xs text-slate-700">
+                  <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                  <span><strong>Cognitive Composite Index (0–100)</strong> with 7-day trend analytics</span>
                 </div>
-                <div className="flex items-start gap-2.5 text-xs text-slate-300">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                  <span><strong>Adaptive Game Flow Recommendation:</strong> AI-driven difficulty tuning</span>
+                <div className="flex items-start gap-2.5 text-xs text-slate-700">
+                  <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                  <span><strong>Adaptive AI Game Flow:</strong> Dynamic palliative difficulty tuning</span>
                 </div>
-                <div className="flex items-start gap-2.5 text-xs text-slate-300">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                  <span><strong>Comprehensive Rx & Schedule Management:</strong> Meds, timing, and reports</span>
+                <div className="flex items-start gap-2.5 text-xs text-slate-700">
+                  <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                  <span><strong>Rx & Schedule Management:</strong> Real-time cross-portal updates</span>
                 </div>
-                <div className="flex items-start gap-2.5 text-xs text-slate-300">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                  <span><strong>Clinical PDF Dossier & Telemetry:</strong> Export standard MoCA/CDR data</span>
+                <div className="flex items-start gap-2.5 text-xs text-slate-700">
+                  <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                  <span><strong>Clinical PDF Dossier & Telemetry:</strong> Export standard MoCA reports</span>
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons: Quick 1-Click Demo Login OR Expand Credentials Form */}
+            {/* Action Buttons */}
             <div>
               {!showClinicianLogin ? (
-                <div className="space-y-2.5">
+                <div>
                   <button
                     onClick={() => onSelectRole('caregiver')}
-                    className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-base flex items-center justify-center gap-3 transition-all duration-200 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 cursor-pointer transform active:scale-[0.98]"
+                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-extrabold text-base flex items-center justify-center gap-2.5 transition-all shadow-md hover:shadow-lg cursor-pointer transform active:scale-[0.98]"
                   >
                     <span>{t.loginAsCaregiver}</span>
                     <ArrowRight className="w-5 h-5 text-purple-200" />
@@ -273,7 +281,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowClinicianLogin(true)}
-                    className="w-full py-2 text-center text-xs text-purple-300 hover:text-purple-200 font-semibold transition-colors cursor-pointer"
+                    className="w-full py-2 text-center text-xs text-purple-700 hover:text-purple-900 font-bold transition-colors cursor-pointer mt-1"
                   >
                     Use custom clinician credentials →
                   </button>
@@ -281,26 +289,26 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               ) : (
                 <form onSubmit={handleCaregiverSubmit} className="space-y-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">
-                      Email Address
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                      Clinician Email Address
                     </label>
                     <input
                       type="email"
                       value={caregiverEmail}
                       onChange={(e) => setCaregiverEmail(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-purple-500/40 text-white text-xs focus:outline-hidden focus:border-purple-400"
+                      className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs focus:outline-hidden focus:border-purple-500 focus:bg-white"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase mb-1">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                       Password / Clinical PIN
                     </label>
                     <input
                       type="password"
                       value={caregiverPassword}
                       onChange={(e) => setCaregiverPassword(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-purple-500/40 text-white text-xs focus:outline-hidden focus:border-purple-400"
+                      className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs focus:outline-hidden focus:border-purple-500 focus:bg-white"
                       required
                     />
                   </div>
@@ -308,13 +316,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowClinicianLogin(false)}
-                      className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors cursor-pointer"
+                      className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
                     >
                       Back
                     </button>
                     <button
                       type="submit"
-                      className="flex-[2] py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-colors cursor-pointer shadow-md"
+                      className="flex-[2] py-2 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-xs transition-colors cursor-pointer shadow-sm"
                     >
                       Sign In to Caregiver Portal
                     </button>
@@ -327,13 +335,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
         </div>
 
-        {/* ─── FOOTER METADATA ──────────────────────────────────────────────── */}
-        <div className="mt-12 text-center text-xs text-slate-500 flex flex-wrap items-center justify-center gap-4">
-          <span>Smart India Hackathon 2024 • Problem Statement SIH 26003</span>
+        {/* ─── FOOTER METADATA ────────────────────────────────────────────── */}
+        <div className="mt-12 text-center text-xs text-slate-500 flex flex-wrap items-center justify-center gap-3">
+          <span className="font-semibold text-slate-600">Smart India Hackathon 2024</span>
           <span>•</span>
-          <span>Ministry of Development of North Eastern Region (MDoNER)</span>
+          <span>Problem Statement SIH 26003</span>
           <span>•</span>
-          <span className="text-slate-400">All data encrypted in client memory & localStorage</span>
+          <span className="font-semibold text-slate-600">Ministry of Development of North Eastern Region (MDoNER)</span>
+          <span>•</span>
+          <span className="text-emerald-700 font-bold">100% On-Device Offline Execution</span>
         </div>
 
       </main>
