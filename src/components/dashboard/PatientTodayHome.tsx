@@ -250,30 +250,6 @@ export const PatientTodayHome: React.FC<PatientTodayHomeProps> = ({
 
         </div>
 
-        {/* LumosityRx / Digital Therapeutic Prescribed Banner (Image 1 Bottom) */}
-        <div className="rounded-3xl bg-gradient-to-r from-teal-50 via-emerald-50 to-amber-50 border border-teal-200/80 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="font-black text-sm text-teal-950 uppercase tracking-tight">
-                Smriti<span className="text-emerald-700 font-bold">Rx</span>
-              </span>
-              <span className="text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                MDoNER Certified
-              </span>
-            </div>
-            <p className="text-xs text-slate-600 max-w-lg leading-relaxed font-medium">
-              Evidence-based cognitive rehabilitation tailored for dementia & early cognitive impairment. Calibrated on Washington University OASIS-2 clinical benchmarks.
-            </p>
-          </div>
-
-          <button
-            onClick={() => onLaunchGame('word-recall')}
-            className="px-4 py-2.5 rounded-xl bg-teal-800 hover:bg-teal-900 text-white font-extrabold text-xs shadow-xs transition-all cursor-pointer shrink-0"
-          >
-            Launch Clinical Test →
-          </button>
-        </div>
-
       </div>
 
       {/* RIGHT COLUMN: Training History + Current LPI (4 Cols on desktop) */}
