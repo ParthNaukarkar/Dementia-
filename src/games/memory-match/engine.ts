@@ -388,12 +388,6 @@ export class MemoryMatchEngine {
 
     // Clinical reasoning
     const reasoning: Record<SupportedLanguage, string> = {
-      as: delta >= 0
-        ? `দক্ষতা যোগাৰ: শুদ্ধতা ${(efficiency * 100).toFixed(0)}%, প্ৰথমবাৰতেই শুদ্ধ ${firstTrialCorrect} যোৰা। থিটা (${this.theta}) লৈ বৃদ্ধি হ’ল।`
-        : `সমৰ্থন যোগাৰ: ভুলৰ সংখ্যা আৰু দ্বিধা নিৰীক্ষণ কৰি স্তৰ নিয়ন্ত্ৰণ কৰা হৈছে। নতুন থিটা: ${this.theta}।`,
-      bn: delta >= 0
-        ? `দক্ষতা মূল্যায়ন: সঠিকতা ${(efficiency * 100).toFixed(0)}%, প্রথম প্রচেষ্টায় সঠিক ${firstTrialCorrect} জোড়া। থিটা (${this.theta}) বৃদ্ধি পেল।`
-        : `সহায়তা সমন্বয়: ভুলের সংখ্যা বিবেচনা করে স্তর সমন্বয় করা হলো। নতুন থিটা: ${this.theta}।`,
       hi: delta >= 0
         ? `संज्ञान मूल्यांकन: शुद्धता ${(efficiency * 100).toFixed(0)}%, प्रथम प्रयास में सफल ${firstTrialCorrect} जोड़ियां। थीटा (${this.theta}) बढ़ा।`
         : `सहायता समायोजन: त्रुटियों को ध्यान में रखते हुए स्तर संतुलित किया गया। नया थीटा: ${this.theta}।`,

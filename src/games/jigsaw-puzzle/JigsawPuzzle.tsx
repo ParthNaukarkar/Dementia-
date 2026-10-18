@@ -93,7 +93,7 @@ const PIECE_COUNT_TIERS = [
 ];
 
 export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
-  language = 'as',
+  language = 'en',
   totalPuzzles = 4,
   initialTheta = 0.0,
   onTrialComplete,
@@ -175,7 +175,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
   }, [selectedArtworkId, shuffledImages, currentPuzzleIndex]);
 
   // Localized Strings
-  const t = {
+  const t: Record<string, Record<string, string>> = {
     title: {
       as: 'টুকৰা সংযোগ (Jigsaw Puzzle)',
       bn: 'টুকরো জোড়া (Jigsaw Puzzle)',
@@ -389,7 +389,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       // Level 1 / 2: Highlight piece and target cell
       setPieces(prev => prev.map(p => p.id === targetPiece.id ? { ...p, isHighlighted: true } : { ...p, isHighlighted: false }));
       setSelectedPieceId(targetPiece.id);
-      const hintText = {
+      const hintText: Record<string, string> = {
         en: '💡 Hint: The glowing piece fits into the glowing target slot.',
         as: '💡 সংকেত: উজ্বল টুকুৰাটো উজ্বল বাকচটোত বহুৱাওক।',
         bn: '💡 ইঙ্গিত: উজ্জ্বল টুকরোটি উজ্জ্বল ঘরে বসান।',
@@ -923,7 +923,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
         </div>
       </div>
 
-      {/* 2. SIH 2026 AI TESTBED & CLINICAL INSPECTOR DRAWER */}
+      {/* 2. NATIONAL AI TESTBED & CLINICAL INSPECTOR DRAWER */}
       {showTestbed && (
         <div className="my-4 p-5 bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950 text-white rounded-3xl border-2 border-amber-500 shadow-2xl space-y-4 animate-fadeIn">
           
@@ -931,7 +931,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
           <div className="flex items-center justify-between border-b border-white/10 pb-3 flex-wrap gap-2">
             <div className="flex items-center gap-2 text-xs font-black tracking-widest text-amber-400 uppercase">
               <Sliders className="w-4 h-4" />
-              <span>SIH 2026 Visuoconstructional Praxis AI Inspector & Testbed</span>
+              <span>National Visuoconstructional Praxis AI Inspector &amp; Testbed</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-1 rounded-lg">

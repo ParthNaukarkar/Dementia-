@@ -174,8 +174,6 @@ class SequenceAudioManager {
       utterance.pitch = 1.0;
 
       const langMap: Record<SupportedLanguage, string> = {
-        as: 'as-IN',
-        bn: 'bn-IN',
         hi: 'hi-IN',
         en: 'en-IN'
       };

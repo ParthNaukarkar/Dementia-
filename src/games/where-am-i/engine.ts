@@ -9,7 +9,6 @@ import type {
   VisuomotorDeliberationProfile,
   OasisWhereAmIPersona,
 } from './types';
-import type { SupportedLanguage } from '../../types/prescription';
 import { CognitiveClassifier } from '../../engine/cognitive-classifier';
 
 /**
@@ -374,7 +373,7 @@ export class WhereAmIEngine {
     settings?: WhereAmISettingsSnapshot
   ): {
     newTheta: number;
-    reasoning: Record<SupportedLanguage, string>;
+    reasoning: Record<string, string>;
     autonomyScore: number;
   } {
     const diff = this.currentDifficulty;
@@ -432,7 +431,7 @@ export class WhereAmIEngine {
     }
 
     // Clinician-facing adaptation reasoning
-    const reasoning: Record<SupportedLanguage, string> = isCorrect
+    const reasoning: Record<string, string> = isCorrect
       ? {
           as: `সঠিক স্থান চিনাক্তকৰণ! স্থান সংবেদনশীলতা আৰু শব্দ সন্ধান অক্ষত (θ: ${this.currentTheta >= 0 ? '+' : ''}${this.currentTheta.toFixed(2)}, স্বায়ত্তশাসন: ${autonomyScore}%)।`,
           bn: `সঠিক স্থান চিহ্নিতকরণ! স্থান সংবেদনশীলতা ও স্মৃতি পুনরুদ্ধার অক্ষত (θ: ${this.currentTheta >= 0 ? '+' : ''}${this.currentTheta.toFixed(2)}, স্বায়ত্তশাসন: ${autonomyScore}%)।`,
@@ -463,7 +462,7 @@ export class WhereAmIEngine {
     compassUsed: boolean;
   }): {
     action: 'auto_reveal_clue' | 'suggest_compass' | 'none';
-    rationale: Record<SupportedLanguage, string>;
+    rationale: Record<string, string>;
   } {
     const { idleTimeSeconds, cluesRevealedCount, maxClues, compassUsed } = params;
 
@@ -623,7 +622,7 @@ export class WhereAmIEngine {
     deliberationTimeMs: number;
     hasTremorJitter: boolean;
     tremorJitterCount: number;
-    clinicalObservation: Record<SupportedLanguage, string>;
+    clinicalObservation: Record<string, string>;
   } {
     // 1. Clues needed simulation based on persona impairment
     const baseClues = persona.expectedCluesNeeded;
@@ -660,7 +659,7 @@ export class WhereAmIEngine {
       selectedOptionId = wrong.length > 0 ? wrong[Math.floor(Math.random() * wrong.length)].id : trial.targetLocation.id;
     }
 
-    const clinicalObservation: Record<SupportedLanguage, string> = {
+    const clinicalObservation: Record<string, string> = {
       as: `${persona.name} (${persona.clinicalDiagnosis}) - সংকেত: ${targetClues}, সময়: ${deliberationTimeMs}ms, কম্পাস: ${compassHintUsed ? 'ব্যৱহৃত' : 'নাই'}, ফলাফল: ${isCorrect ? 'সঠিক' : 'ভুল'}।`,
       bn: `${persona.name} (${persona.clinicalDiagnosis}) - সূত্র: ${targetClues}, সময়: ${deliberationTimeMs}ms, কম্পাস: ${compassHintUsed ? 'ব্যবহৃত' : 'না'}, ফলাফল: ${isCorrect ? 'সঠিক' : 'ভুল'}।`,
       hi: `${persona.name} (${persona.clinicalDiagnosis}) - सुराग: ${targetClues}, समय: ${deliberationTimeMs}ms, कम्पास: ${compassHintUsed ? 'प्रयुक्त' : 'नहीं'}, परिणाम: ${isCorrect ? 'सटीक' : 'अशुद्ध'}।`,

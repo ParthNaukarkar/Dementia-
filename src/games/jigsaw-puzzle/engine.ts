@@ -7,7 +7,6 @@ import type {
   ParietalPraxisRating,
   TrialSettingsSnapshot,
 } from './types';
-import type { SupportedLanguage } from '../../types/prescription';
 
 export class JigsawPraxisEngine {
   private currentTheta: number;
@@ -385,7 +384,7 @@ export class JigsawPraxisEngine {
     currentPieces: PuzzlePiece[];
   }): {
     action: 'perturb_tray' | 'straighten_tray' | 'none';
-    rationale: Record<SupportedLanguage, string>;
+    rationale: Record<string, string>;
     piecesAffected: number;
   } {
     const unplaced = params.currentPieces.filter(p => !p.isLocked);
@@ -489,8 +488,8 @@ export class JigsawPraxisEngine {
     settings?: Partial<TrialSettingsSnapshot>
   ): { 
     newTheta: number; 
-    reasoning: Record<SupportedLanguage, string>;
-    settingsImpactRationale: Record<SupportedLanguage, string>;
+    reasoning: Record<string, string>;
+    settingsImpactRationale: Record<string, string>;
     autonomyScore: number;
   } {
     const prevTheta = this.currentTheta;
@@ -538,8 +537,8 @@ export class JigsawPraxisEngine {
     if (misplacements === 0) rawAutonomy += 10;
     const autonomyScore = Math.max(10, Math.min(100, rawAutonomy));
 
-    let settingsImpactRationale: Record<SupportedLanguage, string>;
-    let reasoning: Record<SupportedLanguage, string>;
+    let settingsImpactRationale: Record<string, string>;
+    let reasoning: Record<string, string>;
 
     if (ghostOff) {
       settingsImpactRationale = {

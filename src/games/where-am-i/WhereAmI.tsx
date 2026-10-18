@@ -107,7 +107,7 @@ const UI_TEXT = {
   },
   hi: {
     title: 'मैं कहाँ हूँ? (Where Am I?)',
-    subtitle: 'पूर्वोत्तर के प्रसिद्ध स्थलों व सांस्कृतिक धरोहर की पहचान',
+    subtitle: 'राष्ट्रीय धरोहर एवं प्रसिद्ध स्थलों की पहचान',
     desc: 'एक के बाद एक दिए गए सुरागों को पढ़कर सही स्थान को पहचानें। आप जितने कम सुरागों में और जितनी जल्दी उत्तर देंगे, आपकी स्थानिक स्मृति उतनी ही बेहतर आंकी जाएगी।',
     start: 'अभ्यास शुरू करें',
     next: 'अगला स्थान',
@@ -135,7 +135,7 @@ const UI_TEXT = {
   },
   en: {
     title: 'Where Am I?',
-    subtitle: 'Northeast India Topographical Orientation & Landmark Memory',
+    subtitle: 'National Topographical Orientation & Heritage Landmark Memory',
     desc: 'Identify the iconic place from progressive clues. Answering with fewer clues and decisive speed demonstrates sharper hippocampal retrieval.',
     start: 'Begin Assessment',
     next: 'Next Location',
@@ -193,7 +193,7 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [isTrialCorrect, setIsTrialCorrect] = useState<boolean | null>(null);
   const [lastAdaptiveReasoning, setLastAdaptiveReasoning] = useState<Record<SupportedLanguage, string>>({
-    as: '', bn: '', hi: '', en: ''
+    hi: '', en: ''
   });
   
   // ─── Telemetry & Kinematics ────────────────────────────────────────────

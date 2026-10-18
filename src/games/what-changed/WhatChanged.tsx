@@ -120,7 +120,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
     targetSlotId: number;
     targetItemA?: SceneItem;
     targetItemB?: SceneItem;
-    changeDescription: Record<SupportedLanguage, string>;
+    changeDescription: Record<string, string>;
   } | null>(null);
   const [finalSessionSummary, setFinalSessionSummary] = useState<WhatChangedSessionSummary | null>(null);
 
@@ -802,7 +802,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-indigo-400" />
               <span className="text-xs font-black uppercase tracking-wider text-indigo-300">
-                SIH 2026 AI Testbed: Rensink Change Blindness & Bayesian 2PL IRT Diagnostics
+                National AI Testbed: Rensink Change Blindness &amp; Bayesian 2PL IRT Diagnostics
               </span>
             </div>
             <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
@@ -1055,7 +1055,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
             <Sparkles className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
             <div className="space-y-0.5">
               <span className="text-[10px] font-black uppercase tracking-wider text-indigo-700 block">
-                SIH 2026 Real-Time Bayesian DDA & Feature Binding
+                National Real-Time Bayesian DDA &amp; Feature Binding
               </span>
               <p className="leading-snug">{feedbackBanner || aiLiveReasoning}</p>
               {aiSettingsImpact && !feedbackBanner && (
@@ -1318,8 +1318,8 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
             <div className="space-y-1">
               <h3 className="text-xl font-black text-slate-900">
                 {lastTrialFeedback.isCorrect
-                  ? (language === 'as' ? 'শুদ্ধ হৈছে! অপূৰ্ব!' : language === 'bn' ? 'সঠিক হয়েছে! চমৎকার!' : language === 'hi' ? 'बिल्कुल सही! बहुत बढ़िया!' : 'Correct! Excellent Eye!')
-                  : (language === 'as' ? 'পৰিৱৰ্তনটো লক্ষ্য কৰক' : language === 'bn' ? 'পরিবর্তনটি লক্ষ্য করুন' : language === 'hi' ? 'बदलाव पर ध्यान दें' : 'Here was the exact change:')}
+                  ? (language === 'hi' ? 'बिल्कुल सही! बहुत बढ़िया!' : 'Correct! Excellent Eye!')
+                  : (language === 'hi' ? 'बदलाव पर ध्यान दें' : 'Here was the exact change:')}
               </h3>
               <p className="text-xs text-slate-600 font-medium leading-relaxed px-4">
                 {lastTrialFeedback.changeDescription[language] || lastTrialFeedback.changeDescription.en}
@@ -1346,7 +1346,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
                   {lastTrialFeedback.targetItemB?.icon || '⭕'}
                 </div>
                 <span className="text-[10px] text-indigo-900 font-black line-clamp-1 max-w-[80px]">
-                  {lastTrialFeedback.targetItemB?.name[language] || (language === 'as' ? 'নাইকিয়া স্থান' : language === 'bn' ? 'অদৃশ্য স্থান' : language === 'hi' ? 'गायब स्थान' : 'Empty Spot')}
+                  {lastTrialFeedback.targetItemB?.name[language] || (language === 'hi' ? 'गायब स्थान' : 'Empty Spot')}
                 </span>
               </div>
             </div>
@@ -1358,7 +1358,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
               <span>
                 {currentTrialIndex + 1 < totalTrials
                   ? t.nextTrial[language]
-                  : (language === 'as' ? 'সত্ৰৰ ফলাফল চাওক ➔' : language === 'bn' ? 'সেশনের ফলাফল দেখুন ➔' : language === 'hi' ? 'सत्र का परिणाम देखें ➔' : 'View Session Results ➔')}
+                  : (language === 'hi' ? 'सत्र का परिणाम देखें ➔' : 'View Session Results ➔')}
               </span>
               <ArrowRight className="w-4 h-4" />
             </button>
@@ -1374,7 +1374,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
 
             <div className="space-y-1">
               <h3 className="text-2xl font-black text-slate-900">
-                {language === 'as' ? 'অনুশীলন সম্পূৰ্ণ হ’ল!' : language === 'bn' ? 'অনুশীলন সম্পূর্ণ হলো!' : language === 'hi' ? 'सत्र सफलतापूर्वक पूरा हुआ!' : 'Assessment Complete!'}
+                {language === 'hi' ? 'सत्र सफलतापूर्वक पूरा हुआ!' : 'Assessment Complete!'}
               </h3>
               <p className="text-xs text-slate-500 font-medium">
                 Rensink Change Blindness & Ventral Visual Stream Feature Binding
@@ -1475,11 +1475,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
               onClick={onExit}
               className="w-full py-3.5 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-md transition-all cursor-pointer active:scale-95"
             >
-              {language === 'as'
-                ? 'সমাপ্ত কৰি ডেচবৰ্ডলৈ যাওক ➔'
-                : language === 'bn'
-                ? 'সমাপ্ত করে ড্যাশবোর্ডে ফিরুন ➔'
-                : language === 'hi'
+              {language === 'hi'
                 ? 'समाप्त कर डैशबोर्ड पर लौटें ➔'
                 : 'Close & Return to Dashboard ➔'}
             </button>

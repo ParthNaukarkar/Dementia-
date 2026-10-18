@@ -27,13 +27,13 @@ export interface AssistanceMultiStageTimings {
 
 export interface AssistanceProfileConfig {
   profile: AssistanceProfile;
-  displayName: Record<'en' | 'as' | 'bn' | 'hi', string>;
+  displayName: Record<string, string>;
   assistTimeoutMs: number;
   scaffoldingLevel: ScaffoldingLevel;
   multiStageTimeouts: AssistanceMultiStageTimings;
   magneticSnapMarginPx: number; // For visuomotor / jigsaw (standard: 40px, motor-slowed: 85px)
   tremorDebounceMs: number;     // Hardware debouncing (standard: 400ms, severe tremor: 550ms)
-  clinicalRationale: Record<'en' | 'as' | 'bn' | 'hi', string>;
+  clinicalRationale: Record<string, string>;
 }
 
 export interface ProfileMetricsInput {

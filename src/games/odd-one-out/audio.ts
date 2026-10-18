@@ -196,8 +196,6 @@ class OddOneOutAudio {
       utterance.rate = 0.85; // Calming cadence for dementia patients
 
       const langMap: Record<SupportedLanguage, string> = {
-        as: 'as-IN',
-        bn: 'bn-IN',
         hi: 'hi-IN',
         en: 'en-IN',
       };

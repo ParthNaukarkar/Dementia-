@@ -4,7 +4,6 @@
  * Grounded in WMS-IV Logical Memory & Reminiscence Therapy Paradigms.
  */
 
-import type { SupportedLanguage } from '../../types/prescription';
 import type { StoryVignette, BrainStoryDifficulty, BrainStoryGeneratedTrial, StoryQuestion } from './types';
 
 export const REMINISCENCE_STORIES: StoryVignette[] = [
@@ -545,11 +544,11 @@ export class StoryGenerator {
       // Create calibrated options: correct option is index 0 in the master dataset
       const correctIdx = q.correctOptionIndex;
 
-      const trimmedOptions: Record<SupportedLanguage, string[]> = {
-        as: q.options.as.slice(0, targetChoicesCount),
-        bn: q.options.bn.slice(0, targetChoicesCount),
-        hi: q.options.hi.slice(0, targetChoicesCount),
-        en: q.options.en.slice(0, targetChoicesCount),
+      const trimmedOptions: Record<string, string[]> = {
+        as: q.options.as?.slice(0, targetChoicesCount) || [],
+        bn: q.options.bn?.slice(0, targetChoicesCount) || [],
+        hi: q.options.hi?.slice(0, targetChoicesCount) || [],
+        en: q.options.en?.slice(0, targetChoicesCount) || [],
       };
 
       // In the master data, correct option is always index 0

@@ -234,8 +234,6 @@ class BrainStoryAudio {
       utterance.rate = 0.82; // Calibrated for geriatric cognitive clarity
 
       const langMap: Record<SupportedLanguage, string> = {
-        as: 'as-IN',
-        bn: 'bn-IN',
         hi: 'hi-IN',
         en: 'en-IN',
       };

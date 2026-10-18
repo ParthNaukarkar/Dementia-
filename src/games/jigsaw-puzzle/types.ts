@@ -5,8 +5,8 @@ export type ParietalPraxisRating = 'preserved' | 'mild_slowing' | 'marked_constr
 
 export interface PuzzleImage {
   id: string;
-  titles: Record<SupportedLanguage, string>;
-  subtitles: Record<SupportedLanguage, string>;
+  titles: Record<string, string>;
+  subtitles: Record<string, string>;
   category: 'heritage' | 'nature' | 'craft';
   svgArt: string; // Self-contained vector illustration for offline rendering
   themeColor: string;
@@ -54,7 +54,7 @@ export interface PiecePlacementEvent {
 export interface AIDynamicAction {
   type: 'perturb_tray' | 'straighten_tray' | 'tier_transition';
   timestamp: number;
-  rationale: Record<SupportedLanguage, string>;
+  rationale: Record<string, string>;
   piecesAffected: number;
 }
 
@@ -85,9 +85,9 @@ export interface PuzzleTrialTelemetry {
   autoAssistedPiecesCount: number;
   thetaAfterTrial: number;
   difficultySnapshot: JigsawDifficulty;
-  aiAdaptiveReasoning: Record<SupportedLanguage, string>;
+  aiAdaptiveReasoning: Record<string, string>;
   settingsSnapshot: TrialSettingsSnapshot;
-  settingsImpactRationale: Record<SupportedLanguage, string>;
+  settingsImpactRationale: Record<string, string>;
   autonomyScore: number; // 0 to 100%
   aiDynamicActions: AIDynamicAction[];
   placementHistory: PiecePlacementEvent[];

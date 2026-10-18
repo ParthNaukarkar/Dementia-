@@ -34,14 +34,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-black text-lg sm:text-xl text-slate-900 tracking-tight">
-                Smriti<span className="text-amber-600">NER</span>
+                Neuro<span className="text-amber-600">Saathi</span>
               </span>
-              <span className="text-[10px] uppercase font-extrabold tracking-widest bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full border border-amber-200">
-                SIH26003
+              <span className="text-[10px] uppercase font-extrabold tracking-widest bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
+                National Edition
               </span>
             </div>
             <p className="text-[11px] text-slate-500 font-medium hidden md:block leading-tight">
-              AI Cognitive Care & Rehabilitation • MDoNER North East
+              AI Cognitive Care & Rehabilitation • National Clinical Platform
             </p>
           </div>
         </div>
@@ -71,26 +71,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Accessible Language Selector */}
           <div className="flex items-center bg-slate-100/90 p-1 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black border border-slate-200">
             <button
-              onClick={() => onLanguageChange('as')}
-              className={`px-2 sm:px-2.5 py-1 rounded-lg sm:rounded-xl transition-all cursor-pointer font-black ${
-                language === 'as' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-700 hover:bg-white/60'
-              }`}
-              title="Assamese"
-            >
-              অসমীয়া
-            </button>
-            <button
-              onClick={() => onLanguageChange('bn')}
-              className={`px-2 sm:px-2.5 py-1 rounded-lg sm:rounded-xl transition-all cursor-pointer font-black ${
-                language === 'bn' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-700 hover:bg-white/60'
-              }`}
-              title="Bengali"
-            >
-              বাংলা
-            </button>
-            <button
               onClick={() => onLanguageChange('hi')}
-              className={`px-2 sm:px-2.5 py-1 rounded-lg sm:rounded-xl transition-all cursor-pointer font-black ${
+              className={`px-2.5 sm:px-3 py-1 rounded-lg sm:rounded-xl transition-all cursor-pointer font-black ${
                 language === 'hi' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-700 hover:bg-white/60'
               }`}
               title="Hindi"
@@ -99,7 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
             <button
               onClick={() => onLanguageChange('en')}
-              className={`px-2 sm:px-2.5 py-1 rounded-lg sm:rounded-xl transition-all cursor-pointer font-black ${
+              className={`px-2.5 sm:px-3 py-1 rounded-lg sm:rounded-xl transition-all cursor-pointer font-black ${
                 language === 'en' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-700 hover:bg-white/60'
               }`}
               title="English"

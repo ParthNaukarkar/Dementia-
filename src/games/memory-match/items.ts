@@ -1,10 +1,8 @@
-import type { SupportedLanguage } from '../../types/prescription';
-
 export interface HeritageSymbol {
   pairKey: string;
   symbol: string;
-  names: Record<SupportedLanguage, string>;
-  culturalSignificance: Record<SupportedLanguage, string>;
+  names: Record<string, string>;
+  culturalSignificance: Record<string, string>;
 }
 
 export const MEMORY_HERITAGE_ITEMS: HeritageSymbol[] = [

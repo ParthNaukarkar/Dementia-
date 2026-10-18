@@ -11,7 +11,6 @@ import type {
   VisuomotorDeliberationProfile,
   OasisPatientPersona,
 } from './types';
-import type { SupportedLanguage } from '../../types/prescription';
 import { CognitiveClassifier } from '../../engine/cognitive-classifier';
 
 /**
@@ -461,8 +460,8 @@ export class WhatChangedEngine {
     settings?: WhatChangedSettingsSnapshot
   ): {
     newTheta: number;
-    reasoning: Record<SupportedLanguage, string>;
-    settingsImpactRationale: Record<SupportedLanguage, string>;
+    reasoning: Record<string, string>;
+    settingsImpactRationale: Record<string, string>;
     autonomyScore: number;
   } {
     const diff = this.currentDifficulty;
@@ -504,7 +503,7 @@ export class WhatChangedEngine {
     }
 
     // Clinician-facing adaptation reasoning
-    const reasoning: Record<SupportedLanguage, string> = isCorrect
+    const reasoning: Record<string, string> = isCorrect
       ? {
           as: `সঠিক পৰিৱৰ্তন চিনাক্তকৰণ! দৃষ্টিভঙ্গী সংবেদনশীলতা বৃদ্ধি পাইছে (θ: ${this.currentTheta >= 0 ? '+' : ''}${this.currentTheta.toFixed(2)})।`,
           bn: `সঠিক পরিবর্তন শনাক্তকরণ! দৃষ্টিগত সংবেদনশীলতা বৃদ্ধি পেয়েছে (θ: ${this.currentTheta >= 0 ? '+' : ''}${this.currentTheta.toFixed(2)})।`,
@@ -519,7 +518,7 @@ export class WhatChangedEngine {
         };
 
     // Clinician Settings Autonomy Impact Explanation
-    const settingsImpactRationale: Record<SupportedLanguage, string> = {
+    const settingsImpactRationale: Record<string, string> = {
       as: settings?.haloScaffoldingActive
         ? 'সোণালী সহায়িকা সংকেত ব্যৱহাৰ কৰা হ’ল (স্বায়ত্তশাসন: ' + autonomyScore + '%)।'
         : 'সম্পূৰ্ণ স্বতন্ত্ৰভাৱে সমাধান কৰা হ’ল (স্বায়ত্তশাসন: ' + autonomyScore + '%)।',
@@ -552,7 +551,7 @@ export class WhatChangedEngine {
     haloActive: boolean;
   }): {
     action: 'spotlight_hint' | 'tempo_acceleration' | 'none';
-    rationale: Record<SupportedLanguage, string>;
+    rationale: Record<string, string>;
   } {
     const { idleTimeSeconds, consecutiveFastSolves, haloActive } = params;
 
@@ -731,7 +730,7 @@ export class WhatChangedEngine {
     tremorJitterCount: number;
     usedReplay: boolean;
     neededHaloAssistance: boolean;
-    clinicalObservation: Record<SupportedLanguage, string>;
+    clinicalObservation: Record<string, string>;
   } {
     // 1. Empirical Study Dwell (Log-normal bounded by studyDurationMs)
     const baseStudy = persona.expectedStudyTimeMs;
@@ -777,7 +776,7 @@ export class WhatChangedEngine {
     const tremorJitterCount = hasTremorJitter ? (Math.floor(Math.random() * 2) + 2) : 0;
 
     // Clinical Observation Rationale in 4 Languages
-    let clinicalObservation: Record<SupportedLanguage, string>;
+    let clinicalObservation: Record<string, string>;
     if (hasTremorJitter) {
       clinicalObservation = {
         as: `${persona.name} (MMSE: ${persona.mmse}) এ কঁপনিযুক্ত স্পৰ্শ কৰিলে; ৪০০ms ফিল্টাৰে ${tremorJitterCount}টা অনিচ্ছাকৃত স্পৰ্শ শোষণ কৰিলে।`,

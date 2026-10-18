@@ -1,7 +1,7 @@
 // SmritiNER / NeuroSaathi 4-Language Localization Dictionary
 // Covers Assamese (as), Bengali (bn), Hindi (hi), and English (en)
 
-export type SupportedLanguage = 'as' | 'bn' | 'hi' | 'en';
+export type SupportedLanguage = 'en' | 'hi';
 
 export interface TranslationSchema {
   // Brand & Portal
@@ -149,7 +149,7 @@ export interface TranslationSchema {
   loginAsCaregiver: string;
 }
 
-export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
+export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record<string, TranslationSchema> = {
   // ─── ENGLISH ─────────────────────────────────────────────────────────────
   en: {
     appTitle: 'NeuroSaathi',

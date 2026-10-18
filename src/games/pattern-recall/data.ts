@@ -4,14 +4,13 @@
  * Supporting Multi-Lingual Localizations: Assamese, Bengali, Hindi, English.
  */
 
-import type { SupportedLanguage } from '../../types/prescription';
 import type { PatternTopology } from './types';
 
 export interface MotifTheme {
   id: string;
   symbol: string;
-  name: Record<SupportedLanguage, string>;
-  description: Record<SupportedLanguage, string>;
+  name: Record<string, string>;
+  description: Record<string, string>;
   colorTheme: {
     base: string;
     active: string;

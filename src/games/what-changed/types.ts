@@ -1,4 +1,3 @@
-import type { SupportedLanguage } from '../../types/prescription';
 import type { CognitiveClassificationResult } from '../../engine/cognitive-classifier';
 
 /**
@@ -200,7 +199,7 @@ export interface WhatChangedDifficulty {
   tremorDebounceMs: number;             // 400ms hardware motor guard
   itemDifficultyB: number;              // 2PL IRT item difficulty (-2.0 to +2.5)
   discriminationA: number;              // 2PL IRT discrimination (1.2 to 1.8)
-  tierDescription: Record<SupportedLanguage, string>;
+  tierDescription: Record<string, string>;
 }
 
 /**
@@ -209,13 +208,13 @@ export interface WhatChangedDifficulty {
 export interface SceneItem {
   slotId: number;                       // Fixed spatial grid slot (0 to N-1)
   itemId: string;                       // Reference to catalog item
-  name: Record<SupportedLanguage, string>;
+  name: Record<string, string>;
   icon: string;                         // Emoji or visual symbol
   color: string;                        // Tailwind color class
   rotationDeg: number;                  // Rotation angle (0, 45, 90, 180)
   isChangedTarget: boolean;             // True if this item underwent the change
   changeTypeApplied?: ChangeType;       // Exact change applied to this slot
-  changeDescription: Record<SupportedLanguage, string>;
+  changeDescription: Record<string, string>;
 }
 
 /**
@@ -236,7 +235,7 @@ export interface WhatChangedSettingsSnapshot {
 export interface WhatChangedAIDynamicAction {
   type: 'spotlight_hint' | 'mask_relaxation' | 'tempo_acceleration' | 'study_extension';
   timestamp: number;
-  rationale: Record<SupportedLanguage, string>;
+  rationale: Record<string, string>;
   parametersAffected: string;
 }
 
@@ -279,8 +278,8 @@ export interface WhatChangedTrialTelemetry {
   thetaAfterTrial: number;
   difficultySnapshot: WhatChangedDifficulty;
   settingsSnapshot: WhatChangedSettingsSnapshot;
-  settingsImpactRationale: Record<SupportedLanguage, string>;
-  aiAdaptiveReasoning: Record<SupportedLanguage, string>;
+  settingsImpactRationale: Record<string, string>;
+  aiAdaptiveReasoning: Record<string, string>;
   aiDynamicActions: WhatChangedAIDynamicAction[];
 }
 

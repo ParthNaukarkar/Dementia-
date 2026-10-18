@@ -159,8 +159,6 @@ class NumberRecallAudio {
   }
 
   private static readonly DIGIT_WORDS: Record<SupportedLanguage, Record<string, string>> = {
-    as: { '0': 'শূন্য', '1': 'এক', '2': 'দুই', '3': 'তিনি', '4': 'চাৰি', '5': 'পাঁচ', '6': 'ছয়', '7': 'সাত', '8': 'আঠ', '9': 'ন' },
-    bn: { '0': 'শূন্য', '1': 'এক', '2': 'দুই', '3': 'তিন', '4': 'চার', '5': 'পাঁচ', '6': 'ছয়', '7': 'সাত', '8': 'আট', '9': 'নয়' },
     hi: { '0': 'शून्य', '1': 'एक', '2': 'दो', '3': 'तीन', '4': 'चार', '5': 'पाँच', '6': 'छह', '7': 'सात', '8': 'आठ', '9': 'नौ' },
     en: { '0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four', '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine' },
   };
@@ -190,8 +188,6 @@ class NumberRecallAudio {
       utterance.pitch = 1.0;
 
       const langMap: Record<SupportedLanguage, string> = {
-        as: 'as-IN',
-        bn: 'bn-IN',
         hi: 'hi-IN',
         en: 'en-US',
       };
@@ -212,32 +208,22 @@ class NumberRecallAudio {
 
     const scripts: Record<string, Record<SupportedLanguage, string>> = {
       study: {
-        as: 'সংখ্যাবোৰ মনোযোগেৰে চাওক।',
-        bn: 'সংখ্যাগুলি মনোযোগ দিয়ে দেখুন।',
         hi: 'अंकों को ध्यान से देखें।',
         en: 'Memorize the numbers carefully.',
       },
       recall_forward: {
-        as: 'এতিয়া একে ক্ৰমত সংখ্যাবোৰ টাইপ কৰক।',
-        bn: 'এখন একই ক্রমে সংখ্যাগুলি লিখুন।',
         hi: 'अब उसी क्रम में अंक दर्ज करें।',
         en: 'Now enter the numbers in forward order.',
       },
       recall_backward: {
-        as: 'সাৱধান! এতিয়া ওলোটা ক্ৰমত সংখ্যাবোৰ টাইপ কৰক।',
-        bn: 'সাবধান! এখন উল্টো ক্রমে সংখ্যাগুলি লিখুন।',
         hi: 'सावधान! अब उल्टे क्रम में अंक दर्ज करें।',
         en: 'Attention! Now enter the numbers in reverse order.',
       },
       correct: {
-        as: 'অতি সুন্দৰ! শুদ্ধ হৈছে।',
-        bn: 'খুব সুন্দর! সঠিক হয়েছে।',
         hi: 'बहुत बढ़िया! बिल्कुल सही।',
         en: 'Excellent! Perfectly remembered.',
       },
       try_again: {
-        as: 'কোনো কথা নাই, পিছৰটো চেষ্টা কৰক।',
-        bn: 'কোনো ব্যাপার নয়, পরেরটি চেষ্টা করুন।',
         hi: 'कोई बात नहीं, अगला प्रयास करें।',
         en: 'No worries, let us try the next sequence.',
       },
@@ -251,8 +237,6 @@ class NumberRecallAudio {
       utterance.rate = 0.85;
 
       const langMap: Record<SupportedLanguage, string> = {
-        as: 'as-IN',
-        bn: 'bn-IN',
         hi: 'hi-IN',
         en: 'en-US',
       };

@@ -287,10 +287,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     onChange={(e) => setPatientLang(e.target.value as SupportedLanguage)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-hidden focus:ring-2 focus:ring-amber-500 font-medium bg-white"
                   >
-                    <option value="as">অসমীয়া (Assamese)</option>
-                    <option value="bn">বাংলা (Bengali)</option>
-                    <option value="hi">हिन्दी (Hindi)</option>
                     <option value="en">English</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
                   </select>
                 </div>
                 <div>

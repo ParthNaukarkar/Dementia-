@@ -34,7 +34,7 @@ import type {
 } from './types';
 
 export const NumberRecall: React.FC<NumberRecallProps> = ({
-  language = 'as',
+  language = 'en',
   totalTrials = 4,
   initialTheta = 0.0,
   onTrialComplete,
@@ -124,7 +124,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
   const [finalSessionSummary, setFinalSessionSummary] = useState<NumberRecallSessionSummary | null>(null);
 
   // Localized UI Dictionary
-  const t = {
+  const t: Record<string, Record<string, string>> = {
     title: {
       as: 'সংখ্যা সোঁৱৰণ (Number Recall)',
       bn: 'সংখ্যা স্মরণ (Number Recall)',
@@ -342,7 +342,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
       if (activeProfile.profile === 'severe_amnesic') {
         // Level 3: Auto-reveal watermark + spoken digit in vernacular + hint banner
         numberRecallAudio.speakDigit(hintDigit, language, 0.85);
-        const msg = {
+        const msg: Record<string, string> = {
           en: `AI Live Assist: Watermark revealed. Next digit is "${hintDigit}".`,
           as: `AI সহায়: জলছাপ প্ৰকাশ কৰা হ’ল। পৰৱৰ্তী সংখ্যাটো হ’ল "${hintDigit}"।`,
           bn: `AI সহায়তা: জলছাপ প্রকাশ করা হলো। পরবর্তী সংখ্যাটি হলো "${hintDigit}"।`,
@@ -352,7 +352,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
         setTimeout(() => setFeedbackBanner(null), 4000);
       } else if (activeProfile.profile === 'motor_tremor_slowed') {
         // Motor profile: Reassure patient without rushing
-        const msg = {
+        const msg: Record<string, string> = {
           en: `🛡️ Motor grace active. Tap "${hintDigit}" on the dialpad when ready.`,
           as: `🛡️ মটৰ স্থিৰতা সক্ৰিয়। সাজু হ’লে ডায়েলপেডত "${hintDigit}" টিপক।`,
           bn: `🛡️ মোটর স্থিতি সক্রিয়। প্রস্তুত হলে ডায়ালপ্যাডে "${hintDigit}" চাপুন।`,
@@ -362,7 +362,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
         setTimeout(() => setFeedbackBanner(null), 4500);
       } else {
         // Level 1 / 2: Standard hint banner
-        const msg = {
+        const msg: Record<string, string> = {
           en: `💡 Hint: The next digit is "${hintDigit}"`,
           as: `💡 সংকেত: পৰৱৰ্তী সংখ্যাটো হ’ল "${hintDigit}"`,
           bn: `💡 ইঙ্গিত: পরবর্তী সংখ্যাটি হলো "${hintDigit}"`,
@@ -803,14 +803,14 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
         </div>
       </div>
 
-      {/* 2. SIH 2026 AI TESTBED & CLINICAL INSPECTOR DRAWER */}
+      {/* 2. NATIONAL AI TESTBED & CLINICAL INSPECTOR DRAWER */}
       {showTestbed && (
         <div className="my-4 p-5 bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950 text-white rounded-3xl border-2 border-indigo-500 shadow-2xl space-y-4 animate-fadeIn">
           
           <div className="flex items-center justify-between border-b border-white/10 pb-3 flex-wrap gap-2">
             <div className="flex items-center gap-2 text-xs font-black tracking-widest text-indigo-400 uppercase">
               <Sliders className="w-4 h-4" />
-              <span>SIH 2026 WAIS-IV Digit Span & Working Memory AI Testbed</span>
+              <span>National WAIS-IV Digit Span &amp; Working Memory AI Testbed</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-1 rounded-lg">
@@ -954,7 +954,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
             <Sparkles className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
             <div className="space-y-0.5">
               <span className="text-[10px] font-black uppercase tracking-wider text-indigo-700 block">
-                SIH 2026 Real-Time Bayesian DDA & Autonomy Analysis
+                National Real-Time Bayesian DDA &amp; Autonomy Analysis
               </span>
               <p className="leading-snug">{feedbackBanner || aiLiveReasoning}</p>
               {aiSettingsImpact && !feedbackBanner && (
@@ -1191,8 +1191,8 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
             <div className="space-y-1">
               <h3 className="text-xl sm:text-2xl font-black text-slate-900">
                 {lastTrialFeedback.isCorrect
-                  ? (language === 'as' ? 'অতি সুন্দৰ! সম্পূৰ্ণ শুদ্ধ!' : language === 'bn' ? 'চমৎকার! সম্পূর্ণ সঠিক!' : language === 'hi' ? 'बहुत बढ़िया! बिल्कुल सही!' : 'Splendid! Exactly correct!')
-                  : (language === 'as' ? 'ভাল প্ৰচেষ্টা!' : language === 'bn' ? 'ভালো প্রচেষ্টা!' : language === 'hi' ? 'अच्छा प्रयास!' : 'Good Effort!')}
+                  ? (language === 'hi' ? 'बहुत बढ़िया! बिल्कुल सही!' : 'Splendid! Exactly correct!')
+                  : (language === 'hi' ? 'अच्छा प्रयास!' : 'Good Effort!')}
               </h3>
               <p className="text-xs text-slate-500 font-medium">
                 Target: <strong>{lastTrialFeedback.expected}</strong> · Your entry: <strong>{lastTrialFeedback.entered}</strong>
@@ -1236,7 +1236,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
 
             <div className="space-y-1">
               <h3 className="text-2xl font-black text-slate-900">
-                {language === 'as' ? 'অনুশীলন সম্পূৰ্ণ হ’ল!' : language === 'bn' ? 'অনুশীলন সম্পূর্ণ হলো!' : language === 'hi' ? 'सत्र सफलतापूर्वक पूरा हुआ!' : 'Assessment Battery Complete!'}
+                {language === 'hi' ? 'सत्र सफलतापूर्वक पूरा हुआ!' : 'Assessment Battery Complete!'}
               </h3>
               <p className="text-xs text-slate-500 font-medium">
                 WAIS-IV Digit Span & Dorsolateral Prefrontal Working Memory Profile

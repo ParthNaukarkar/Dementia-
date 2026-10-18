@@ -237,8 +237,8 @@ export const GAME_CATALOG: GameMetadata[] = [
     title: {
       as: 'মই ক’ত আছোঁ?',
       bn: 'আমি কোথায়?',
-      hi: 'मैं कहाँ हूँ?',
-      en: 'Where Am I? (North East)',
+      hi: 'मैं कहाँ हूँ? (राष्ट्रीय धरोहर)',
+      en: 'Where Am I? (National Landmarks)',
     },
     subtitle: {
       as: 'স্থানিক পৰিচয় • স্তৰ ৩',
@@ -259,10 +259,10 @@ export const GAME_CATALOG: GameMetadata[] = [
     iconType: 'compass',
     isAvailable: true,
     description: {
-      as: 'উত্তৰ-পূব ভাৰতৰ পৰিচিত ঠাইৰ ছবি বা সংকেত চাওক। দিয়া বিকল্পসমূহৰ পৰা স্থানটো সঠিকভাৱে বাছনি কৰক।',
-      bn: 'উত্তর-পূর্ব ভারতের পরিচিত স্থানের ছবি বা সূত্র দেখুন। বিকল্পগুলি থেকে সঠিক স্থানটি চিহ্নিত করুন।',
-      hi: 'पूर्वोत्तर भारत के किसी जाने-पहचाने स्थान का चित्र या सुराग देखें। विकल्पों में से सही स्थान पहचानें।',
-      en: 'View an image or clues representing a familiar place in Northeast India. Identify the location from the available options. Difficulty increases as clues become less obvious.',
+      as: 'ভাৰতৰ পৰিচিত ঠাইৰ ছবি বা সংকেত চাওক। দিয়া বিকল্পসমূহৰ পৰা স্থানটো সঠিকভাৱে বাছনি কৰক।',
+      bn: 'ভারতের পরিচিত স্থানের ছবি বা সূত্র দেখুন। বিকল্পগুলি থেকে সঠিক স্থানটি চিহ্নিত করুন।',
+      hi: 'भारत के प्रसिद्ध स्थानों और ऐतिहासिक स्मारकों के सुराग देखें। विकल्पों में से सही राष्ट्रीय धरोहर पहचानें।',
+      en: 'Examine topological clues, cultural heritage, and geographical hints representing iconic Indian monuments and landmarks. Identify each location across progressive difficulty tiers.',
     },
   },
   {
@@ -339,53 +339,39 @@ export const PRESET_PRESCRIPTIONS: Record<
 > = {
   alzheimers_memory: {
     label: {
-      as: 'স্মৃতি কেন্দ্ৰিক (Alzheimer’s Care)',
-      bn: 'স্মৃতি কেন্দ্রিক (Alzheimer’s Care)',
       hi: 'स्मृति केंद्रित (Alzheimer’s Care)',
       en: 'Memory Focus (Alzheimer’s Care)',
     },
     gameIds: ['memory-match', 'word-recall', 'number-recall', 'brain-story'],
     description: {
-      as: 'দৃশ্যমান যোৰা, শব্দ মনত পেলোৱা আৰু সাধুকথাৰ স্মৃতি সক্ৰিয় কৰে।',
-      bn: 'দৃশ্য জোড়া, শব্দ মনে রাখা এবং গল্পের স্মৃতি সক্রিয় করে।',
       hi: 'कार्ड मिलान, शब्द स्मरण और कहानी से जुड़ी यादों को सक्रिय करता है।',
       en: 'Targets hippocampal paired associates, delayed verbal recall, and narrative memory.',
     },
   },
   frontal_executive: {
     label: {
-      as: 'মনোযোগ আৰু নিয়ন্ত্ৰণ (Executive)',
-      bn: 'মনোযোগ ও নিয়ন্ত্রণ (Executive)',
       hi: 'एकाग्रता और नियंत्रण (Executive)',
       en: 'Executive & Attention Focus',
     },
     gameIds: ['sequence-recall', 'what-changed', 'odd-one-out', 'pattern-recall'],
     description: {
-      as: 'মনোযোগৰ স্থিৰতা, নক্সা চিনাক্তকৰণ আৰু পৃথক বস্তু বাছনি ক্ষমতা বৃদ্ধি কৰে।',
-      bn: 'মনোযোগের স্থিরতা, নকশা শনাক্তকরণ এবং ভিন্ন বস্তু বাছাই ক্ষমতা বৃদ্ধি করে।',
       hi: 'एकाग्रता, दृश्य बदलाव की पहचान और अलग वस्तु चुनने की क्षमता को मजबूत करता है।',
       en: 'Focuses on sequence order, visual change detection, and abstract category classification.',
     },
   },
   daily_independence: {
     label: {
-      as: 'দৈনন্দিন স্বাৱলম্বিতা (Independence)',
-      bn: 'দৈনন্দিন স্বাবলম্বিতা (Independence)',
       hi: 'दैनिक स्वावलंबन (Independence)',
       en: 'Everyday Independence & Wayfinding',
     },
     gameIds: ['word-recall', 'jigsaw-puzzle', 'where-am-i', 'what-changed'],
     description: {
-      as: 'উত্তৰ-পূবৰ ঠাই চিনাক্তকৰণ, টুকৰা সংযোগ আৰু দৈনিক বস্তুৰ প্ৰতি সচেতনতা বজাই ৰাখে।',
-      bn: 'উত্তর-পূর্বের স্থান শনাক্তকরণ, টুকরো জোড়া এবং দৈনন্দিন জিনিসের প্রতি সচেতনতা বজায় রাখে।',
-      hi: 'पूर्वोत्तर के परिचित स्थानों की पहचान, पहेली जोड़ना और भटकाव से बचाव।',
-      en: 'Preserves everyday topographical orientation in Northeast India, puzzle construction, and observation.',
+      hi: 'देश के प्रमुख धरोहर स्थलों की पहचान, पहेली जोड़ना और भटकाव से बचाव।',
+      en: 'Preserves everyday topographical orientation across India, puzzle construction, and observation.',
     },
   },
   comprehensive: {
     label: {
-      as: 'সম্পূৰ্ণ ক্লিনিকেল পেক (All 10)',
-      bn: 'সম্পূর্ণ ক্লিনিক্যাল প্যাক (All 10)',
       hi: 'संपूर्ण न्यूरो-केयर पैक (All 10)',
       en: 'Comprehensive Suite (All 10 Exercises)',
     },
@@ -402,8 +388,6 @@ export const PRESET_PRESCRIPTIONS: Record<
       'pattern-recall',
     ],
     description: {
-      as: 'মগজুৰ ১০ টা গুৰুত্বপূৰ্ণ ক্ষেত্ৰৰ বাবে সম্পূৰ্ণ দৈনিক অনুশীলন।',
-      bn: 'মস্তিষ্কের ১০টি গুরুত্বপূর্ণ ক্ষেত্রের জন্য সম্পূর্ণ দৈনিক অনুশীলন।',
       hi: 'मस्तिष्क के सभी १० संज्ञानात्मक क्षेत्रों के लिए संपूर्ण दैनिक अभ्यास।',
       en: 'Full 10-game daily cognitive rehabilitation suite covering 100% of DSM-5 cognitive domains.',
     },

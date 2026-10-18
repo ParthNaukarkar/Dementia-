@@ -6,11 +6,10 @@
  */
 
 import type { CategoryItem } from './types';
-import type { SupportedLanguage } from '../../types/prescription';
 
 export interface CategoryMetadata {
   id: string;
-  name: Record<SupportedLanguage, string>;
+  name: Record<string, string>;
   domain: string; // 'cultural_northeast', 'nature_fauna', 'everyday_life', 'tools_crafts', 'transport'
 }
 

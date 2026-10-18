@@ -1,4 +1,6 @@
-export type SupportedLanguage = 'as' | 'bn' | 'hi' | 'en';
+export type SupportedLanguage = 'en' | 'hi';
+export type LocalizedString = Record<SupportedLanguage, string> & { [key: string]: string };
+export type LocalizedStringList = Record<SupportedLanguage, string[]> & { [key: string]: string[] };
 
 export type GameId = 
   | 'memory-match'
@@ -24,16 +26,16 @@ export type LumosityDomain =
 
 export interface GameMetadata {
   id: GameId;
-  title: Record<SupportedLanguage, string>;
-  subtitle: Record<SupportedLanguage, string>;
+  title: LocalizedString;
+  subtitle: LocalizedString;
   domain: LumosityDomain;
-  domainLabel: Record<SupportedLanguage, string>;
+  domainLabel: LocalizedString;
   clinicalStandard: string;
   targetBrainArea: string;
   estimatedMinutes: number;
   iconType: 'brain' | 'sparkle' | 'text' | 'puzzle' | 'hash' | 'eye' | 'book' | 'compass' | 'layers' | 'grid';
   isAvailable: boolean;
-  description: Record<SupportedLanguage, string>;
+  description: LocalizedString;
 }
 
 export interface PatientPrescription {

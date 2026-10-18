@@ -5,7 +5,6 @@
  * Calibrated against CORSIT Block-Tapping, CANTAB Spatial Span (SSP) & MoCA Visuospatial Subtest.
  */
 
-import type { SupportedLanguage } from '../../types/prescription';
 import type { CognitiveClassificationResult } from '../../engine/cognitive-classifier';
 
 export type PatternTopology =
@@ -32,7 +31,7 @@ export interface PatternRecallDifficulty {
   tremorDebounceMs: number;             // 400ms motor tremor guard
   itemDifficultyB: number;              // 2PL IRT item difficulty (-2.2 to +2.4)
   discriminationA: number;              // 2PL IRT discrimination (1.2 to 1.8)
-  tierDescription: Record<SupportedLanguage, string>;
+  tierDescription: Record<string, string>;
 }
 
 /**
@@ -150,7 +149,7 @@ export interface OasisPatternRecallPersona {
   peekReplayProbability: number;
   beaconHintProbability: number;
   avatarIcon: string;
-  clinicalNotes: Record<SupportedLanguage, string>;
+  clinicalNotes: Record<string, string>;
 }
 
 export const REAL_WORLD_PATTERN_RECALL_PERSONAS: OasisPatternRecallPersona[] = [

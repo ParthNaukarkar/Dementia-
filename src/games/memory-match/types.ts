@@ -6,8 +6,8 @@ export interface CardItem {
   id: string; // unique card id, e.g. 'rhino_A'
   pairKey: string; // shared key for matching, e.g. 'rhino'
   symbol: string;
-  names: Record<SupportedLanguage, string>;
-  culturalSignificance: Record<SupportedLanguage, string>;
+  names: Record<string, string>;
+  culturalSignificance: Record<string, string>;
   isFlipped: boolean;
   isMatched: boolean;
   gridRow: number;
@@ -23,7 +23,7 @@ export interface MemoryMatchDifficulty {
   previewTimeMs: number; // Face-up inspection time before cards flip down (0 = immediate)
   cardFlipBackDelayMs: number; // How long 2 mismatched cards stay open for visual encoding
   baseTheta: number; // 2PL IRT b-parameter difficulty (-2.2 to +2.4)
-  description: Record<SupportedLanguage, string>;
+  description: Record<string, string>;
 }
 
 export interface MemoryMatchSettingsSnapshot {
@@ -48,7 +48,7 @@ export interface FlipEvent {
 export interface AIDynamicAction {
   type: 'ghost_preview' | 'distractor_dim' | 'pair_beacon' | 'pace_reassurance';
   timestamp: number;
-  rationale: Record<SupportedLanguage, string>;
+  rationale: Record<string, string>;
   cardsAffected?: number;
 }
 

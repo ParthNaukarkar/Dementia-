@@ -79,11 +79,11 @@ export const LumositySidebar: React.FC<LumositySidebarProps> = ({
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-xl tracking-tight text-slate-900">
-                  Smriti<span className="text-amber-600">NER</span>
+                  Neuro<span className="text-amber-600">Saathi</span>
                 </span>
               </div>
-              <span className="text-[10px] uppercase font-extrabold tracking-widest text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded-sm border border-amber-200">
-                SIH26003 • MDoNER
+              <span className="text-[10px] uppercase font-extrabold tracking-widest text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded-sm border border-emerald-200">
+                National Clinical Edition
               </span>
             </div>
           </div>

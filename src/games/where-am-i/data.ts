@@ -1,13 +1,11 @@
-import type { SupportedLanguage } from '../../types/prescription';
-
 export interface LocationData {
   id: string;
   state: 'Assam' | 'Meghalaya' | 'Manipur' | 'Arunachal Pradesh' | 'Nagaland' | 'Tripura';
-  stateName: Record<SupportedLanguage, string>;
+  stateName: Record<string, string>;
   category: 'wildlife_sanctuary' | 'river_island' | 'temple_heritage' | 'lake_nature' | 'monastery_heritage' | 'hills_waterfalls' | 'monument_heritage' | 'palace_heritage' | 'valley_nature' | 'cultural_heritage' | 'nature_wonder' | 'landmark_engineering' | 'tea_estate' | 'river_nature';
   icon: string;
-  name: Record<SupportedLanguage, string>;
-  clues: Record<SupportedLanguage, string[]>;
+  name: Record<string, string>;
+  clues: Record<string, string[]>;
 }
 
 export const LOCATIONS: LocationData[] = [

@@ -48,7 +48,7 @@ export const LumosityHeader: React.FC<LumosityHeaderProps> = ({
           <Menu className="w-5 h-5" />
         </button>
         <span className="font-black text-lg tracking-tight text-slate-900">
-          Smriti<span className="text-amber-600">NER</span>
+          Neuro<span className="text-amber-600">Saathi</span>
         </span>
       </div>
 
@@ -99,24 +99,8 @@ export const LumosityHeader: React.FC<LumosityHeaderProps> = ({
         {/* Multilingual Switcher */}
         <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-black border border-slate-200">
           <button
-            onClick={() => onLanguageChange('as')}
-            className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
-              language === 'as' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:bg-white/60'
-            }`}
-          >
-            অসমীয়া
-          </button>
-          <button
-            onClick={() => onLanguageChange('bn')}
-            className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
-              language === 'bn' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:bg-white/60'
-            }`}
-          >
-            বাংলা
-          </button>
-          <button
             onClick={() => onLanguageChange('hi')}
-            className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
+            className={`px-2.5 py-0.5 rounded-lg transition-all cursor-pointer font-black ${
               language === 'hi' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:bg-white/60'
             }`}
           >
@@ -124,7 +108,7 @@ export const LumosityHeader: React.FC<LumosityHeaderProps> = ({
           </button>
           <button
             onClick={() => onLanguageChange('en')}
-            className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
+            className={`px-2.5 py-0.5 rounded-lg transition-all cursor-pointer font-black ${
               language === 'en' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:bg-white/60'
             }`}
           >

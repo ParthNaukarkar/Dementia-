@@ -223,32 +223,22 @@ export class WhatChangedAudio {
 
     const scripts: Record<string, Record<SupportedLanguage, string>> = {
       study: {
-        as: 'দৃশ্যখন ভালদৰে লক্ষ্য কৰক। বস্তুবোৰ মনত ৰাখক।',
-        bn: 'দৃশ্যটি ভালো করে দেখুন। বস্তুগুলি মনে রাখুন।',
         hi: 'दृश्य को ध्यान से देखें और वस्तुओं को याद रखें।',
         en: 'Memorize the items in this scene carefully.',
       },
       detect: {
-        as: 'কি সলনি হ’ল? যিটো বস্তু সলনি হৈছে তাত স্পৰ্শ কৰক।',
-        bn: 'কী পরিবর্তন হলো? যে বস্তুটি বদলেছে তাতে স্পর্শ করুন।',
         hi: 'क्या बदला? जो वस्तु बदली है, उस पर टैप करें।',
         en: 'What changed? Tap on the item that changed.',
       },
       correct: {
-        as: 'অতি সুন্দৰ! আপুনি সঠিক পৰিৱৰ্তনটো ধৰা পেলালে।',
-        bn: 'চমৎকার! আপনি সঠিক পরিবর্তনটি খুঁজে পেয়েছেন।',
         hi: 'बहुत बढ़िया! आपने सही बदलाव पहचान लिया।',
         en: 'Splendid! You correctly spotted the change.',
       },
       try_again: {
-        as: 'কোনো কথা নাই, পিছৰ দৃশ্যটো চাওক।',
-        bn: 'কোনো ব্যাপার নয়, পরের দৃশ্যটি দেখুন।',
         hi: 'कोई बात नहीं, अगला दृश्य देखें।',
         en: 'No worries, let us observe the next scene.',
       },
       hint: {
-        as: 'সোণালী পোহৰৰ ফালে চাওক।',
-        bn: 'সোনালি আলোর দিকে তাকান।',
         hi: 'सुनहरी रोशनी की ओर देखें।',
         en: 'Notice the gentle golden glow.',
       },
@@ -262,8 +252,6 @@ export class WhatChangedAudio {
       utterance.rate = 0.85;
 
       const langMap: Record<SupportedLanguage, string> = {
-        as: 'as-IN',
-        bn: 'bn-IN',
         hi: 'hi-IN',
         en: 'en-US',
       };

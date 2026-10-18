@@ -3,16 +3,11 @@
  * Designed for modular integration into any frontend.
  */
 
-export type SupportedLanguage = 'as' | 'bn' | 'hi' | 'en';
+export type SupportedLanguage = 'en' | 'hi';
 
 export interface BazaarItem {
   id: string;
-  names: {
-    as: string; // Assamese
-    bn: string; // Bengali
-    hi: string; // Hindi
-    en: string; // English
-  };
+  names: Record<string, string>;
   category: 'textile' | 'produce' | 'craft' | 'beverage';
   icon: string; // High-contrast visual emoji / SVG identifier
   colorBg: string;

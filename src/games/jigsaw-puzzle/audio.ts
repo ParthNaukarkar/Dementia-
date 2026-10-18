@@ -150,31 +150,23 @@ class JigsawAudioEngine {
   /**
    * Spoken vernacular voice encouragement for dementia guidance.
    */
-  public speakGuidance(cue: 'intro' | 'snap' | 'assist' | 'complete', lang: SupportedLanguage = 'as') {
+  public speakGuidance(cue: 'intro' | 'snap' | 'assist' | 'complete', lang: SupportedLanguage = 'en') {
     if (this.isMuted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
     const phrases: Record<'intro' | 'snap' | 'assist' | 'complete', Record<SupportedLanguage, string>> = {
       intro: {
-        as: 'ছবিখনৰ টুকুৰাবোৰ চাই সঠিক স্থানত বহুৱাওক।',
-        bn: 'ছবির টুকরোগুলি দেখে সঠিক স্থানে বসান।',
         hi: 'चित्र के टुकड़ों को देखकर सही स्थान पर रखें।',
         en: 'Observe the picture pieces and place them in the correct spots.',
       },
       snap: {
-        as: 'বৰ ধুনীয়া! টুকুৰাটো সঠিকভাৱে মিলি গ’ল।',
-        bn: 'খুব সুন্দর! টুকরোটি সঠিকভাবে মিলে গেছে।',
         hi: 'बहुत बढ़िया! यह टुकड़ा बिल्कुल सही बैठ गया।',
         en: 'Wonderful! That piece fits perfectly.',
       },
       assist: {
-        as: 'আহক, এই টুকুৰাটো আমি একেলগে বহুৱাওঁ।',
-        bn: 'আসুন, এই টুকরোটি আমরা একসাথে বসাই।',
         hi: 'आइए, इस टुकड़े को हम मिलकर बिठाते हैं।',
         en: "Let's put this piece in place together.",
       },
       complete: {
-        as: 'অপূৰ্ব! আপুনি সম্পূৰ্ণ ছবিখন সুন্দৰকৈ গঢ়ি তুলিলে।',
-        bn: 'অপূর্ব! আপনি সম্পূর্ণ ছবিটি চমৎকারভাবে তৈরি করেছেন।',
         hi: 'अद्भुत! आपने पूरा चित्र बहुत सुंदरता से पूरा किया।',
         en: 'Splendid! You have reconstructed the entire picture beautifully.',
       },

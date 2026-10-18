@@ -5,7 +5,6 @@
  * Calibrated against Wisconsin Card Sorting Test (WCST) & MoCA Abstraction Subtest.
  */
 
-import type { SupportedLanguage } from '../../types/prescription';
 import type { CognitiveClassificationResult } from '../../engine/cognitive-classifier';
 
 export type OddOneOutDistractorStrategy =
@@ -33,7 +32,7 @@ export interface OddOneOutDifficulty {
   tremorDebounceMs: number;             // 400ms motor tremor guard
   itemDifficultyB: number;              // 2PL IRT difficulty b (-2.2 to +2.4)
   discriminationA: number;              // 2PL IRT discrimination a (1.2 to 1.8)
-  tierDescription: Record<SupportedLanguage, string>;
+  tierDescription: Record<string, string>;
 }
 
 /**
@@ -42,7 +41,7 @@ export interface OddOneOutDifficulty {
 export interface CategoryItem {
   id: string;
   symbol: string;
-  name: Record<SupportedLanguage, string>;
+  name: Record<string, string>;
   category: string;                     // Broad category (e.g., 'animals', 'instruments', 'textiles')
   subcategory: string;                  // Fine subcategory (e.g., 'bihu_instruments', 'citrus_fruits')
   attributes: string[];                 // Feature tags (e.g., ['traditional', 'northeast', 'herbivore'])
@@ -57,8 +56,8 @@ export interface OddOneOutGeneratedTrial {
   oddItemIndex: number;
   oddItem: CategoryItem;
   commonCategory: string;
-  commonCategoryName: Record<SupportedLanguage, string>;
-  ruleExplanation: Record<SupportedLanguage, string>;
+  commonCategoryName: Record<string, string>;
+  ruleExplanation: Record<string, string>;
   difficulty: OddOneOutDifficulty;
 }
 
@@ -163,7 +162,7 @@ export interface OasisOddOneOutPersona {
   ruleClueProbability: number;
   spotlightHintProbability: number;
   avatarIcon: string;
-  clinicalNotes: Record<SupportedLanguage, string>;
+  clinicalNotes: Record<string, string>;
 }
 
 export const REAL_WORLD_ODD_ONE_OUT_PERSONAS: OasisOddOneOutPersona[] = [

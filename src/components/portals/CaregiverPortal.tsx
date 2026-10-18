@@ -484,19 +484,19 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            {/* 4-Language Selector */}
+            {/* Language Selector */}
             <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
-              {(['en', 'as', 'bn', 'hi'] as SupportedLanguage[]).map((lang) => (
+              {(['en', 'hi'] as SupportedLanguage[]).map((lang) => (
                 <button
                   key={lang}
                   onClick={() => onLanguageChange(lang)}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                     language === lang
-                      ? 'bg-white text-purple-900 shadow-2xs'
+                      ? 'bg-white text-purple-900 shadow-2xs font-black'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  {lang.toUpperCase()}
+                  {lang === 'hi' ? 'हिन्दी' : 'EN'}
                 </button>
               ))}
             </div>
@@ -1312,10 +1312,8 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                   </span>
                   <div className="flex gap-2 flex-wrap">
                     {[
-                      { code: 'as', label: 'অসমীয়া (Assamese)' },
-                      { code: 'bn', label: 'বাংলা (Bengali)' },
-                      { code: 'hi', label: 'हिन्दी (Hindi)' },
                       { code: 'en', label: 'English' },
+                      { code: 'hi', label: 'हिन्दी (Hindi)' },
                     ].map((lang) => (
                       <button
                         key={lang.code}

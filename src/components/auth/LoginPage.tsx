@@ -55,37 +55,37 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <h1 className="font-extrabold text-base text-slate-900 leading-tight">
                   {t.appTitle}
                 </h1>
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-                  SIH 26003
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  National Edition
                 </span>
               </div>
               <p className="text-[11px] font-bold text-teal-700 uppercase tracking-wider">
-                MDoNER Cognitive Rehabilitation Platform
+                National Cognitive Healthcare & Rehabilitation Platform
               </p>
             </div>
           </div>
 
-          {/* Right Controls: Single Localhost Status & 4-Language Switcher */}
+          {/* Right Controls: Single Localhost Status & Language Switcher */}
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Unified Localhost 5173</span>
             </div>
 
-            {/* 4-Language Selector */}
+            {/* Language Selector (English & Hindi) */}
             <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
               <Languages className="w-3.5 h-3.5 text-slate-500 mx-1.5" />
-              {(['en', 'as', 'bn', 'hi'] as SupportedLanguage[]).map((lang) => (
+              {(['en', 'hi'] as SupportedLanguage[]).map((lang) => (
                 <button
                   key={lang}
                   onClick={() => onLanguageChange(lang)}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                     language === lang
-                      ? 'bg-white text-slate-900 shadow-2xs'
+                      ? 'bg-white text-slate-900 shadow-2xs font-black'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  {lang.toUpperCase()}
+                  {lang === 'hi' ? 'हिन्दी' : 'EN'}
                 </button>
               ))}
             </div>
@@ -337,11 +337,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
         {/* ─── FOOTER METADATA ────────────────────────────────────────────── */}
         <div className="mt-12 text-center text-xs text-slate-500 flex flex-wrap items-center justify-center gap-3">
-          <span className="font-semibold text-slate-700">Smart India Hackathon</span>
+          <span className="font-semibold text-slate-700">National AI Cognitive Care Platform</span>
           <span>•</span>
-          <span className="font-semibold text-slate-700">Problem Statement ID: SIH 26003</span>
+          <span className="font-semibold text-slate-700">Digital Health & Cognitive Rehabilitation Architecture</span>
           <span>•</span>
-          <span className="font-semibold text-slate-600">Ministry of Development of North Eastern Region (MDoNER)</span>
+          <span className="font-semibold text-slate-600">Ayushman Bharat Digital Health Ecosystem Compatible</span>
           <span>•</span>
           <span className="text-emerald-700 font-bold">100% On-Device Offline Execution</span>
         </div>

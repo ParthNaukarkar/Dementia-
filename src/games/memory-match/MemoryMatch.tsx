@@ -32,7 +32,7 @@ import type {
 import type { AssistanceProfileConfig } from '../../engine/adaptive-assistance';
 
 export const MemoryMatch: React.FC<MemoryMatchProps> = ({
-  language = 'as',
+  language = 'en',
   totalRounds = 3,
   initialTheta = 0.0,
   onRoundComplete,
@@ -327,7 +327,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
       setDimmedCardIds(distractors);
       setActiveAssistPairKey(targetKey);
       memoryMatchAudio.playAutoAssistChime();
-      const dimMsg = {
+      const dimMsg: Record<string, string> = {
         en: 'AI Live Assist: Dimmed non-matching cards to focus your gaze.',
         as: 'AI সহায়: চকুৰ দৃষ্টি কেন্দ্ৰীভূত কৰিবলৈ অমিল কাৰ্ডবোৰ ধূসৰ কৰা হ’ল।',
         bn: 'AI সহায়তা: দৃষ্টি নিবদ্ধ করতে অমিল কার্ডগুলি আবছা করা হলো।',
@@ -365,7 +365,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
     } else {
       // Level 1: Subtle Cue
       setActiveAssistPairKey(targetKey);
-      const hintMsg = {
+      const hintMsg: Record<string, string> = {
         en: '💡 Hint: One matching pair has been gently illuminated.',
         as: '💡 সংকেত: এটা মিল থকা যোৰা মৃদুভাৱে উজ্বলাই তোলা হৈছে।',
         bn: '💡 ইঙ্গিত: একটি মিল থাকা জোড়া মৃদুভাবে আলোকিত করা হয়েছে।',
@@ -562,7 +562,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
     );
 
     setLastAutonomyScore(autonomyScore);
-    const rationaleText = reasoning[language] || reasoning.en;
+    const rationaleText = (reasoning as Record<string, string>)[language] || reasoning.en;
     setAiLiveReasoning(rationaleText);
     setAiAdaptationFlash(true);
     setTimeout(() => setAiAdaptationFlash(false), 5000);
@@ -764,13 +764,13 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
         </div>
       )}
 
-      {/* Caregiver Live DDA & SIH 2026 Testbed Drawer */}
+      {/* Caregiver Live DDA & National Clinical Testbed Drawer */}
       {showJudgeControls && (
         <div className="bg-slate-900 text-white p-5 rounded-3xl border border-purple-500/40 shadow-xl space-y-4 animate-in slide-in-from-top duration-300 text-xs">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-amber-400" />
-              <h4 className="font-black text-sm text-white">SIH 2026 AI Testbed & Live Telemetry Inspector</h4>
+              <h4 className="font-black text-sm text-white">National Clinical AI Testbed &amp; Live Telemetry Inspector</h4>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-1 rounded-full">

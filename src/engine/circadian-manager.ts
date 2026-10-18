@@ -48,7 +48,7 @@ export class CircadianManager {
         phase: 'SUNDOWNING_VULNERABLE',
         isSundowningActive: true,
         recommendedMode: 'REMINISCENCE_CALM',
-        recommendation: 'Sundowning Window: Cognitive games paused to avoid agitation. Displaying soothing family memories and North Eastern folk melodies.',
+        recommendation: 'Sundowning Window: Cognitive games paused to avoid agitation. Displaying soothing family memories and classical Indian raga melodies.',
         simulatedHour: this.simulatedHour,
       };
     } else {
@@ -63,7 +63,7 @@ export class CircadianManager {
   }
 
   /**
-   * Allows judges / presenters to simulate any hour of the day during the SIH demo.
+   * Allows judges / presenters to simulate any hour of the day during live evaluations.
    * e.g. setSimulatedHour(18) triggers Sundowning mode immediately!
    */
   public setSimulatedHour(hour: number | null) {

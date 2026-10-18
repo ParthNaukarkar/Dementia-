@@ -4,7 +4,7 @@
  * 100% Offline, Zero Robotic Accent Fallbacks
  */
 
-export type SupportedLanguage = 'as' | 'bn' | 'hi' | 'en';
+export type SupportedLanguage = 'en' | 'hi';
 
 export class VernacularVoiceEngine {
   private currentAudio: HTMLAudioElement | null = null;
@@ -74,7 +74,6 @@ export class VernacularVoiceEngine {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     if (lang === 'hi') utterance.lang = 'hi-IN';
-    else if (lang === 'bn' || lang === 'as') utterance.lang = 'bn-IN';
     else utterance.lang = 'en-IN';
 
     utterance.rate = 0.82;

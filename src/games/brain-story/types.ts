@@ -5,7 +5,6 @@
  * Assesses auditory narrative encoding, central gist vs. peripheral recall, and recognition.
  */
 
-import type { SupportedLanguage } from '../../types/prescription';
 import type { CognitiveClassificationResult } from '../../engine/cognitive-classifier';
 
 export type StoryElementCategory =
@@ -32,24 +31,24 @@ export interface BrainStoryDifficulty {
   tremorDebounceMs: number;            // 400ms motor tremor guard
   itemDifficultyB: number;             // 2PL IRT difficulty parameter (-2.2 to +2.4)
   discriminationA: number;             // 2PL IRT discrimination parameter (1.2 to 1.8)
-  tierDescription: Record<SupportedLanguage, string>;
+  tierDescription: Record<string, string>;
 }
 
 export interface StoryQuestion {
   id: string;
   elementCategory: StoryElementCategory;
-  questionText: Record<SupportedLanguage, string>;
-  options: Record<SupportedLanguage, string[]>; // Array of choices in each language
+  questionText: Record<string, string>;
+  options: Record<string, string[]>; // Array of choices in each language
   correctOptionIndex: number;
-  clueHintText: Record<SupportedLanguage, string>;
+  clueHintText: Record<string, string>;
 }
 
 export interface StoryVignette {
   id: string;
   theme: string;
-  title: Record<SupportedLanguage, string>;
+  title: Record<string, string>;
   icon: string;
-  sentences: Record<SupportedLanguage, string[]>;
+  sentences: Record<string, string[]>;
   questions: StoryQuestion[];
 }
 
@@ -152,7 +151,7 @@ export interface OasisBrainStoryPersona {
   audioReplayProbability: number;
   clueHintProbability: number;
   avatarIcon: string;
-  clinicalNotes: Record<SupportedLanguage, string>;
+  clinicalNotes: Record<string, string>;
 }
 
 export const REAL_WORLD_BRAIN_STORY_PERSONAS: OasisBrainStoryPersona[] = [

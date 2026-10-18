@@ -90,7 +90,7 @@ export const TimeEngineDemo: React.FC = () => {
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 bg-amber-500/40 text-amber-100 text-sm px-3 py-1 rounded-full mb-3 backdrop-blur-xs font-semibold">
             <Clock className="w-4 h-4" />
-            <span>MDoNER SIH26003 • Time & Circadian Architecture</span>
+            <span>National Clinical AI • Time &amp; Circadian Architecture</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white mb-2">
             Clinical Latency & Circadian Timing Engine
@@ -239,7 +239,7 @@ export const TimeEngineDemo: React.FC = () => {
         <div className="mt-4 flex items-start gap-2.5 text-xs text-slate-500 bg-amber-50/50 p-3 rounded-lg border border-amber-100">
           <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
           <span>
-            <strong>Clinical Benchmark:</strong> CANTAB guidelines establish choice reaction times for MCI cohorts at 2.5s–4.5s and dementia sequencing at 8.0s–14.0s. SmritiNER uses a rolling median ($MdL$) to prevent false alarms for slower individuals.
+            <strong>Clinical Benchmark:</strong> CANTAB guidelines establish choice reaction times for MCI cohorts at 2.5s–4.5s and dementia sequencing at 8.0s–14.0s. NeuroSaathi uses a rolling median ($MdL$) to prevent false alarms for slower individuals.
           </span>
         </div>
       </section>

@@ -49,7 +49,7 @@ export interface NumberRecallDifficulty {
   tremorDebounceMs: number;             // 400ms hardware motor guard
   itemDifficultyB: number;              // 2PL IRT item difficulty (-2.0 to +2.5)
   discriminationA: number;              // 2PL IRT item discrimination (1.2 to 1.8)
-  tierDescription: Record<SupportedLanguage, string>;
+  tierDescription: Record<string, string>;
 }
 
 /**
@@ -83,7 +83,7 @@ export interface KeypressEvent {
 export interface NumberRecallAIDynamicAction {
   type: 'pace_relaxation' | 'audio_replay_assist' | 'watermark_reveal' | 'tempo_acceleration';
   timestamp: number;
-  rationale: Record<SupportedLanguage, string>;
+  rationale: Record<string, string>;
   parametersAffected: string;
 }
 
@@ -122,8 +122,8 @@ export interface NumberRecallTrialTelemetry {
   thetaAfterTrial: number;
   difficultySnapshot: NumberRecallDifficulty;
   settingsSnapshot: NumberRecallSettingsSnapshot;
-  settingsImpactRationale: Record<SupportedLanguage, string>;
-  aiAdaptiveReasoning: Record<SupportedLanguage, string>;
+  settingsImpactRationale: Record<string, string>;
+  aiAdaptiveReasoning: Record<string, string>;
   autonomyScore: number;                // 0 to 100%
   aiDynamicActions: NumberRecallAIDynamicAction[];
 }

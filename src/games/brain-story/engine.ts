@@ -553,7 +553,7 @@ export class BrainStoryEngine {
 
     const isAllCorrect = correctCount === trial.activeQuestions.length || (trial.activeQuestions.length >= 4 && correctCount >= trial.activeQuestions.length - 1 && persona.cdr === 0);
 
-    const clinicalObservation: Record<SupportedLanguage, string> = {
+    const clinicalObservation: Record<string, string> = {
       as: `${persona.name} (${persona.clinicalDiagnosis}) - পুনৰাবৃত্তি: ${audioReplaysUsed}, সংকেত: ${cluesUsedCount}, সময়: ${deliberationTimeMs}ms, শুদ্ধ: ${correctCount}/${trial.activeQuestions.length}।`,
       bn: `${persona.name} (${persona.clinicalDiagnosis}) - পুনরাবৃত্তি: ${audioReplaysUsed}, সূত্র: ${cluesUsedCount}, সময়: ${deliberationTimeMs}ms, শুদ্ধ: ${correctCount}/${trial.activeQuestions.length}।`,
       hi: `${persona.name} (${persona.clinicalDiagnosis}) - रीप्ले: ${audioReplaysUsed}, संकेत: ${cluesUsedCount}, समय: ${deliberationTimeMs}ms, सही: ${correctCount}/${trial.activeQuestions.length}।`,

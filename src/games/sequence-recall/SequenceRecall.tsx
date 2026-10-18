@@ -43,7 +43,7 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   lamp: Flame,
 };
 
-const LOCALIZED_UI = {
+const LOCALIZED_UI: Record<string, any> = {
   as: {
     title: 'সুৰৰ ক্ৰম (Sequence Recall)',
     subtitle: 'বস্তুবোৰৰ ক্ৰম মনত ৰাখক',
@@ -139,7 +139,7 @@ const LOCALIZED_UI = {
 };
 
 export const SequenceRecall: React.FC<SequenceRecallProps> = ({
-  language = 'as',
+  language = 'en',
   totalTrials = 5,
   initialTheta = 0.0,
   onTrialComplete,

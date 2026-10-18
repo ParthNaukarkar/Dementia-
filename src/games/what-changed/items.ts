@@ -1,12 +1,10 @@
-import type { SupportedLanguage } from '../../types/prescription';
-
 export interface CatalogItem {
   id: string;
-  names: Record<SupportedLanguage, string>;
+  names: Record<string, string>;
   icon: string;
   category: 'craft' | 'textile' | 'household' | 'instrument' | 'produce';
   defaultColorBg: string;
-  alternateColors: { bg: string; name: Record<SupportedLanguage, string> }[];
+  alternateColors: { bg: string; name: Record<string, string> }[];
 }
 
 /**

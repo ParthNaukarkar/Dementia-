@@ -9,7 +9,6 @@ import type {
   PrefrontalReversalStatus,
   KeystrokeRhythmProfile,
 } from './types';
-import type { SupportedLanguage } from '../../types/prescription';
 
 /**
  * 9 Fine-Grained Minimal Step Tiers (2 to 9 Digits)
@@ -429,8 +428,8 @@ export class NumberRecallEngine {
     settings?: NumberRecallSettingsSnapshot
   ): {
     newTheta: number;
-    reasoning: Record<SupportedLanguage, string>;
-    settingsImpactRationale: Record<SupportedLanguage, string>;
+    reasoning: Record<string, string>;
+    settingsImpactRationale: Record<string, string>;
     autonomyScore: number;
   } {
     const prevTheta = this.currentTheta;
@@ -460,7 +459,7 @@ export class NumberRecallEngine {
     autonomyScore = Math.max(10, Math.min(100, Math.round(autonomyScore)));
 
     // 2. Settings Impact Rationale
-    let settingsImpactRationale: Record<SupportedLanguage, string>;
+    let settingsImpactRationale: Record<string, string>;
     if (watermarkOff) {
       settingsImpactRationale = {
         as: `সহায়িকা সংকেত অবিহনে সম্পন্ন: ৰোগীয়ে কোনো সহায়িকা নোহোৱাকৈ সংখ্যা মনত ৰাখিলে (+০.৭৫ IRT বোনাস)।`,
@@ -491,7 +490,7 @@ export class NumberRecallEngine {
       };
     }
 
-    let reasoning: Record<SupportedLanguage, string>;
+    let reasoning: Record<string, string>;
 
     // 3. Mathematical 2PL IRT Update
     if (isCorrect) {
@@ -571,7 +570,7 @@ export class NumberRecallEngine {
     consecutiveFastSolves: number;
     currentDigitLength: number;
     watermarkActive: boolean;
-  }): { action: 'none' | 'watermark_reveal' | 'audio_replay_assist' | 'tempo_acceleration'; rationale: Record<SupportedLanguage, string> } {
+  }): { action: 'none' | 'watermark_reveal' | 'audio_replay_assist' | 'tempo_acceleration'; rationale: Record<string, string> } {
     const { idleTimeSeconds, consecutiveFastSolves, watermarkActive } = params;
 
     // Detect persistent hesitation (> 12s)

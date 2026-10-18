@@ -211,8 +211,6 @@ export class AdaptiveGameFlowEngine {
         clinicalAlerts: [],
         clinicalNotes: {
           en: 'Initial baseline assessment ready. Complete exercises to generate detailed neurocognitive profile.',
-          as: 'প্ৰাৰম্ভিক মূল্যায়ন সাজু। বিস্তৃত নিউৰো-জ্ঞানমূলক প্ৰতিবেদনৰ বাবে অনুশীলন সম্পূৰ্ণ কৰক।',
-          bn: 'প্রাথমিক মূল্যায়ন প্রস্তুত। বিস্তারিত নিউরো-কগনিটিভ প্রতিবেদনের জন্য অনুশীলন সম্পন্ন করুন।',
           hi: 'प्रारंभिक मूल्यांकन तैयार है। विस्तृत संज्ञानात्मक प्रोफाइल के लिए अभ्यास पूरा करें।',
         },
       };
@@ -413,55 +411,44 @@ export class AdaptiveGameFlowEngine {
   ): Record<SupportedLanguage, string> {
     const nextMeta = GAME_CATALOG.find(g => g.id === nextGame);
     const nextTitle = nextMeta?.title.en || nextGame;
+    const nextTitleHi = nextMeta?.title.hi || nextTitle;
 
     switch (reason) {
       case 'hippocampal_relief':
         return {
           en: `AI Flow Adaptation: Verbal memory strain detected. Transitioning to ${nextTitle} (Spatial/Visuomotor) to allow hippocampal recovery while engaging parietal pathways.`,
-          as: `AI গতিশীল পৰিৱৰ্তন: মৌখিক স্মৃতিৰ ক্লান্তি ধৰা পৰিছে। মগজুৰ জিৰণিৰ বাবে স্থানিক দৃশ্যমান অনুশীলন '${nextMeta?.title.as || nextTitle}' আৰম্ভ কৰা হৈছে।`,
-          bn: `AI গতিশীল রূপান্তর: মৌখিক স্মৃতির ক্লান্তি শনাক্ত। মস্তিষ্কের শিথিলতার জন্য স্থানিক দৃশ্যমান অনুশীলন '${nextMeta?.title.bn || nextTitle}' নির্বাচন করা হয়েছে।`,
-          hi: `AI अनुकूली प्रवाह: मौखिक स्मृति में थकावट के लक्षण। स्मरण शक्ति को विश्राम देते हुए स्थानिक दृश्य अभ्यास '${nextMeta?.title.hi || nextTitle}' चुना गया।`,
+          hi: `AI अनुकूली प्रवाह: मौखिक स्मृति में थकावट के लक्षण। स्मरण शक्ति को विश्राम देते हुए स्थानिक दृश्य अभ्यास '${nextTitleHi}' चुना गया।`,
         };
 
       case 'executive_escalation':
         return {
           en: `AI Flow Adaptation: High cognitive reserve demonstrated. Stepping up to ${nextTitle} (Executive/Matrix Reasoning) to stimulate prefrontal cortex plasticity.`,
-          as: `AI গতিশীল পৰিৱৰ্তন: উচ্চ বৌদ্ধিক ক্ষমতা প্ৰদৰ্শিত হৈছে। মগজুৰ কাৰ্যকৰী চিন্তাৰ বাবে '${nextMeta?.title.as || nextTitle}' নিৰ্বাচন কৰা হৈছে।`,
-          bn: `AI গতিশীল রূপান্তর: উচ্চ বৌদ্ধিক দক্ষতা পরিলক্ষিত। কার্যকরী সিদ্ধান্ত গ্রহণের জন্য '${nextMeta?.title.bn || nextTitle}' স্তর বৃদ্ধি করা হয়েছে।`,
-          hi: `AI अनुकूली प्रवाह: उत्कृष्ट संज्ञान क्षमता प्रदर्शित। मस्तिष्क की कार्यकारी निर्णय क्षमता बढ़ाने हेतु '${nextMeta?.title.hi || nextTitle}' प्रारंभ किया गया।`,
+          hi: `AI अनुकूली प्रवाह: उत्कृष्ट संज्ञान क्षमता प्रदर्शित। मस्तिष्क की कार्यकारी निर्णय क्षमता बढ़ाने हेतु '${nextTitleHi}' प्रारंभ किया गया।`,
         };
 
       case 'motor_stabilization':
         return {
           en: `AI Flow Adaptation: Motor tremor jitter identified. Routing to ${nextTitle} with expanded touch targets and hardware debouncing to protect patient autonomy.`,
-          as: `AI গতিশীল পৰিৱৰ্তন: হাতৰ কম্পন ধৰা পৰিছে। স্পৰ্শ সহজ কৰিবলৈ বহল লক্ষ্যযুক্ত অনুশীলন '${nextMeta?.title.as || nextTitle}' প্ৰদান কৰা হৈছে।`,
-          bn: `AI গতিশীল রূপান্তর: হাতের কম্পন শনাক্ত। রোগীকে স্বস্তি দিতে সহজ স্পর্শযোগ্য অনুশীলন '${nextMeta?.title.bn || nextTitle}' নির্বাচন করা হয়েছে।`,
-          hi: `AI अनुकूली प्रवाह: शारीरिक कंपन के लक्षण। रोगी की सुविधा हेतु बड़े टच-टारगेट वाला अभ्यास '${nextMeta?.title.hi || nextTitle}' दिया गया।`,
+          hi: `AI अनुकूली प्रवाह: शारीरिक कंपन के लक्षण। रोगी की सुविधा हेतु बड़े टच-टारगेट वाला अभ्यास '${nextTitleHi}' दिया गया।`,
         };
 
       case 'palliative_scaffolding':
         return {
           en: `AI Flow Adaptation: Cognitive hesitation and fatigue noted. Routing to comforting reminiscence in ${nextTitle} to prevent frustration and preserve dignity.`,
-          as: `AI গতিশীল পৰিৱৰ্তন: মানসিক দ্বিধা আৰু ক্লান্তি পৰিলক্ষিত। হতাশ নহ’বলৈ আৰু মনৰ আনন্দৰ বাবে '${nextMeta?.title.as || nextTitle}' বাছনি কৰা হৈছে।`,
-          bn: `AI গতিশীল রূপান্তর: মানসিক ক্লান্তি পরিলক্ষিত। রোগীকে শান্ত ও উৎসাহিত রাখতে '${nextMeta?.title.bn || nextTitle}' নির্বাচন করা হয়েছে।`,
-          hi: `AI अनुकूली प्रवाह: मानसिक थकान को देखते हुए शांतिदायक एवं रुचिपूर्ण अभ्यास '${nextMeta?.title.hi || nextTitle}' प्रारंभ किया गया।`,
+          hi: `AI अनुकूली प्रवाह: मानसिक थकान को देखते हुए शांतिदायक एवं रुचिपूर्ण अभ्यास '${nextTitleHi}' प्रारंभ किया गया।`,
         };
 
       case 'domain_diversification':
         return {
           en: `AI Flow Adaptation: Advancing to ${nextTitle} to ensure balanced daily stimulation across all DSM-5 neurocognitive domains.`,
-          as: `AI গতিশীল পৰিৱৰ্তন: সকলো বৌদ্ধিক দিশৰ সন্তুলন বজাই ৰাখিবলৈ পৰৱৰ্তী অনুশীলন '${nextMeta?.title.as || nextTitle}' নিৰ্বাচন কৰা হৈছে।`,
-          bn: `AI গতিশীল রূপান্তর: সামগ্রিক মানসিক ভারসাম্যের জন্য পরবর্তী অনুশীলন '${nextMeta?.title.bn || nextTitle}' নির্বাচন করা হয়েছে।`,
-          hi: `AI अनुकूली प्रवाह: समग्र मानसिक संतुलन हेतु अगला संज्ञानात्मक अभ्यास '${nextMeta?.title.hi || nextTitle}' चुना गया।`,
+          hi: `AI अनुकूली प्रवाह: समग्र मानसिक संतुलन हेतु अगला संज्ञानात्मक अभ्यास '${nextTitleHi}' चुना गया।`,
         };
 
       case 'prescribed_continuation':
       default:
         return {
           en: `AI Routine Flow: Continuing personalized clinical prescription with ${nextTitle}.`,
-          as: `AI নিৰ্ধাৰিত প্ৰৱাহ: ব্যক্তিগত স্বাস্থ্য নিৰ্দেশনা অনুসৰি '${nextMeta?.title.as || nextTitle}' আৰম্ভ কৰা হৈছে।`,
-          bn: `AI নির্ধারিত প্রবাহ: ব্যক্তিগত ক্লিনিক্যাল প্রেসক্রিপশন অনুযায়ী '${nextMeta?.title.bn || nextTitle}' শুরু করা হয়েছে।`,
-          hi: `AI अनुकूली प्रवाह: व्यक्तिगत स्वास्थ्य निर्देशानुसार '${nextMeta?.title.hi || nextTitle}' प्रारंभ किया गया।`,
+          hi: `AI अनुकूली प्रवाह: व्यक्तिगत स्वास्थ्य निर्देशानुसार '${nextTitleHi}' प्रारंभ किया गया।`,
         };
     }
   }
@@ -475,22 +462,16 @@ export class AdaptiveGameFlowEngine {
     if (tier === 'NORMAL') {
       return {
         en: `Cognitive stability preserved (Estimated MoCA: ${moca}/30, MMSE: ${mmse}/30). Fatigue index: ${fatigue}. Recommend maintaining regular daily mental workouts.`,
-        as: `বৌদ্ধিক স্থিৰতা অটুট আছে (আনুমানিক MoCA: ${moca}/30, MMSE: ${mmse}/30)। ক্লান্তি: ${fatigue}। নিয়মীয়া দৈনিক অভ্যাস অব্যাহত ৰাখক।`,
-        bn: `বৌদ্ধিক স্থিতিশীলতা বজায় রয়েছে (আনুমানিক MoCA: ${moca}/30, MMSE: ${mmse}/30)। ক্লান্তি: ${fatigue}। নিয়মিত অনুশীলন বজায় রাখুন।`,
         hi: `संज्ञानात्मक स्थिरता उत्कृष्ट बनी हुई है (अनुमानित MoCA: ${moca}/30, MMSE: ${mmse}/30)। थकान: ${fatigue}। दैनिक अभ्यास जारी रखें।`,
       };
     } else if (tier === 'MCI') {
       return {
         en: `Mild cognitive hesitation observed (Estimated MoCA: ${moca}/30, MMSE: ${mmse}/30). Fatigue index: ${fatigue}. Dynamic flow provided gentle hippocampal and spatial balancing.`,
-        as: `মৃদু বিলম্ব পৰিলক্ষিত (আনুমানিক MoCA: ${moca}/30, MMSE: ${mmse}/30)। ক্লান্তি: ${fatigue}। AI প্ৰৱাহে স্থানিক আৰু স্মৃতিৰ সন্তুলন বজাই ৰাখিছে।`,
-        bn: `মৃদু বিলম্ব পরিলক্ষিত (আনুমানিক MoCA: ${moca}/30, MMSE: ${mmse}/30)। ক্লান্তি: ${fatigue}। AI প্রবাহে স্থানিক ও স্মৃতির ভারসাম্য রাখা হয়েছে।`,
         hi: `हल्की संज्ञानात्मक देरी देखी गई (अनुमानित MoCA: ${moca}/30, MMSE: ${mmse}/30)। थकान: ${fatigue}। AI प्रवाह द्वारा संतुलित मार्गदर्शन किया गया।`,
       };
     } else {
       return {
         en: `Substantial cognitive support utilized (Estimated MoCA: ${moca}/30, MMSE: ${mmse}/30). Fatigue index: ${fatigue}. Palliative scaffolding deployed to preserve patient engagement and dignity.`,
-        as: `অধিক সহায়ৰ প্ৰয়োজন পৰিলক্ষিত (আনুমানিক MoCA: ${moca}/30, MMSE: ${mmse}/30)। ক্লান্তি: ${fatigue}। ৰোগীৰ মৰ্যাদা ৰক্ষা কৰি সৰল সহায়িকা আগবঢ়োৱা হৈছে।`,
-        bn: `অধিক সহায়তার প্রয়োজন শনাক্ত (আনুমানিক MoCA: ${moca}/30, MMSE: ${mmse}/30)। ক্লান্তি: ${fatigue}। রোগীর মর্যাদা রক্ষায় সরল সাহায্য প্রদান করা হয়েছে।`,
         hi: `अतिरिक्त सहायता की आवश्यकता पाई गई (अनुमानित MoCA: ${moca}/30, MMSE: ${mmse}/30)। थकान: ${fatigue}। आत्मसम्मान की रक्षा हेतु सरल मार्गदर्शन दिया गया।`,
       };
     }

@@ -1,4 +1,3 @@
-import type { SupportedLanguage } from '../../types/prescription';
 import type { CognitiveClassificationResult } from '../../engine/cognitive-classifier';
 
 /**
@@ -174,7 +173,7 @@ export interface WhereAmIDifficulty {
   tremorDebounceMs: number;             // 400ms motor filter
   itemDifficultyB: number;              // 2PL IRT item difficulty (-2.2 to +2.4)
   discriminationA: number;              // 2PL IRT discrimination (1.2 to 1.8)
-  tierDescription: Record<SupportedLanguage, string>;
+  tierDescription: Record<string, string>;
 }
 
 /**
@@ -216,7 +215,7 @@ export interface WhereAmITrialTelemetry {
   thetaAfterTrial: number;
   difficultySnapshot: WhereAmIDifficulty;
   settingsSnapshot: WhereAmISettingsSnapshot;
-  aiAdaptiveReasoning: Record<SupportedLanguage, string>;
+  aiAdaptiveReasoning: Record<string, string>;
 }
 
 /**

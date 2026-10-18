@@ -11,7 +11,7 @@ export type ErrorType =
 
 export interface SequenceItem {
   id: string;
-  names: Record<SupportedLanguage, string>;
+  names: Record<string, string>;
   category: 'cultural' | 'instrument' | 'nature';
   color: string;
   bgGradient: string;

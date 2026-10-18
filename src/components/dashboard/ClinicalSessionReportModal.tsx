@@ -94,7 +94,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                 Clinical Neuropsychological Assessment Report
               </h2>
               <p className="text-xs text-slate-400 font-medium">
-                Standardized Digital Therapeutic Evaluation • Ministry of Development of North Eastern Region
+                Standardized Digital Neurocognitive Evaluation • National Clinical Platform
               </p>
             </div>
           </div>

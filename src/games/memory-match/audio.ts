@@ -215,8 +215,6 @@ class MemoryMatchAudio {
       utterance.pitch = 1.0;
 
       const langMap: Record<SupportedLanguage, string> = {
-        as: 'as-IN',
-        bn: 'bn-IN',
         hi: 'hi-IN',
         en: 'en-IN',
       };
@@ -238,26 +236,18 @@ class MemoryMatchAudio {
 
     const prompts: Record<string, Record<SupportedLanguage, string>> = {
       intro: {
-        as: 'ছবিবোৰ মনত ৰাখক আৰু যোৰা মিলাওক।',
-        bn: 'ছবিগুলো মনে রাখুন এবং জোড়া মেলাবেন।',
         hi: 'कार्डों को याद रखें और सही जोड़ी मिलाएं।',
         en: 'Remember the pictures and match the pairs.',
       },
       preview: {
-        as: 'ছবিবোৰ ভালদৰে চাই লওক। সাজু হ’লে খেলিব।',
-        bn: 'ছবিগুলো ভালো করে দেখে নিন। প্রস্তুত হলে খেলুন।',
         hi: 'चित्रों को ध्यान से देख लीजिए। तैयार होने पर खेलें।',
         en: 'Study the pictures closely. You will match them shortly.',
       },
       assist: {
-        as: 'ধীৰে ধীৰে কৰক। এই কাৰ্ড দুখন মন কৰক।',
-        bn: 'ধীরে ধীরে করুন। এই কার্ড দুটি লক্ষ্য করুন।',
         hi: 'आराम से करिए। इन दोनों कार्डों पर ध्यान दें।',
         en: 'Take your time. Notice these highlighted cards.',
       },
       complete: {
-        as: 'বৰ ধুনীয়া! সকলো যোৰা মিলিল।',
-        bn: 'চমৎকার! সব জোড়া মিলে গেছে।',
         hi: 'बहुत बढ़िया! सभी जोड़ियां पूरी हुईं।',
         en: 'Wonderful! All pairs matched accurately.',
       },

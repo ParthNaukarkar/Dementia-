@@ -4,7 +4,6 @@
  * 400ms Parkinsonian Tremor Guard, MoCA Visuospatial Calibration & Edge ML Staging.
  */
 
-import type { SupportedLanguage } from '../../types/prescription';
 import type {
   PatternRecallDifficulty,
   PatternRecallGeneratedTrial,
@@ -540,7 +539,7 @@ export class PatternRecallEngine {
     deliberationTimeMs: number;
     hasTremorJitter: boolean;
     tremorJitterCount: number;
-    clinicalObservation: Record<SupportedLanguage, string>;
+    clinicalObservation: Record<string, string>;
   } {
     // 1. Peeks & Beacon usage
     const peeksUsedCount = tier.peeksAllowed > 0 && Math.random() < persona.peekReplayProbability
@@ -594,7 +593,7 @@ export class PatternRecallEngine {
       playerSelection = [...kept, ...distractors].sort((a, b) => a - b);
     }
 
-    const clinicalObservation: Record<SupportedLanguage, string> = {
+    const clinicalObservation: Record<string, string> = {
       as: `${persona.name} (${persona.clinicalDiagnosis}) - পিক: ${peeksUsedCount}, বিকন: ${beaconHintUsed ? 'ব্যৱহৃত' : 'নাই'}, সময়: ${deliberationTimeMs}ms, ফলাফল: ${isCorrect ? 'সঠিক' : 'ভুল'}।`,
       bn: `${persona.name} (${persona.clinicalDiagnosis}) - পিক: ${peeksUsedCount}, বিকন: ${beaconHintUsed ? 'ব্যবহৃত' : 'না'}, সময়: ${deliberationTimeMs}ms, ফলাফল: ${isCorrect ? 'সঠিক' : 'ভুল'}।`,
       hi: `${persona.name} (${persona.clinicalDiagnosis}) - पीक: ${peeksUsedCount}, बीकन: ${beaconHintUsed ? 'प्रयुक्त' : 'नहीं'}, समय: ${deliberationTimeMs}ms, परिणाम: ${isCorrect ? 'सटीक' : 'अशुद्ध'}।`,

@@ -4,7 +4,6 @@
  * Multi-Lingual Cultural Semantic Taxonomy, 400ms Tremor Filter & Edge ML Staging.
  */
 
-import type { SupportedLanguage } from '../../types/prescription';
 import type {
   OddOneOutDifficulty,
   CategoryItem,
@@ -427,7 +426,7 @@ export class OddOneOutEngine {
       },
     };
 
-    const ruleExplanation: Record<SupportedLanguage, string> = {
+    const ruleExplanation: Record<string, string> = {
       as: `এই সকলোবোৰ "${meta.name.as}", কিন্তু "${selectedOdd.name.as}" পৃথক।`,
       bn: `এই সবগুলো "${meta.name.bn}", কিন্তু "${selectedOdd.name.bn}" ভিন্ন।`,
       hi: `ये सभी "${meta.name.hi}" हैं, लेकिन "${selectedOdd.name.hi}" अलग है।`,
@@ -661,7 +660,7 @@ export class OddOneOutEngine {
     deliberationTimeMs: number;
     hasTremorJitter: boolean;
     tremorJitterCount: number;
-    clinicalObservation: Record<SupportedLanguage, string>;
+    clinicalObservation: Record<string, string>;
   } {
     // 1. Clue & Spotlight usage
     const ruleClueRevealed = tier.ruleClueAutoVisible || Math.random() < persona.ruleClueProbability;
@@ -709,7 +708,7 @@ export class OddOneOutEngine {
       selectedItemId = trial.items[selectedItemIndex].id;
     }
 
-    const clinicalObservation: Record<SupportedLanguage, string> = {
+    const clinicalObservation: Record<string, string> = {
       as: `${persona.name} (${persona.clinicalDiagnosis}) - নিয়ম: ${ruleClueRevealed ? 'ব্যৱহৃত' : 'নাই'}, স্পটলাইট: ${spotlightHintUsed ? 'ব্যৱহৃত' : 'নাই'}, সময়: ${deliberationTimeMs}ms, ফলাফল: ${isCorrect ? 'সঠিক' : 'ভুল'}।`,
       bn: `${persona.name} (${persona.clinicalDiagnosis}) - নিয়ম: ${ruleClueRevealed ? 'ব্যবহৃত' : 'না'}, স্পটলাইট: ${spotlightHintUsed ? 'ব্যবহৃত' : 'না'}, সময়: ${deliberationTimeMs}ms, ফলাফল: ${isCorrect ? 'সঠিক' : 'ভুল'}।`,
       hi: `${persona.name} (${persona.clinicalDiagnosis}) - नियम: ${ruleClueRevealed ? 'प्रयुक्त' : 'नहीं'}, स्पॉटलाइट: ${spotlightHintUsed ? 'प्रयुक्त' : 'नहीं'}, समय: ${deliberationTimeMs}ms, परिणाम: ${isCorrect ? 'सटीक' : 'अशुद्ध'}।`,

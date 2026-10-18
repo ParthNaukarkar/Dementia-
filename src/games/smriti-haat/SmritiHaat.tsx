@@ -22,7 +22,7 @@ import type { LatencyStage } from '../../engine/latency-timer';
 import { AdaptiveAssistanceEngine, type AssistanceProfileConfig } from '../../engine/adaptive-assistance';
 
 // Multilingual audio and UI string dictionaries (Large, high-clarity phrasing)
-const STRINGS = {
+const STRINGS: Record<string, any> = {
   as: {
     title: 'স্মৃতি হাট (Smriti Haat)',
     subtitle: 'বজাৰৰ বস্তু কেইপদ মনত ৰাখক',
@@ -102,7 +102,7 @@ const STRINGS = {
 };
 
 export const SmritiHaat: React.FC<SmritiHaatProps> = ({
-  language = 'as',
+  language = 'en',
   totalRounds = 3,
   initialTheta = 0.0,
   onRoundComplete,
@@ -240,11 +240,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
         const eliminatedId = engine.eliminateDistractor();
         if (eliminatedId) {
           setEliminatedIds(Array.from(engine.getEliminatedIds()));
-          const msg = language === 'as'
-            ? 'AI সহায়: চিন্তা সহজ কৰিবলৈ ১ টা অতিৰিক্ত ভুল বিকল্প অস্পষ্ট (Blur) কৰি আঁতৰাই দিয়া হ\'ল।'
-            : language === 'bn'
-            ? 'AI সহায়তা: ভাবার সুবিধার জন্য ১টি অতিরিক্ত ভুল অপশন ঝাপসা (Blur) করে বাদ দেওয়া হলো।'
-            : language === 'hi'
+          const msg = language === 'hi'
             ? 'AI सहायता: ध्यान केंद्रित करने के लिए 1 गलत विकल्प धुंधला (Blur) करके हटा दिया गया है।'
             : 'AI Live Assist: 1 incorrect distractor blurred out & removed to ease your choice.';
           setAutoAssistAlert(msg);
@@ -421,11 +417,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
     const eliminatedId = engine.eliminateDistractor();
     if (eliminatedId) {
       setEliminatedIds(Array.from(engine.getEliminatedIds()));
-      const msg = language === 'as'
-        ? 'AI সহায়: চিন্তা সহজ কৰিবলৈ ভুল বিকল্প অস্পষ্ট (Blur) কৰি আঁতৰাই দিয়া হ\'ল।'
-        : language === 'bn'
-        ? 'AI সহায়তা: ভাবার সুবিধার জন্য ভুল অপশন ঝাপসা (Blur) করে বাদ দেওয়া হলো।'
-        : language === 'hi'
+      const msg = language === 'hi'
         ? 'AI सहायता: ध्यान केंद्रित करने के लिए गलत विकल्प धुंधला (Blur) करके हटा दिया गया है।'
         : 'AI Live Assist: Incorrect distractor blurred out & removed to simplify your choice.';
       setAutoAssistAlert(msg);
@@ -475,7 +467,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
           <Volume2 className="w-7 h-7 text-amber-400 shrink-0" />
           <div>
             <span className="text-[11px] uppercase font-black tracking-widest text-amber-400 block">
-              Audio Assistance: {language === 'as' ? 'অসমীয়া' : language === 'bn' ? 'বাংলা' : language === 'hi' ? 'हिन्दी' : 'English'}
+              Audio Assistance: {language === 'hi' ? 'हिन्दी' : 'English'}
             </span>
             <span className="font-black text-lg md:text-xl text-white">
               "{activeSubtitle}"
@@ -557,13 +549,13 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
         </div>
       </div>
 
-      {/* SIH 2026 Judge Testbed & DDA Controls */}
+      {/* National Clinical AI Testbed & DDA Controls */}
       {showJudgeControls && (
         <div className="my-6 p-4 bg-gradient-to-r from-slate-900 to-amber-950 text-white rounded-3xl border-2 border-amber-500 shadow-xl space-y-3 animate-fade-in">
           <div className="flex items-center justify-between border-b border-white/10 pb-2">
             <div className="flex items-center gap-2 text-xs font-black tracking-widest text-amber-400 uppercase">
               <Sliders className="w-4 h-4" />
-              <span>SIH 2026 Live AI Inspector & Test Controls</span>
+              <span>National Clinical AI Inspector &amp; Test Controls</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full">
@@ -886,7 +878,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
           <div>
             <h3 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
               {latestRoundTelemetry.wasAutoAssisted
-                ? (language === 'as' ? 'AI সহায়ক পৰামৰ্শ (AI Guided Round)' : language === 'bn' ? 'AI সহায়ক নির্দেশিকা (AI Guided Round)' : language === 'hi' ? 'AI सहायक अभ्यास (AI Guided Round)' : 'AI Guided Practice Round')
+                ? (language === 'hi' ? 'AI सहायक अभ्यास (AI Guided Round)' : 'AI Guided Practice Round')
                 : latestRoundTelemetry.isFullyCorrect ? t.feedbackCorrect : t.feedbackPartial}
             </h3>
             <p className="text-base text-slate-600 font-semibold mt-2">
