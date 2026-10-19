@@ -275,21 +275,14 @@ export class AIClinicalReportingService {
     for (const model of candidateModels) {
       for (const version of apiVersions) {
         try {
-          const isGemini3 = /3\.\d+/i.test(model);
-          let requestBody = { ...body };
-
-          if (isGemini3) {
-            // Gemini 3.8 Flash uses responseMimeType and optional thinking_level (LOW, MEDIUM, HIGH)
-            // It deprecates legacy sampling parameters like temperature and maxOutputTokens limits
-            const mimeType = body.generationConfig?.responseMimeType || 'application/json';
-            requestBody = {
-              ...body,
-              generationConfig: {
-                responseMimeType: mimeType,
-                thinking_level: 'LOW',
-              },
-            };
-          }
+          // Standard clean generationConfig - Google REST API rejects unknown fields like thinking_level
+          const mimeType = body.generationConfig?.responseMimeType || 'application/json';
+          const requestBody = {
+            contents: body.contents,
+            generationConfig: {
+              responseMimeType: mimeType,
+            },
+          };
 
           const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${cleanKey}`;
           const res = await fetch(url, {
@@ -343,10 +336,9 @@ export class AIClinicalReportingService {
       if (config.provider === 'gemini') {
         const result = await this.callGeminiGenerateContent(
           config.apiKey,
-          config.model || 'gemini-1.5-flash',
+          config.model || 'gemini-3.8-flash',
           {
-            contents: [{ role: 'user', parts: [{ text: 'Respond with the word OK.' }] }],
-            generationConfig: { maxOutputTokens: 5 },
+            contents: [{ role: 'user', parts: [{ text: 'Respond with OK.' }] }],
           }
         );
 
@@ -459,15 +451,13 @@ Motor & Kinematics Spectrum:
       if (config.provider === 'gemini') {
         const geminiRes = await this.callGeminiGenerateContent(
           config.apiKey,
-          config.model || 'gemini-1.5-flash',
+          config.model || 'gemini-3.8-flash',
           {
             contents: [
               { role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }
             ],
             generationConfig: {
-              temperature: 0.2,
               responseMimeType: 'application/json',
-              maxOutputTokens: 2048,
             },
           }
         );
@@ -682,13 +672,11 @@ ${payload.dailyRoutines.map(r => `  * [${r.time}] ${r.activity} (${r.category}) 
       if (config.provider === 'gemini') {
         const geminiRes = await this.callGeminiGenerateContent(
           config.apiKey,
-          config.model || 'gemini-1.5-flash',
+          config.model || 'gemini-3.8-flash',
           {
             contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
             generationConfig: {
-              temperature: 0.25,
               responseMimeType: 'application/json',
-              maxOutputTokens: 4096,
             },
           }
         );
