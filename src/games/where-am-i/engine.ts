@@ -369,7 +369,7 @@ export class WhereAmIEngine {
   public updateTheta(
     isCorrect: boolean,
     deliberationTimeMs: number,
-    cluesRevealedCount: number,
+    cluesRevealedCount: number = 1,
     settings?: WhereAmISettingsSnapshot
   ): {
     newTheta: number;
@@ -379,6 +379,7 @@ export class WhereAmIEngine {
     const diff = this.currentDifficulty;
     const a = diff.discriminationA;
     const b = diff.itemDifficultyB;
+    const safeClues = (typeof cluesRevealedCount === 'number' && !isNaN(cluesRevealedCount)) ? cluesRevealedCount : 1;
 
     // 2PL Logistic probability of correct identification
     const p = 1.0 / (1.0 + Math.exp(-a * (this.currentTheta - b)));
@@ -386,11 +387,11 @@ export class WhereAmIEngine {
     // Effective credit U discounted for scaffolding reliance
     let u = 0.0;
     if (isCorrect) {
-      if (cluesRevealedCount <= 1) {
+      if (safeClues <= 1) {
         u = 1.0; // Perfect unassisted retrieval on 1st clue
-      } else if (cluesRevealedCount === 2) {
+      } else if (safeClues === 2) {
         u = 0.85;
-      } else if (cluesRevealedCount === 3) {
+      } else if (safeClues === 3) {
         u = 0.70;
       } else {
         u = 0.55; // 4th clue or exhaustive assistance
@@ -404,10 +405,10 @@ export class WhereAmIEngine {
 
     // Autonomy Scoring (0 to 100%)
     let autonomyScore = 100;
-    autonomyScore -= (cluesRevealedCount - 1) * 12; // -12% per extra clue
+    autonomyScore -= (safeClues - 1) * 12; // -12% per extra clue
     if (settings?.compassHintUsed) autonomyScore -= 20;
     if (deliberationTimeMs > 10000) autonomyScore -= 10;
-    if (isCorrect && cluesRevealedCount === 1 && deliberationTimeMs < 3500 && !settings?.compassHintUsed) {
+    if (isCorrect && safeClues === 1 && deliberationTimeMs < 3500 && !settings?.compassHintUsed) {
       autonomyScore = 100; // Perfect rapid mastery
     }
     autonomyScore = Math.max(10, Math.min(100, autonomyScore));
@@ -419,7 +420,10 @@ export class WhereAmIEngine {
       delta = 0.02; // Clinically, any correct solve awards positive progress
     }
 
-    this.currentTheta = Math.max(-3.0, Math.min(3.0, this.currentTheta + delta));
+    const updatedTheta = this.currentTheta + delta;
+    this.currentTheta = Number.isFinite(updatedTheta)
+      ? Math.max(-3.0, Math.min(3.0, updatedTheta))
+      : this.currentTheta;
 
 
     if (isCorrect) {
