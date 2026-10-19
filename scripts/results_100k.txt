@@ -10,7 +10,7 @@ Generating 10000 realistic OASIS-2 stratified patient personas with micro-variat
 
 
 ================================================================================
-🏁 100,000 ASSESSMENT SIMULATION COMPLETE IN 0.22s
+🏁 100,000 ASSESSMENT SIMULATION COMPLETE IN 0.25s
 ================================================================================
 
 ────────────────────────────────────────────────────────────────────────────────
@@ -19,92 +19,92 @@ Generating 10000 realistic OASIS-2 stratified patient personas with micro-variat
 
 🎮 [MEMORY-MATCH]
    • Total Evaluations: 10,000
-   • AI Decisions: ⬆️ Promote: 33.0% | ⚖️ Maintain: 42.8% | ⬇️ Scaffold Down: 24.3%
-   • Cognitive Load: Low: 3296 | Optimal: 4278 | Elevated Fatigue: 1537 | Severe Strain: 889
-   • Scaffolding Arms: Challenge: 7025 | Guidance: 2426 | Direct: 0 | Motor: 549
-   • Latent Theta: Mean Start: -0.13 ➔ Mean End: 0.00
-   • Assistance Triggered: 2,536 (25.4%)
+   • AI Decisions: ⬆️ Promote: 29.9% | ⚖️ Maintain: 45.0% | ⬇️ Scaffold Down: 25.1%
+   • Cognitive Load: Low: 2990 | Optimal: 4239 | Elevated Fatigue: 1389 | Severe Strain: 1382
+   • Scaffolding Arms: Challenge: 6645 | Guidance: 2590 | Direct: 0 | Motor: 765
+   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.01
+   • Assistance Triggered: 2,496 (25.0%)
    • Anomalies / Math Exceptions: 0 (Zero Flaws Detected)
 
 🎮 [SEQUENCE-RECALL]
    • Total Evaluations: 10,000
-   • AI Decisions: ⬆️ Promote: 33.3% | ⚖️ Maintain: 40.4% | ⬇️ Scaffold Down: 26.3%
-   • Cognitive Load: Low: 3330 | Optimal: 4044 | Elevated Fatigue: 1618 | Severe Strain: 1008
-   • Scaffolding Arms: Challenge: 6803 | Guidance: 2626 | Direct: 0 | Motor: 571
-   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.31
-   • Assistance Triggered: 2,462 (24.6%)
+   • AI Decisions: ⬆️ Promote: 32.4% | ⚖️ Maintain: 40.7% | ⬇️ Scaffold Down: 26.9%
+   • Cognitive Load: Low: 3235 | Optimal: 4072 | Elevated Fatigue: 1377 | Severe Strain: 1316
+   • Scaffolding Arms: Challenge: 6693 | Guidance: 2542 | Direct: 0 | Motor: 765
+   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.32
+   • Assistance Triggered: 2,551 (25.5%)
    • Anomalies / Math Exceptions: 0 (Zero Flaws Detected)
 
 🎮 [WHAT-CHANGED]
    • Total Evaluations: 10,000
-   • AI Decisions: ⬆️ Promote: 33.6% | ⚖️ Maintain: 43.2% | ⬇️ Scaffold Down: 23.2%
-   • Cognitive Load: Low: 3356 | Optimal: 4323 | Elevated Fatigue: 1490 | Severe Strain: 831
-   • Scaffolding Arms: Challenge: 7121 | Guidance: 2321 | Direct: 0 | Motor: 558
-   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.02
-   • Assistance Triggered: 2,506 (25.1%)
+   • AI Decisions: ⬆️ Promote: 45.0% | ⚖️ Maintain: 36.2% | ⬇️ Scaffold Down: 18.9%
+   • Cognitive Load: Low: 4495 | Optimal: 3334 | Elevated Fatigue: 1084 | Severe Strain: 1087
+   • Scaffolding Arms: Challenge: 7129 | Guidance: 2106 | Direct: 0 | Motor: 765
+   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.03
+   • Assistance Triggered: 2,473 (24.7%)
    • Anomalies / Math Exceptions: 0 (Zero Flaws Detected)
 
 🎮 [BRAIN-STORY]
    • Total Evaluations: 10,000
-   • AI Decisions: ⬆️ Promote: 33.3% | ⚖️ Maintain: 42.2% | ⬇️ Scaffold Down: 24.5%
-   • Cognitive Load: Low: 3325 | Optimal: 4223 | Elevated Fatigue: 1599 | Severe Strain: 853
-   • Scaffolding Arms: Challenge: 6999 | Guidance: 2452 | Direct: 0 | Motor: 549
-   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.00
-   • Assistance Triggered: 2,475 (24.8%)
+   • AI Decisions: ⬆️ Promote: 53.3% | ⚖️ Maintain: 27.8% | ⬇️ Scaffold Down: 18.9%
+   • Cognitive Load: Low: 5331 | Optimal: 2625 | Elevated Fatigue: 897 | Severe Strain: 1147
+   • Scaffolding Arms: Challenge: 7237 | Guidance: 1998 | Direct: 0 | Motor: 765
+   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.02
+   • Assistance Triggered: 2,529 (25.3%)
    • Anomalies / Math Exceptions: 0 (Zero Flaws Detected)
 
 🎮 [NUMBER-RECALL]
    • Total Evaluations: 10,000
-   • AI Decisions: ⬆️ Promote: 33.2% | ⚖️ Maintain: 43.8% | ⬇️ Scaffold Down: 23.0%
-   • Cognitive Load: Low: 3322 | Optimal: 4381 | Elevated Fatigue: 1506 | Severe Strain: 791
-   • Scaffolding Arms: Challenge: 7154 | Guidance: 2297 | Direct: 0 | Motor: 549
-   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.08
-   • Assistance Triggered: 2,476 (24.8%)
+   • AI Decisions: ⬆️ Promote: 40.5% | ⚖️ Maintain: 38.5% | ⬇️ Scaffold Down: 21.1%
+   • Cognitive Load: Low: 4045 | Optimal: 3528 | Elevated Fatigue: 1240 | Severe Strain: 1187
+   • Scaffolding Arms: Challenge: 6920 | Guidance: 2315 | Direct: 0 | Motor: 765
+   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.09
+   • Assistance Triggered: 2,528 (25.3%)
    • Anomalies / Math Exceptions: 0 (Zero Flaws Detected)
 
 🎮 [JIGSAW-PUZZLE]
    • Total Evaluations: 10,000
-   • AI Decisions: ⬆️ Promote: 33.4% | ⚖️ Maintain: 50.1% | ⬇️ Scaffold Down: 16.6%
-   • Cognitive Load: Low: 3336 | Optimal: 5007 | Elevated Fatigue: 1226 | Severe Strain: 431
-   • Scaffolding Arms: Challenge: 7805 | Guidance: 1657 | Direct: 0 | Motor: 538
+   • AI Decisions: ⬆️ Promote: 52.9% | ⚖️ Maintain: 35.8% | ⬇️ Scaffold Down: 11.3%
+   • Cognitive Load: Low: 5286 | Optimal: 2698 | Elevated Fatigue: 927 | Severe Strain: 1089
+   • Scaffolding Arms: Challenge: 7291 | Guidance: 1944 | Direct: 0 | Motor: 765
    • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.48
-   • Assistance Triggered: 2,513 (25.1%)
+   • Assistance Triggered: 2,524 (25.2%)
    • Anomalies / Math Exceptions: 0 (Zero Flaws Detected)
 
 🎮 [ODD-ONE-OUT]
    • Total Evaluations: 10,000
-   • AI Decisions: ⬆️ Promote: 33.3% | ⚖️ Maintain: 43.1% | ⬇️ Scaffold Down: 23.6%
-   • Cognitive Load: Low: 3329 | Optimal: 4310 | Elevated Fatigue: 1517 | Severe Strain: 844
-   • Scaffolding Arms: Challenge: 7080 | Guidance: 2361 | Direct: 0 | Motor: 559
-   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.02
-   • Assistance Triggered: 2,428 (24.3%)
+   • AI Decisions: ⬆️ Promote: 43.2% | ⚖️ Maintain: 36.9% | ⬇️ Scaffold Down: 19.9%
+   • Cognitive Load: Low: 4317 | Optimal: 3397 | Elevated Fatigue: 1156 | Severe Strain: 1130
+   • Scaffolding Arms: Challenge: 7043 | Guidance: 2192 | Direct: 0 | Motor: 765
+   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.04
+   • Assistance Triggered: 2,569 (25.7%)
    • Anomalies / Math Exceptions: 0 (Zero Flaws Detected)
 
 🎮 [PATTERN-RECALL]
    • Total Evaluations: 10,000
-   • AI Decisions: ⬆️ Promote: 33.6% | ⚖️ Maintain: 41.5% | ⬇️ Scaffold Down: 24.9%
-   • Cognitive Load: Low: 3362 | Optimal: 4146 | Elevated Fatigue: 1566 | Severe Strain: 926
-   • Scaffolding Arms: Challenge: 6973 | Guidance: 2492 | Direct: 0 | Motor: 535
-   • Latent Theta: Mean Start: -0.13 ➔ Mean End: 0.03
-   • Assistance Triggered: 2,493 (24.9%)
+   • AI Decisions: ⬆️ Promote: 41.3% | ⚖️ Maintain: 37.4% | ⬇️ Scaffold Down: 21.3%
+   • Cognitive Load: Low: 4132 | Optimal: 3551 | Elevated Fatigue: 1197 | Severe Strain: 1120
+   • Scaffolding Arms: Challenge: 7025 | Guidance: 2210 | Direct: 0 | Motor: 765
+   • Latent Theta: Mean Start: -0.13 ➔ Mean End: 0.02
+   • Assistance Triggered: 2,525 (25.3%)
    • Anomalies / Math Exceptions: 0 (Zero Flaws Detected)
 
 🎮 [WHERE-AM-I]
    • Total Evaluations: 10,000
-   • AI Decisions: ⬆️ Promote: 33.2% | ⚖️ Maintain: 43.1% | ⬇️ Scaffold Down: 23.7%
-   • Cognitive Load: Low: 3317 | Optimal: 4314 | Elevated Fatigue: 1529 | Severe Strain: 840
-   • Scaffolding Arms: Challenge: 7088 | Guidance: 2369 | Direct: 0 | Motor: 543
-   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.03
-   • Assistance Triggered: 2,448 (24.5%)
+   • AI Decisions: ⬆️ Promote: 46.0% | ⚖️ Maintain: 35.0% | ⬇️ Scaffold Down: 19.0%
+   • Cognitive Load: Low: 4604 | Optimal: 3220 | Elevated Fatigue: 1071 | Severe Strain: 1105
+   • Scaffolding Arms: Challenge: 7140 | Guidance: 2095 | Direct: 0 | Motor: 765
+   • Latent Theta: Mean Start: -0.13 ➔ Mean End: -0.04
+   • Assistance Triggered: 2,500 (25.0%)
    • Anomalies / Math Exceptions: 0 (Zero Flaws Detected)
 
 🎮 [SMRITI-HAAT]
    • Total Evaluations: 10,000
-   • AI Decisions: ⬆️ Promote: 33.7% | ⚖️ Maintain: 60.1% | ⬇️ Scaffold Down: 6.2%
-   • Cognitive Load: Low: 3366 | Optimal: 6012 | Elevated Fatigue: 517 | Severe Strain: 105
-   • Scaffolding Arms: Challenge: 8734 | Guidance: 622 | Direct: 0 | Motor: 644
-   • Latent Theta: Mean Start: -0.13 ➔ Mean End: 0.09
-   • Assistance Triggered: 2,484 (24.8%)
+   • AI Decisions: ⬆️ Promote: 46.4% | ⚖️ Maintain: 49.9% | ⬇️ Scaffold Down: 3.6%
+   • Cognitive Load: Low: 4643 | Optimal: 3271 | Elevated Fatigue: 1007 | Severe Strain: 1079
+   • Scaffolding Arms: Challenge: 7217 | Guidance: 2018 | Direct: 0 | Motor: 765
+   • Latent Theta: Mean Start: -0.13 ➔ Mean End: 0.08
+   • Assistance Triggered: 2,473 (24.7%)
    • Anomalies / Math Exceptions: 0 (Zero Flaws Detected)
 
 ────────────────────────────────────────────────────────────────────────────────
@@ -114,18 +114,18 @@ Generating 10000 realistic OASIS-2 stratified patient personas with micro-variat
    • Workouts Strictly Ended on Prescribed Count: 10,000 (100.00%)
    • Workout Length Violations / Endless Loops: 0 (0.00%)
    • Dynamic Transitions:
-       - Palliative Scaffolding (Fatigue > 0.75): 736
+       - Palliative Scaffolding (Fatigue > 0.75): 845
        - Hippocampal Relief (Verbal/Narrative Strain): 0
        - Motor Tremor Stabilization (Touch Wobble > 0.45): 0
-       - Executive Escalation (High Reserve & Mastery): 2,354
-       - Balanced Domain Diversification: 32,910
+       - Executive Escalation (High Reserve & Mastery): 2,350
+       - Balanced Domain Diversification: 32,805
 
 ────────────────────────────────────────────────────────────────────────────────
 🤝 ADAPTIVE ASSISTANCE & DIGNITY HINTS EVALUATION
 ────────────────────────────────────────────────────────────────────────────────
    • Total Assistance Invocations Tested: 1,00,000
-   • Initial Hesitation Cues Triggered: 24,821
-   • Motor Tremor Stabilizations Triggered: 7,720
+   • Initial Hesitation Cues Triggered: 25,168
+   • Motor Tremor Stabilizations Triggered: 7,650
    • Learned Helplessness Rate: 0.00% (Autonomy maintained within clinical targets)
 
 ================================================================================

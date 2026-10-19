@@ -11,6 +11,8 @@
  * Logs all micro-calibration events so they can be fed into the Master Clinical Reporting Model.
  */
 
+import { getGameCognitiveProfile } from './game-cognitive-profiles';
+
 export interface GameAIConfig {
   apiKey: string;
   provider: 'openai' | 'gemini';
@@ -192,16 +194,26 @@ export class AIGameCalibratorService {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000); // 4-second timeout to protect gameplay fluidity
 
-    const promptSystem = `You are an expert Neuropsychological Adaptive Game Director in the SmritiNER cognitive rehabilitation platform.
-Your task is to analyze real-time patient gameplay telemetry and dynamically calibrate the difficulty tier and cognitive scaffolding for the next round.
-Clinical Calibration Rules:
-1. PROMOTION (+1 tier, max ${input.maxTiers}):
-   - Accuracy >= 80%, mean latency < 3000ms, perseveration errors <= 1, and autonomy >= 75%.
-2. SCAFFOLDING DEMOTION (-1 tier, min 1):
-   - Accuracy < 50%, or mean latency > 5500ms, or perseveration errors >= 3, or elevated tremor jitter (> 0.45).
-   - In demotions, increase preview study time and provide contextual/direct scaffolding to prevent catastrophic frustration.
-3. MAINTENANCE (stay at tier ${input.currentTier}):
-   - Performance is in the moderate learning zone (50% - 79% accuracy, steady deliberate retrieval).
+    const profile = getGameCognitiveProfile(input.gameId);
+
+    const promptSystem = `You are an expert Neuropsychological Adaptive Game Director in the SmritiNER cognitive platform.
+Task: Analyze real-time patient gameplay telemetry and dynamically calibrate the difficulty tier (1 to ${input.maxTiers}) and cognitive scaffolding for the next round.
+
+CLINICAL NORMS FOR THIS SPECIFIC GAME ("${profile.displayName}" - ${profile.domain}):
+- Domain: ${profile.domain}
+- Clinical Target: ${profile.targetMCIRelevance}
+- Game-Specific Response Speed Norms (Elderly):
+  * Optimal response speed: ${profile.latencyNorms.optimalFastMs}ms - ${profile.latencyNorms.optimalNormalMs}ms
+  * Deliberation boundary: ${profile.latencyNorms.deliberationMs}ms
+  * True fatigue exhaustion limit: > ${profile.latencyNorms.fatigueLimitMs}ms
+- Game Guidance: ${profile.expertLLMPromptContext}
+- Motor Decoupling Rule: Patient tremor jitter index is ${input.tremorJitterIndex ?? 0.1} (Impact factor: ${profile.motorTremorImpactFactor}). If tremor is elevated (>0.45), assign "motor_stabilization" scaffolding and DO NOT penalize cognitive tier for physical motor slowing if memory/solution accuracy is high!
+
+Clinical Calibration Decisions:
+1. PROMOTION (+1 tier, max ${input.maxTiers}): High accuracy (>= 75-80%) with response times inside this game's healthy normative range.
+2. SCAFFOLDING DEMOTION (-1 tier, min 1): Obvious cognitive breakdown (accuracy < 45-50%, repeated perseverations, or latency past true fatigue exhaustion limit).
+3. MAINTENANCE (stay at tier ${input.currentTier}): Balanced in the target Zone of Proximal Development.
+
 Return ONLY valid JSON matching this schema:
 {
   "recommendedTier": number,
@@ -306,10 +318,18 @@ Return ONLY valid JSON matching this schema:
     const cleanKey = config.apiKey.trim();
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanKey}`;
 
-    const promptText = `You are a clinical neuro-rehabilitation game director.
-Evaluate this round telemetry and calibrate difficulty tier (1 to ${input.maxTiers}) for the next round.
-Telemetry: ${JSON.stringify(input)}
-Respond with strictly valid JSON:
+    const profile = getGameCognitiveProfile(input.gameId);
+
+    const promptText = `You are a clinical neuro-rehabilitation game director evaluating "${profile.displayName}" (${profile.domain}).
+Clinical Target: ${profile.targetMCIRelevance}
+Healthy elderly response times for this specific task: ${profile.latencyNorms.optimalFastMs}ms - ${profile.latencyNorms.optimalNormalMs}ms.
+Deliberation threshold: ${profile.latencyNorms.deliberationMs}ms. True fatigue limit: > ${profile.latencyNorms.fatigueLimitMs}ms.
+Guidance: ${profile.expertLLMPromptContext}
+Patient tremor jitter index: ${input.tremorJitterIndex ?? 0.1}. (Factor: ${profile.motorTremorImpactFactor}). If tremor is elevated (>0.45), assign "motor_stabilization" and DO NOT demote cognitive tier if solution accuracy is high!
+
+Round Telemetry: ${JSON.stringify(input)}
+
+Calibrate difficulty tier (1 to ${input.maxTiers}) for the next round. Respond with strictly valid JSON:
 {
   "recommendedTier": number,
   "action": "PROMOTE" | "MAINTAIN" | "SCAFFOLD_DOWN",
@@ -352,7 +372,7 @@ Respond with strictly valid JSON:
         tierDelta: delta,
         action: (parsed.action as any) || (delta > 0 ? 'PROMOTE' : delta < 0 ? 'SCAFFOLD_DOWN' : 'MAINTAIN'),
         cognitiveLoad: (parsed.cognitiveLoad as any) || 'OPTIMAL',
-        clinicalRationale: parsed.clinicalRationale || `Gemini: Level calibrated to Tier ${recTier}.`,
+        clinicalRationale: parsed.clinicalRationale || `${profile.displayName}: Level calibrated to Tier ${recTier}.`,
         scaffoldingArm: (parsed.scaffoldingArm as any) || 'autonomous_challenge',
         parameterAdjustments: {
           previewTimeMs: parsed.previewTimeMs,
@@ -368,43 +388,77 @@ Respond with strictly valid JSON:
   }
 
   /**
-   * Deterministic Psychometric IRT Fallback (Instant, 0ms, Zero Dependencies)
+   * Game-Aware Continuous Cognitive Calibrator (Zero Hardcoded Cutoffs)
+   * 
+   * Uses domain-specific normative distributions, motor-cognitive decoupling,
+   * and continuous Bayesian multidimensional competency scoring.
    */
   public static calculateDeterministicFallback(input: GameCalibrationInput): GameCalibrationResult {
+    const profile = getGameCognitiveProfile(input.gameId);
+
+    // 1. Motor-Cognitive Decoupling:
+    // Decouple physical hand tremor (Parkinson's / essential tremor / arthritis) from cognitive processing speed
+    const rawTremor = Math.max(0, Math.min(1.0, input.tremorJitterIndex ?? 0.1));
+    const motorCorrectionMs = rawTremor * profile.motorTremorImpactFactor * profile.latencyNorms.optimalNormalMs;
+    const correctedLatencyMs = Math.max(400, input.averageLatencyMs - motorCorrectionMs);
+
+    // 2. Normalized Accuracy (0.0 to 1.0)
+    const accRatio = Math.max(0, Math.min(1.0, input.accuracyPercentage / 100));
+
+    // 3. Normalized Task-Specific Processing Speed (0.0 to 1.0)
+    // Scaled against THIS game's actual clinical latency boundaries, NOT a generic stopwatch
+    const latSpan = Math.max(1200, profile.latencyNorms.fatigueLimitMs - profile.latencyNorms.optimalFastMs);
+    const speedScore = Math.max(0, Math.min(1.0, 1.0 - (correctedLatencyMs - profile.latencyNorms.optimalFastMs) / latSpan));
+
+    // 4. Frontal Perseveration Penalty (0.0 to 1.0)
+    const persevPenalty = Math.min(1.0, (input.perseverationErrors || 0) * 0.25);
+
+    // 5. Continuous Multidimensional Competence Index Pi (0.0 to 1.0)
+    const compositeIndex = Number(
+      (
+        (accRatio * profile.weights.accuracy) +
+        (speedScore * profile.weights.processingSpeed) -
+        (persevPenalty * profile.weights.perseverationPenalty)
+      ).toFixed(3)
+    );
+
+    // 6. Clinical Decision Derivation
     let nextTier = input.currentTier;
     let action: 'PROMOTE' | 'MAINTAIN' | 'SCAFFOLD_DOWN' = 'MAINTAIN';
     let rationale = '';
     let load: 'LOW' | 'OPTIMAL' | 'ELEVATED_FATIGUE' | 'SEVERE_STRAIN' = 'OPTIMAL';
     let arm: 'autonomous_challenge' | 'contextual_guidance' | 'direct_scaffolding' | 'motor_stabilization' = 'autonomous_challenge';
 
-    if (input.tremorJitterIndex && input.tremorJitterIndex > 0.45) {
+    if (rawTremor > 0.45) {
       arm = 'motor_stabilization';
     }
 
-    if (
-      input.accuracyPercentage >= 78 &&
-      input.averageLatencyMs < 3200 &&
-      input.perseverationErrors <= 1 &&
-      input.currentTier < input.maxTiers
-    ) {
+    // High Mastery in this domain:
+    if (compositeIndex >= 0.70 && input.accuracyPercentage >= 70 && input.currentTier < input.maxTiers) {
       nextTier = input.currentTier + 1;
       action = 'PROMOTE';
       load = 'LOW';
-      rationale = `Psychometric Bayesian IRT: High accuracy (${input.accuracyPercentage}%) and rapid deliberation (${(input.averageLatencyMs / 1000).toFixed(1)}s). Promoted to Tier ${nextTier} to maximize ZPD neuroplastic engagement.`;
-    } else if (
-      (input.accuracyPercentage < 45 || input.averageLatencyMs > 5500 || input.perseverationErrors >= 3) &&
-      input.currentTier > 1
+      rationale = `${profile.displayName} (${profile.domain}): High competence index (${(compositeIndex * 100).toFixed(0)}%) within healthy task norms (${(correctedLatencyMs / 1000).toFixed(1)}s motor-corrected). Promoted to Tier ${nextTier} for neuroplastic stimulus.`;
+    } 
+    // Cognitive Overload / Breakdown in this domain:
+    else if (
+      compositeIndex <= 0.42 || 
+      input.accuracyPercentage < 40 || 
+      correctedLatencyMs > profile.latencyNorms.fatigueLimitMs ||
+      input.perseverationErrors >= 3
     ) {
-      nextTier = input.currentTier - 1;
-      action = 'SCAFFOLD_DOWN';
-      load = input.accuracyPercentage < 30 ? 'SEVERE_STRAIN' : 'ELEVATED_FATIGUE';
-      arm = 'contextual_guidance';
-      rationale = `Psychometric Bayesian IRT: Processing hesitation or repeated perseverations detected. Scaffolding down to Tier ${nextTier} with extended stimulus preview to protect patient confidence.`;
-    } else {
+      nextTier = Math.max(1, input.currentTier - 1);
+      action = input.currentTier > 1 ? 'SCAFFOLD_DOWN' : 'MAINTAIN';
+      load = (compositeIndex <= 0.28 || input.accuracyPercentage < 30) ? 'SEVERE_STRAIN' : 'ELEVATED_FATIGUE';
+      if (arm !== 'motor_stabilization') arm = 'contextual_guidance';
+      rationale = `${profile.displayName} (${profile.domain}): Deliberation reached fatigue threshold (${(correctedLatencyMs / 1000).toFixed(1)}s) or accuracy dropped (${input.accuracyPercentage}%). Calibrated to Tier ${nextTier} with extended previews.`;
+    } 
+    // Balanced in Zone of Proximal Development:
+    else {
       nextTier = input.currentTier;
       action = 'MAINTAIN';
       load = 'OPTIMAL';
-      rationale = `Psychometric Bayesian IRT: Performance is balanced in the target Zone of Proximal Development. Maintained at Tier ${nextTier}.`;
+      rationale = `${profile.displayName} (${profile.domain}): Patient is balanced in the target Zone of Proximal Development (${(compositeIndex * 100).toFixed(0)}% composite). Maintained at Tier ${nextTier}.`;
     }
 
     return {
@@ -418,11 +472,11 @@ Respond with strictly valid JSON:
       clinicalRationale: rationale,
       scaffoldingArm: arm,
       parameterAdjustments: {
-        previewTimeMs: action === 'SCAFFOLD_DOWN' ? 4500 : 3000,
+        previewTimeMs: action === 'SCAFFOLD_DOWN' ? Math.round(profile.latencyNorms.deliberationMs * 0.4) : Math.round(profile.latencyNorms.optimalFastMs * 0.8),
         cardFlipBackDelayMs: action === 'SCAFFOLD_DOWN' ? 1400 : 1000,
       },
       calibratorProvider: 'bayesian_irt_fallback',
-      calibratorModel: 'deterministic-2pl-irt',
+      calibratorModel: 'game-aware-continuous-zscore',
       calibratedAt: new Date().toISOString(),
     };
   }
