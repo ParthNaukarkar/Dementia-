@@ -493,6 +493,7 @@ export class WhatChangedEngine {
     const delta = learningRate * a * (u - p);
 
     this.currentTheta = Math.max(-3.0, Math.min(3.0, this.currentTheta + delta));
+    this.currentDifficulty = this.deriveDifficultyFromTheta(this.currentTheta);
 
     if (isCorrect) {
       this.consecutiveSuccesses++;

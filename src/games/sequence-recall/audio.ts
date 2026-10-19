@@ -161,28 +161,10 @@ class SequenceAudioManager {
   }
 
   /**
-   * Speak item name using browser SpeechSynthesis if audio is active
+   * Speak item name (Disabled: Musical instrument chime tones play cleanly without annoying automated voice interruptions)
    */
-  public speakItemName(text: string, language: SupportedLanguage): void {
-    if (!this.isEnabled) return;
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.85; // Slightly slower, dignified pacing for elderly
-      utterance.pitch = 1.0;
-
-      const langMap: Record<SupportedLanguage, string> = {
-        hi: 'hi-IN',
-        en: 'en-IN'
-      };
-      utterance.lang = langMap[language] || 'en-US';
-
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      // Ignore if speech synthesis unavailable
-    }
+  public speakItemName(_text: string, _language: SupportedLanguage): void {
+    // Intentionally silent: elderly patients and clinical users reported automated voice interrupting the musical chimes was annoying.
   }
 }
 

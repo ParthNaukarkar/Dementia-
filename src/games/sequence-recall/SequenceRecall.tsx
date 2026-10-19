@@ -28,6 +28,7 @@ import type {
 import { SequenceRecallEngine } from './engine';
 import { getItemById } from './items-catalog';
 import { sequenceAudio } from './audio';
+import { AIGameCalibratorService } from '../../services/ai-game-calibrator';
 import { AdaptiveAssistanceEngine } from '../../engine/adaptive-assistance';
 
 type SequencePhase = 'PRESENTATION' | 'RETENTION_PAUSE' | 'RECALL' | 'FEEDBACK' | 'SESSION_COMPLETE';
@@ -222,9 +223,6 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
         const item = getItemById(seq[step]);
         if (item) {
           sequenceAudio.playItemChime(item, duration);
-          if (currentDiff.scaffoldingLevel === 'high') {
-            sequenceAudio.speakItemName(item.names[language], language);
-          }
         }
 
         presentationTimerRef.current = setTimeout(() => {
@@ -347,6 +345,29 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
     if (onTrialComplete) {
       onTrialComplete(telemetry);
     }
+
+    // Dynamic AI Calibration (OpenAI / IRT)
+    const currentDiff = engine.getDifficulty();
+    AIGameCalibratorService.calibrateGameLevel({
+      gameId: 'sequence-recall',
+      gameTitle: 'Sequence Recall (Corsi Musical Block Span)',
+      roundIndex: telemetry.trialNumber,
+      totalRounds: totalTrials,
+      currentTier: currentDiff.sequenceLength,
+      maxTiers: 6,
+      accuracyPercentage: telemetry.isCorrect ? 100 : 0,
+      averageLatencyMs: telemetry.initialDeliberationMs || 2200,
+      perseverationErrors: telemetry.errorType === 'PERSEVERATION' ? 1 : 0,
+      transpositionErrors: telemetry.errorType === 'TRANSPOSITION' ? 1 : 0,
+      wasAutoAssisted: telemetry.wasAutoAssisted,
+      totalTrialsOrFlips: telemetry.recalledSequence.length,
+    }).then(calibration => {
+      if (calibration.action === 'PROMOTE' && currentDiff.sequenceLength < 6) {
+        currentDiff.sequenceLength += 1;
+      } else if (calibration.action === 'SCAFFOLD_DOWN' && currentDiff.sequenceLength > 2) {
+        currentDiff.sequenceLength -= 1;
+      }
+    }).catch(() => {});
 
     if (engine.isSessionComplete()) {
       const summary = engine.generateSessionSummary(false);

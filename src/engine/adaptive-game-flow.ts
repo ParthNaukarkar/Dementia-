@@ -114,16 +114,32 @@ export class AdaptiveGameFlowEngine {
     const tremorBurden = this.calculateTremorBurden(completedSummary);
     const abilityTheta = completedSummary?.finalTheta ?? 0.0;
 
-    // Remaining unplayed games from the active 10 catalog
+    // Remaining unplayed games from the current prescribed playlist
     const playedSet = new Set<GameId>([...completedGameIds, completedGameId]);
-    let candidateGames = ACTIVE_10_GAMES.filter(id => !playedSet.has(id));
+    const unplayedPrescribedGames = currentPlaylist.filter(id => !playedSet.has(id));
 
-    // If all 10 played, candidate pool resets to all active games excluding current
-    if (candidateGames.length === 0) {
-      candidateGames = ACTIVE_10_GAMES.filter(id => id !== completedGameId);
+    // If all prescribed games in currentPlaylist have already been played, routine is complete
+    if (unplayedPrescribedGames.length === 0) {
+      return {
+        nextGameId: completedGameId,
+        reason: 'prescribed_continuation',
+        clinicalRationale: {
+          en: 'All prescribed exercises completed for today.',
+          hi: 'आज के लिए सभी निर्धारित अभ्यास पूरे हो गए हैं।'
+        },
+        domain: 'memory',
+        estimatedMinutes: 0,
+        adjustedPlaylist: currentPlaylist,
+        fatigueScore: Number(fatigueScore.toFixed(3)),
+        hippocampalStrain: Number(hippocampalStrain.toFixed(3)),
+        tremorBurden: Number(tremorBurden.toFixed(3)),
+      };
     }
 
-    let selectedGameId: GameId = candidateGames[0] || 'memory-match';
+    // Candidate games: prioritize remaining unplayed games from the patient's prescription
+    let candidateGames = unplayedPrescribedGames;
+
+    let selectedGameId: GameId = candidateGames[0];
     let reason: FlowTransitionReason = 'prescribed_continuation';
 
     // ─── Flow Adaptation Policy ──────────────────────────────────────────
@@ -131,48 +147,45 @@ export class AdaptiveGameFlowEngine {
     // Priority 1: Palliative Fallback (Severe Frustration / Confusion)
     if (fatigueScore > 0.75 || (completedSummary?.accuracyPercentage != null && completedSummary.accuracyPercentage < 40 && (abilityTheta < -1.0 || completedSummary?.finalTheta == null))) {
       reason = 'palliative_scaffolding';
-      // Route to gentle reminiscence or forgiving visual scene
       const palliativeChoices: GameId[] = ['brain-story', 'where-am-i', 'what-changed'];
-      const pick = palliativeChoices.find(g => candidateGames.includes(g)) || palliativeChoices[0];
+      const pick = candidateGames.find(g => palliativeChoices.includes(g)) || palliativeChoices[0];
       selectedGameId = pick;
     }
     // Priority 2: Hippocampal Strain Relief (Verbal/Narrative Fatigue)
     else if (hippocampalStrain > 0.60) {
       reason = 'hippocampal_relief';
-      // Switch away from language/verbal memory to spatial construction or visual attention
       const spatialChoices: GameId[] = ['jigsaw-puzzle', 'where-am-i', 'what-changed'];
-      const pick = spatialChoices.find(g => candidateGames.includes(g)) || spatialChoices[0];
+      const pick = candidateGames.find(g => spatialChoices.includes(g)) || spatialChoices[0];
       selectedGameId = pick;
     }
     // Priority 3: Motor Tremor Stabilization
     else if (tremorBurden > 0.50) {
       reason = 'motor_stabilization';
-      // Route to exercises with large tap targets and zero drag requirements
       const motorSafeChoices: GameId[] = ['where-am-i', 'brain-story', 'what-changed', 'odd-one-out'];
-      const pick = motorSafeChoices.find(g => candidateGames.includes(g)) || motorSafeChoices[0];
+      const pick = candidateGames.find(g => motorSafeChoices.includes(g)) || motorSafeChoices[0];
       selectedGameId = pick;
     }
     // Priority 4: Executive Escalation (Patient excelling with high cognitive reserve)
     else if (abilityTheta >= 0.85 && (completedSummary?.accuracyPercentage ?? 0) >= 88 && fatigueScore < 0.30) {
       reason = 'executive_escalation';
-      // Challenge prefrontal abstraction or matrix working memory
       const executiveChoices: GameId[] = ['odd-one-out', 'pattern-recall', 'sequence-recall'];
-      const pick = executiveChoices.find(g => candidateGames.includes(g)) || executiveChoices[0];
+      const pick = candidateGames.find(g => executiveChoices.includes(g)) || executiveChoices[0];
       selectedGameId = pick;
     }
     // Priority 5: Balanced Domain Diversification
     else {
       reason = 'domain_diversification';
-      // Pick domain not exercised recently
       const completedDomains = new Set([...completedGameIds, completedGameId].map(g => GAME_DOMAIN_MAP[g] || 'memory'));
       const diverseGame = candidateGames.find(g => !completedDomains.has(GAME_DOMAIN_MAP[g]));
       selectedGameId = diverseGame || candidateGames[0];
     }
 
-    // Generate adjusted playlist on the flow
+    // Generate adjusted playlist strictly preserving the prescribed length
     const nextGameIndex = currentPlaylist.indexOf(completedGameId) + 1;
-    const remainingPlaylist = currentPlaylist.slice(nextGameIndex).filter(g => g !== selectedGameId);
-    const adjustedPlaylist = [...currentPlaylist.slice(0, nextGameIndex), selectedGameId, ...remainingPlaylist];
+    const adjustedPlaylist = [...currentPlaylist];
+    if (nextGameIndex < adjustedPlaylist.length) {
+      adjustedPlaylist[nextGameIndex] = selectedGameId;
+    }
 
     const clinicalRationale = this.generateClinicalRationale(reason, selectedGameId, completedGameId);
     const domain = GAME_CATALOG.find(g => g.id === selectedGameId)?.domain || 'memory';

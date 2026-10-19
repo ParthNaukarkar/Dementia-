@@ -557,7 +557,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
     };
 
     // Update IRT Theta
-    const { newTheta, autonomyScore, reasoning } = engine.updateTheta(
+    const { newTheta, newTierIndex, autonomyScore, reasoning } = engine.updateTheta(
       currentTier.pairCount,
       totalFlips,
       perseverations,
@@ -565,6 +565,12 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
       wasAutoAssisted,
       settingsSnapshot
     );
+
+    // Immediately synchronize engine and UI with newly calibrated psychometric tier
+    if (manualTierOverride === null && typeof newTierIndex === 'number') {
+      engine.setTierIndex(newTierIndex);
+      setCurrentTier(engine.getTierByIndex(newTierIndex));
+    }
 
     setLastAutonomyScore(autonomyScore);
     const rationaleText = (reasoning as Record<string, string>)[language] || reasoning.en;
@@ -591,10 +597,11 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
       autonomyScore,
       wasAutoAssisted,
     }).then(calibration => {
-      if (calibration.recommendedTier !== currentTier.tier && manualTierOverride === null) {
-        const nextTierObj = MEMORY_MATCH_TIERS.find(t => t.tier === calibration.recommendedTier);
-        if (nextTierObj) {
-          setCurrentTier(nextTierObj);
+      if (manualTierOverride === null) {
+        const nextIdx = MEMORY_MATCH_TIERS.findIndex(t => t.tier === calibration.recommendedTier);
+        if (nextIdx >= 0) {
+          engine.setTierIndex(nextIdx);
+          setCurrentTier(MEMORY_MATCH_TIERS[nextIdx]);
         }
       }
 

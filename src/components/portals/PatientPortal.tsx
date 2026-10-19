@@ -156,11 +156,19 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     portalSync.broadcast('ROUTINE_MUTATED', { routineId, patientId: patient.id, allRoutines: updated, by: 'patient' }, 'patient');
   };
 
+  const prescribedGameCount = prescription.prescribedGameIds.length > 0 
+    ? prescription.prescribedGameIds.length 
+    : 3;
+
   // Workout Flow Handlers
   const handleBeginWorkout = () => {
-    const playlist: GameId[] = prescription.prescribedGameIds.length > 0 ? prescription.prescribedGameIds : ['memory-match', 'sequence-recall', 'what-changed'];
+    const basePlaylist: GameId[] = prescription.prescribedGameIds.length > 0 
+      ? prescription.prescribedGameIds 
+      : ['memory-match', 'sequence-recall', 'what-changed'];
+    const playlist = basePlaylist.slice(0, prescribedGameCount);
     setIsWorkoutMode(true);
     setWorkoutCurrentIndex(0);
+    setCompletedWorkoutGames([]);
     setActiveWorkoutPlaylist([...playlist]);
     setActiveGameId(playlist[0]);
   };
@@ -196,6 +204,17 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     setCompletedWorkoutGames(updatedCompleted);
 
     if (isWorkoutMode) {
+      // Check if workout has reached the prescribed game count
+      const isFinished = (workoutCurrentIndex + 1 >= prescribedGameCount) || (updatedCompleted.length >= prescribedGameCount);
+
+      if (isFinished) {
+        setIsIntermissionOpen(false);
+        setIsWorkoutMode(false);
+        setActiveGameId(null);
+        setIsWorkoutCelebrationOpen(true);
+        return;
+      }
+
       const currentPlaylist = activeWorkoutPlaylist.length > 0 ? activeWorkoutPlaylist : prescription.prescribedGameIds;
 
       // Dynamically evaluate patient telemetry using the AI Adaptive Flow Engine
@@ -210,36 +229,42 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
       setLastFlowRecommendation(recommendation);
 
-      // Adjust playlist on the fly based on clinical AI recommendation
+      // Adjust playlist on the fly based on clinical AI recommendation (strictly bounded to prescribed game count)
       if (recommendation.adjustedPlaylist && recommendation.adjustedPlaylist.length > 0) {
-        setActiveWorkoutPlaylist(recommendation.adjustedPlaylist);
+        setActiveWorkoutPlaylist(recommendation.adjustedPlaylist.slice(0, prescribedGameCount));
       }
 
-      const totalRounds = recommendation.adjustedPlaylist?.length || currentPlaylist.length;
-      const isLast = workoutCurrentIndex + 1 >= totalRounds;
-
-      if (isLast) {
-        setIsWorkoutCelebrationOpen(true);
-      } else {
-        setIsIntermissionOpen(true);
-      }
+      setIsIntermissionOpen(true);
     }
   };
 
   const handleStartNextFromIntermission = () => {
     setIsIntermissionOpen(false);
     const nextIdx = workoutCurrentIndex + 1;
+
+    // Conclude workout if prescribed game count is reached
+    if (nextIdx >= prescribedGameCount || completedWorkoutGames.length >= prescribedGameCount) {
+      setIsWorkoutMode(false);
+      setActiveGameId(null);
+      setIsWorkoutCelebrationOpen(true);
+      return;
+    }
+
     setWorkoutCurrentIndex(nextIdx);
 
-    // Prioritize AI Adaptive Engine's recommendation, then fallback to adjusted playlist
+    // Pick next game strictly from remaining prescribed playlist
     const nextGame =
       lastFlowRecommendation?.nextGameId ||
       activeWorkoutPlaylist[nextIdx] ||
       prescription.prescribedGameIds[nextIdx];
 
-    if (nextGame) {
+    if (nextGame && !completedWorkoutGames.includes(nextGame)) {
       setActiveGameId(nextGame);
+    } else if (activeWorkoutPlaylist[nextIdx]) {
+      setActiveGameId(activeWorkoutPlaylist[nextIdx]);
     } else {
+      setIsWorkoutMode(false);
+      setActiveGameId(null);
       setIsWorkoutCelebrationOpen(true);
     }
   };
@@ -248,6 +273,20 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     setIsIntermissionOpen(false);
     setIsWorkoutMode(false);
     setActiveGameId(null);
+  };
+
+  const handleGameExit = () => {
+    if (isWorkoutMode) {
+      if (workoutCurrentIndex + 1 >= prescribedGameCount || completedWorkoutGames.length >= prescribedGameCount) {
+        setIsWorkoutMode(false);
+        setActiveGameId(null);
+        setIsWorkoutCelebrationOpen(true);
+      } else {
+        setIsIntermissionOpen(true);
+      }
+    } else {
+      setActiveGameId(null);
+    }
   };
 
   return (
@@ -412,18 +451,27 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             {isWorkoutMode && (
               <WorkoutProgressHeader
                 currentIndex={workoutCurrentIndex}
-                totalExercises={activeWorkoutPlaylist.length || prescription.prescribedGameIds.length}
+                totalExercises={prescribedGameCount}
                 currentGameTitle={
                   GAME_CATALOG.find((g) => g.id === activeGameId)?.title[language] || activeGameId || ''
                 }
                 nextGameTitle={
-                  lastFlowRecommendation?.nextGameId
-                    ? GAME_CATALOG.find((g) => g.id === lastFlowRecommendation.nextGameId)?.title[language] || null
-                    : workoutCurrentIndex + 1 < activeWorkoutPlaylist.length
-                    ? GAME_CATALOG.find((g) => g.id === activeWorkoutPlaylist[workoutCurrentIndex + 1])?.title[language] || null
+                  workoutCurrentIndex + 1 < prescribedGameCount
+                    ? (lastFlowRecommendation?.nextGameId
+                        ? GAME_CATALOG.find((g) => g.id === lastFlowRecommendation.nextGameId)?.title[language] || null
+                        : GAME_CATALOG.find((g) => g.id === activeWorkoutPlaylist[workoutCurrentIndex + 1])?.title[language] || null)
                     : null
                 }
-                onNextExercise={handleStartNextFromIntermission}
+                onNextExercise={() => {
+                  if (workoutCurrentIndex + 1 >= prescribedGameCount) {
+                    setIsIntermissionOpen(false);
+                    setIsWorkoutMode(false);
+                    setActiveGameId(null);
+                    setIsWorkoutCelebrationOpen(true);
+                  } else {
+                    handleStartNextFromIntermission();
+                  }
+                }}
                 onExitWorkout={handleExitWorkout}
               />
             )}
@@ -446,13 +494,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onSessionComplete={(summary: SessionSummaryTelemetry) => {
                   handleRecordSessionSummary('smriti-haat', summary);
                 }}
-                onExit={() => {
-                  if (isWorkoutMode) {
-                    setIsIntermissionOpen(true);
-                  } else {
-                    setActiveGameId(null);
-                  }
-                }}
+                onExit={handleGameExit}
               />
             )}
 
@@ -463,10 +505,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onSessionComplete={(summary) => {
                   handleRecordSessionSummary('memory-match', summary);
                 }}
-                onExit={() => {
-                  if (isWorkoutMode) setIsIntermissionOpen(true);
-                  else setActiveGameId(null);
-                }}
+                onExit={handleGameExit}
               />
             )}
 
@@ -477,10 +516,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onSessionComplete={(summary) => {
                   handleRecordSessionSummary('sequence-recall', summary);
                 }}
-                onExit={() => {
-                  if (isWorkoutMode) setIsIntermissionOpen(true);
-                  else setActiveGameId(null);
-                }}
+                onExit={handleGameExit}
               />
             )}
 
@@ -491,10 +527,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onSessionComplete={(summary) => {
                   handleRecordSessionSummary('jigsaw-puzzle', summary);
                 }}
-                onExit={() => {
-                  if (isWorkoutMode) setIsIntermissionOpen(true);
-                  else setActiveGameId(null);
-                }}
+                onExit={handleGameExit}
               />
             )}
 
@@ -505,10 +538,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onSessionComplete={(summary) => {
                   handleRecordSessionSummary('number-recall', summary);
                 }}
-                onExit={() => {
-                  if (isWorkoutMode) setIsIntermissionOpen(true);
-                  else setActiveGameId(null);
-                }}
+                onExit={handleGameExit}
               />
             )}
 
@@ -519,10 +549,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onSessionComplete={(summary) => {
                   handleRecordSessionSummary('what-changed', summary);
                 }}
-                onExit={() => {
-                  if (isWorkoutMode) setIsIntermissionOpen(true);
-                  else setActiveGameId(null);
-                }}
+                onExit={handleGameExit}
               />
             )}
 
@@ -533,10 +560,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onSessionComplete={(summary) => {
                   handleRecordSessionSummary('pattern-recall', summary);
                 }}
-                onExit={() => {
-                  if (isWorkoutMode) setIsIntermissionOpen(true);
-                  else setActiveGameId(null);
-                }}
+                onExit={handleGameExit}
               />
             )}
 
@@ -547,10 +571,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onSessionComplete={(summary) => {
                   handleRecordSessionSummary('odd-one-out', summary);
                 }}
-                onExit={() => {
-                  if (isWorkoutMode) setIsIntermissionOpen(true);
-                  else setActiveGameId(null);
-                }}
+                onExit={handleGameExit}
               />
             )}
 
@@ -561,10 +582,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onSessionComplete={(summary) => {
                   handleRecordSessionSummary('where-am-i', summary);
                 }}
-                onExit={() => {
-                  if (isWorkoutMode) setIsIntermissionOpen(true);
-                  else setActiveGameId(null);
-                }}
+                onExit={handleGameExit}
               />
             )}
 
@@ -575,10 +593,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onSessionComplete={(summary) => {
                   handleRecordSessionSummary('brain-story', summary);
                 }}
-                onExit={() => {
-                  if (isWorkoutMode) setIsIntermissionOpen(true);
-                  else setActiveGameId(null);
-                }}
+                onExit={handleGameExit}
               />
             )}
 
@@ -589,10 +604,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onSessionComplete={(summary) => {
                   handleRecordSessionSummary('word-recall', summary);
                 }}
-                onExit={() => {
-                  if (isWorkoutMode) setIsIntermissionOpen(true);
-                  else setActiveGameId(null);
-                }}
+                onExit={handleGameExit}
               />
             )}
 
@@ -841,25 +853,25 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           ''
         }
         completedIndex={workoutCurrentIndex}
-        totalExercises={activeWorkoutPlaylist.length || prescription.prescribedGameIds.length}
+        totalExercises={prescribedGameCount}
         nextGameTitle={
           (lastFlowRecommendation?.nextGameId &&
             GAME_CATALOG.find((g) => g.id === lastFlowRecommendation.nextGameId)?.title[language]) ||
-          (workoutCurrentIndex + 1 < activeWorkoutPlaylist.length &&
+          (workoutCurrentIndex + 1 < prescribedGameCount &&
             GAME_CATALOG.find((g) => g.id === activeWorkoutPlaylist[workoutCurrentIndex + 1])?.title[language]) ||
           ''
         }
         nextGameSubtitle={
           lastFlowRecommendation?.nextGameId
             ? GAME_CATALOG.find((g) => g.id === lastFlowRecommendation.nextGameId)?.subtitle[language]
-            : workoutCurrentIndex + 1 < activeWorkoutPlaylist.length
+            : workoutCurrentIndex + 1 < prescribedGameCount
             ? GAME_CATALOG.find((g) => g.id === activeWorkoutPlaylist[workoutCurrentIndex + 1])?.subtitle[language]
             : undefined
         }
         nextGameDomain={
           lastFlowRecommendation?.domain
             ? (GAME_CATALOG.find((g) => g.id === lastFlowRecommendation.nextGameId)?.domainLabel[language] || lastFlowRecommendation.domain)
-            : workoutCurrentIndex + 1 < activeWorkoutPlaylist.length
+            : workoutCurrentIndex + 1 < prescribedGameCount
             ? GAME_CATALOG.find((g) => g.id === activeWorkoutPlaylist[workoutCurrentIndex + 1])?.domainLabel[language]
             : undefined
         }
@@ -886,6 +898,18 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
         onViewReport={() => {
           setIsWorkoutCelebrationOpen(false);
           setActiveTab('workout');
+        }}
+        onGoToMedications={() => {
+          setIsWorkoutCelebrationOpen(false);
+          setIsWorkoutMode(false);
+          setActiveGameId(null);
+          setActiveTab('medications');
+        }}
+        onGoToRoutine={() => {
+          setIsWorkoutCelebrationOpen(false);
+          setIsWorkoutMode(false);
+          setActiveGameId(null);
+          setActiveTab('routine');
         }}
       />
 

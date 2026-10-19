@@ -541,21 +541,30 @@ export class StoryGenerator {
     const targetChoicesCount = Math.max(2, Math.min(4, difficulty.choicesCount));
 
     const calibratedQuestions: StoryQuestion[] = activeQuestions.map(q => {
-      // Create calibrated options: correct option is index 0 in the master dataset
-      const correctIdx = q.correctOptionIndex;
+      // In the master data, correct option is index 0
+      // We randomly shuffle the indices so the correct answer is distributed across A, B, C, D
+      const indices = Array.from({ length: targetChoicesCount }, (_, i) => i);
+      // Fisher-Yates shuffle
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
 
-      const trimmedOptions: Record<string, string[]> = {
-        as: q.options.as?.slice(0, targetChoicesCount) || [],
-        bn: q.options.bn?.slice(0, targetChoicesCount) || [],
-        hi: q.options.hi?.slice(0, targetChoicesCount) || [],
-        en: q.options.en?.slice(0, targetChoicesCount) || [],
+      // The original correct option was at index 0. Find where it was shuffled to.
+      const newCorrectIndex = indices.indexOf(0);
+
+      // Reorder options across all languages synchronously using the same shuffled permutation
+      const shuffledOptions: Record<string, string[]> = {
+        as: indices.map(idx => (q.options.as || [])[idx] || ''),
+        bn: indices.map(idx => (q.options.bn || [])[idx] || ''),
+        hi: indices.map(idx => (q.options.hi || [])[idx] || ''),
+        en: indices.map(idx => (q.options.en || [])[idx] || ''),
       };
 
-      // In the master data, correct option is always index 0
       return {
         ...q,
-        options: trimmedOptions,
-        correctOptionIndex: correctIdx < targetChoicesCount ? correctIdx : 0,
+        options: shuffledOptions,
+        correctOptionIndex: newCorrectIndex >= 0 ? newCorrectIndex : 0,
       };
     });
 

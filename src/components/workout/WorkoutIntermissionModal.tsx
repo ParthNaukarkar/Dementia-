@@ -157,51 +157,67 @@ export const WorkoutIntermissionModal: React.FC<WorkoutIntermissionModalProps> =
             </div>
           )}
 
-          {/* Up Next Card */}
-          <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
-                Next in Routine ({currentStep + 1} of {totalExercises})
-              </span>
-              <span className="text-xs text-purple-900 font-bold flex items-center gap-1">
-                <Brain className="w-3.5 h-3.5 text-purple-600" />
-                <span>~{nextGameEstimatedMinutes} mins</span>
-              </span>
-            </div>
+          {/* Up Next Card or Final Exercise Completed Banner */}
+          {currentStep < totalExercises ? (
+            <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                  Next in Routine ({currentStep + 1} of {totalExercises})
+                </span>
+                <span className="text-xs text-purple-900 font-bold flex items-center gap-1">
+                  <Brain className="w-3.5 h-3.5 text-purple-600" />
+                  <span>~{nextGameEstimatedMinutes} mins</span>
+                </span>
+              </div>
 
-            <div>
-              <h3 className="text-base font-black text-slate-900">
-                {nextGameTitle}
-              </h3>
-              <p className="text-xs text-slate-600 font-medium mt-0.5">
-                {nextGameSubtitle || nextGameDomain}
+              <div>
+                <h3 className="text-base font-black text-slate-900">
+                  {nextGameTitle}
+                </h3>
+                <p className="text-xs text-slate-600 font-medium mt-0.5">
+                  {nextGameSubtitle || nextGameDomain}
+                </p>
+              </div>
+
+              {/* Dynamic AI Flow Adaptation Rationale */}
+              {flowRationale && (
+                <div className="mt-2 p-3 rounded-xl bg-indigo-50 border border-indigo-200/80 text-xs flex items-start gap-2.5 text-indigo-900 animate-fadeIn">
+                  <Sparkles className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-black text-[10px] uppercase tracking-wider text-indigo-700 block">
+                      AI Clinical Flow Adaptation
+                    </span>
+                    <p className="text-[11px] font-medium leading-relaxed mt-0.5 text-indigo-950">
+                      {flowRationale}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-1.5 animate-fadeIn">
+              <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider text-emerald-800">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>All {totalExercises} Prescribed Exercises Complete!</span>
+              </div>
+              <p className="text-xs text-emerald-900/90 font-medium leading-relaxed">
+                You have successfully completed your prescribed cognitive exercises for today. Click below to review your scheduled medicines and daily routine.
               </p>
             </div>
-
-            {/* Dynamic AI Flow Adaptation Rationale */}
-            {flowRationale && (
-              <div className="mt-2 p-3 rounded-xl bg-indigo-50 border border-indigo-200/80 text-xs flex items-start gap-2.5 text-indigo-900 animate-fadeIn">
-                <Sparkles className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-black text-[10px] uppercase tracking-wider text-indigo-700 block">
-                    AI Clinical Flow Adaptation
-                  </span>
-                  <p className="text-[11px] font-medium leading-relaxed mt-0.5 text-indigo-950">
-                    {flowRationale}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Action Buttons */}
           <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
             <button
               onClick={onStartNext}
-              className="w-full sm:flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white font-black text-sm sm:text-base shadow-lg hover:shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-97"
+              className={`w-full sm:flex-1 py-4 px-6 rounded-2xl text-white font-black text-sm sm:text-base shadow-lg hover:shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-97 ${
+                currentStep >= totalExercises
+                  ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800'
+                  : 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600'
+              }`}
             >
               <Sparkles className="w-4 h-4 text-amber-200" />
-              <span>Start Next Exercise ➔</span>
+              <span>{currentStep >= totalExercises ? 'Finish Workout & Check Medications ➔' : 'Start Next Exercise ➔'}</span>
             </button>
 
             <button
