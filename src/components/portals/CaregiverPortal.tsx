@@ -1654,6 +1654,10 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
         patient={patient}
         dailyComposite={compositeScore}
         dailySessions={currentDailySessions}
+        medications={medications}
+        routines={routines}
+        uploadedReports={reports}
+        prescription={prescription}
       />
 
       {/* Cloud AI Configuration Modal */}
