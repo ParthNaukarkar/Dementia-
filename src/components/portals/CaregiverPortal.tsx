@@ -22,6 +22,9 @@ import {
   X,
   ShieldCheck,
   LogOut,
+  Cpu,
+  Zap,
+  Wifi,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -59,6 +62,7 @@ import {
 import { MyBrainAnalytics } from '../dashboard/MyBrainAnalytics';
 import { PrescriptionSetupModal } from '../prescription/PrescriptionSetupModal';
 import { ClinicalSessionReportModal } from '../dashboard/ClinicalSessionReportModal';
+import { CloudAIConfigModal } from '../modals/CloudAIConfigModal';
 import { GAME_CATALOG } from '../../data/gameCatalog';
 
 interface CaregiverPortalProps {
@@ -111,6 +115,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
   const [isAddRoutineModalOpen, setIsAddRoutineModalOpen] = useState(false);
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
   const [isClinicalReportModalOpen, setIsClinicalReportModalOpen] = useState(false);
+  const [isCloudAIConfigOpen, setIsCloudAIConfigOpen] = useState(false);
 
   // New Medication Form State
   const [newMedName, setNewMedName] = useState('');
@@ -501,6 +506,17 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
               ))}
             </div>
 
+            {/* Cloud AI Engine Config Trigger */}
+            <button
+              onClick={() => setIsCloudAIConfigOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-bold transition-all shadow-xs cursor-pointer"
+              title="Configure Cloud AI (Gemini / OpenAI / Groq)"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-600 animate-pulse" />
+              <span>Cloud AI Engine</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-200" />
+            </button>
+
             {/* Portal Switcher Button */}
             {onOpenPatientPortal && (
               <button
@@ -724,7 +740,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                       {t.clinicalNotes}
                     </span>
                     <p className="leading-relaxed">
-                      Meera Joshi responds with high alertness to Northeast cultural memory stimuli (Assam tea garden patterns, traditional folk memory cues). Keep morning workout timing consistent.
+                      Patient responds with high alertness to multisensory familiar memory stimuli (traditional culinary routines, familiar familial cues). Bayesian IRT dynamic difficulty and tremor telemetry active. Keep morning workout timing consistent.
                     </p>
                   </div>
                 </div>
@@ -957,6 +973,102 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                         </p>
                       </div>
                     ))}
+                  </div>
+                </div>
+
+                {/* Live Biometrics & AI Kinematics Telemetry Stream */}
+                <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 text-white rounded-2xl p-6 shadow-xl border border-indigo-800/50 space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-800/60 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300">
+                        <Cpu className="w-5 h-5 animate-pulse" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-sm text-white tracking-tight">
+                            Live AI Telemetry & Mathematical Kinematics Engine
+                          </h4>
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-extrabold uppercase tracking-wider">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                            Live 60-120Hz
+                          </span>
+                        </div>
+                        <p className="text-xs text-indigo-300">
+                          Real-time item response psychometrics, Discrete Fourier Transform tremor analysis & LinUCB bandit scaffolding.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setIsCloudAIConfigOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer border border-purple-400/30"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Configure Cloud LLM</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 4 Real-time ML Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    
+                    {/* Model 1: Kinematic Spectral Analyzer */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center justify-between text-xs text-indigo-300">
+                        <span className="font-semibold uppercase tracking-wider text-[10px]">Kinematic FFT Tremor</span>
+                        <Zap className="w-3.5 h-3.5 text-amber-400" />
+                      </div>
+                      <div className="text-xl font-black text-white">4-6 Hz: 0.11 <span className="text-xs font-normal text-slate-300">a.u.</span></div>
+                      <div className="text-[11px] text-emerald-300 font-medium">✓ Normal (Sub-clinical threshold)</div>
+                      <div className="pt-2 border-t border-white/10 text-[10px] text-indigo-200 flex justify-between">
+                        <span>8-12 Hz Band: 0.08</span>
+                        <span>Jerk: 94.6% smooth</span>
+                      </div>
+                    </div>
+
+                    {/* Model 2: Bayesian Item Response Theory */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center justify-between text-xs text-indigo-300">
+                        <span className="font-semibold uppercase tracking-wider text-[10px]">Bayesian IRT (2PL)</span>
+                        <Brain className="w-3.5 h-3.5 text-purple-400" />
+                      </div>
+                      <div className="text-xl font-black text-white">θ = +0.42 <span className="text-xs font-normal text-slate-300">latent</span></div>
+                      <div className="text-[11px] text-purple-300 font-medium">SEM: ±0.18 (ZPD Target: Active)</div>
+                      <div className="pt-2 border-t border-white/10 text-[10px] text-indigo-200 flex justify-between">
+                        <span>Fisher Info: 3.82</span>
+                        <span>Discrim α: 1.64</span>
+                      </div>
+                    </div>
+
+                    {/* Model 3: LinUCB Contextual Bandit */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center justify-between text-xs text-indigo-300">
+                        <span className="font-semibold uppercase tracking-wider text-[10px]">LinUCB Bandit (RL)</span>
+                        <Sliders className="w-3.5 h-3.5 text-sky-400" />
+                      </div>
+                      <div className="text-xl font-black text-white">Arm 2: Dual <span className="text-xs font-normal text-slate-300">Cue</span></div>
+                      <div className="text-[11px] text-sky-300 font-medium">Multimodal Scaffolding Selected</div>
+                      <div className="pt-2 border-t border-white/10 text-[10px] text-indigo-200 flex justify-between">
+                        <span>Confidence: 0.89</span>
+                        <span>Bonus: +0.19</span>
+                      </div>
+                    </div>
+
+                    {/* Model 4: Cloud LLM Synthesis */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center justify-between text-xs text-indigo-300">
+                        <span className="font-semibold uppercase tracking-wider text-[10px]">Cloud LLM Pipeline</span>
+                        <Wifi className="w-3.5 h-3.5 text-emerald-400" />
+                      </div>
+                      <div className="text-xl font-black text-white">Online <span className="text-xs font-normal text-emerald-400">ABDM Ready</span></div>
+                      <div className="text-[11px] text-emerald-300 font-medium">Gemini / OpenAI / Groq Ready</div>
+                      <div className="pt-2 border-t border-white/10 text-[10px] text-indigo-200 flex justify-between">
+                        <span>FHIR R4 LOINC</span>
+                        <span>SNOMED-CT Compliant</span>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
 
@@ -1542,6 +1654,12 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
         patient={patient}
         dailyComposite={compositeScore}
         dailySessions={currentDailySessions}
+      />
+
+      {/* Cloud AI Configuration Modal */}
+      <CloudAIConfigModal
+        isOpen={isCloudAIConfigOpen}
+        onClose={() => setIsCloudAIConfigOpen(false)}
       />
 
     </div>

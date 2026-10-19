@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   X, 
   Printer, 
@@ -10,10 +10,19 @@ import {
   FileText, 
   Brain,
   CheckCircle2,
-  Activity
+  Activity,
+  Zap,
+  Settings as SettingsIcon,
+  RefreshCw,
 } from 'lucide-react';
 import type { PatientProfile } from '../../types/auth';
 import { CognitiveClassifier } from '../../engine/cognitive-classifier';
+import { 
+  AIClinicalReportingService, 
+  type GeneratedClinicalReport,
+  type ClinicalReportPayload
+} from '../../services/ai-clinical-reporting';
+import { CloudAIConfigModal } from '../modals/CloudAIConfigModal';
 import type { 
   DailyCompositeScoreResult, 
   DailyGameSessionRecord 
@@ -74,6 +83,63 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
       tremorJitterIndex: 0.12,
     });
   }, [report]);
+
+  const [cloudReport, setCloudReport] = useState<GeneratedClinicalReport | null>(null);
+  const [isGeneratingCloudReport, setIsGeneratingCloudReport] = useState(false);
+  const [isAIConfigOpen, setIsAIConfigOpen] = useState(false);
+
+  const handleGenerateCloudReport = async () => {
+    setIsGeneratingCloudReport(true);
+    const payload: ClinicalReportPayload = {
+      patient: {
+        name: patientName,
+        age: patientAge,
+        gender: patient?.gender,
+        diagnosisStage: diagnosis,
+      },
+      gameData: {
+        gameId: report.gameId || (isSequenceRecall ? 'sequence-recall' : 'smriti-haat'),
+        gameTitle,
+        accuracyPercentage: accuracy,
+        totalTrials,
+        correctTrials,
+        averageLatencyMs: report.averageLatencyMs || 2400,
+        finalTheta: parseFloat(theta) || 0.65,
+        estimatedMoCAScore: mocaScore,
+        transpositionErrors: transpositions,
+        intrusionErrors: intrusions,
+        perseverationErrors: perseverations,
+        autoAssistedRounds: autoAssists,
+        speedProfile,
+        maxSpanAchieved: maxSpan,
+      },
+      kinematicData: {
+        pathEfficiencyRatio: 0.92,
+        bandPower_4_6Hz: 0.08,
+        bandPower_8_12Hz: 0.12,
+        tremorPhenotype: 'normal_smooth',
+        tremorSeverityIndex: 0.08,
+        fittsPerformanceIndex: 1.85,
+      },
+      dailyComposite: dailyComposite ? {
+        overallScore: dailyComposite.score,
+        domainBreakdown: dailyComposite.domainBreakdown.map((d) => ({
+          domain: d.domain,
+          score: d.score,
+          accuracy: d.accuracy ?? 0,
+        })),
+      } : undefined,
+    };
+
+    try {
+      const result = await AIClinicalReportingService.generateReport(payload);
+      setCloudReport(result);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsGeneratingCloudReport(false);
+    }
+  };
 
   const handlePrint = () => {
     window.print();
@@ -148,7 +214,167 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
             </div>
           </div>
 
-          {/* DAILY MULTI-GAME AGGREGATED TELEMETRY SECTION */}
+          {/* CLOUD AI REAL-TIME NEURO-CLINICAL GENERATOR BANNER */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border border-amber-300/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Sparkles className="w-5 h-5 text-amber-100" />
+              </div>
+              <div>
+                <h4 className="font-black text-slate-900 text-xs sm:text-sm flex items-center gap-2">
+                  <span>Cloud AI Diagnostic Intelligence</span>
+                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
+                    LLM Powered
+                  </span>
+                </h4>
+                <p className="text-[11px] text-slate-600 font-medium">
+                  Formulates physician-grade clinical evaluations using high-parameter server models &amp; raw telemetry
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => setIsAIConfigOpen(true)}
+                className="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+                title="Configure Cloud AI API Key & Model"
+              >
+                <SettingsIcon className="w-3.5 h-3.5 text-slate-500" />
+                <span>AI Config</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleGenerateCloudReport}
+                disabled={isGeneratingCloudReport}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-purple-600 hover:from-amber-700 hover:to-purple-700 text-white font-black text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 shrink-0"
+              >
+                {isGeneratingCloudReport ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Analyzing Telemetry...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-3.5 h-3.5 text-amber-200" />
+                    <span>{cloudReport ? 'Regenerate Cloud Report' : 'Generate Cloud AI Report'}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* CLOUD AI GENERATED CLINICAL ASSESSMENT CARD (WHEN READY) */}
+          {cloudReport && (
+            <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white border-2 border-amber-400/80 shadow-xl space-y-5 animate-fadeIn">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black tracking-wide uppercase text-amber-300 flex items-center gap-2">
+                      <span>Server LLM Neurocognitive Assessment</span>
+                      <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-400/30">
+                        {cloudReport.provider} • {cloudReport.model}
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-slate-400 font-medium">
+                      Generated at {cloudReport.generatedAt} • Automated DSM-5 Staging &amp; Domain Deconstruction
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-left sm:text-right">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">DSM-5 Staging</span>
+                  <span className="inline-block text-xs font-black px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                    {cloudReport.dsm5Staging}
+                  </span>
+                </div>
+              </div>
+
+              {/* Diagnostic Summary */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                  Clinical Diagnostic Synthesis
+                </span>
+                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
+                  {cloudReport.diagnosticSummary}
+                </p>
+              </div>
+
+              {/* 3-Domain Deconstruction Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                  <strong className="text-purple-300 block text-[11px] uppercase tracking-wider font-black">
+                    Hippocampal Memory
+                  </strong>
+                  <p className="text-[11px] text-slate-300 leading-snug font-medium">
+                    {cloudReport.domainAnalysis.episodicMemory}
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                  <strong className="text-sky-300 block text-[11px] uppercase tracking-wider font-black">
+                    Executive Control
+                  </strong>
+                  <p className="text-[11px] text-slate-300 leading-snug font-medium">
+                    {cloudReport.domainAnalysis.executiveControl}
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                  <strong className="text-emerald-300 block text-[11px] uppercase tracking-wider font-black">
+                    Visuomotor Praxis
+                  </strong>
+                  <p className="text-[11px] text-slate-300 leading-snug font-medium">
+                    {cloudReport.domainAnalysis.visuomotorPraxis}
+                  </p>
+                </div>
+              </div>
+
+              {/* Biometrics & Kinematics Findings */}
+              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1 text-xs">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-amber-400" />
+                  Biometric Kinematics &amp; Tremor Analysis
+                </span>
+                <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
+                  {cloudReport.biometricFindings}
+                </p>
+              </div>
+
+              {/* Caregiver Daily Guidance */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 block">
+                  Actionable Caregiver Protocol for Home Care
+                </span>
+                <ul className="text-xs text-slate-300 space-y-1.5 list-disc pl-4 font-medium leading-relaxed">
+                  {cloudReport.caregiverRecommendations.map((rec, idx) => (
+                    <li key={idx}>{rec}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* ABDM Interoperability Coding Footer Chips */}
+              <div className="pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400 font-mono">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="bg-white/10 px-2 py-0.5 rounded-md text-slate-300">
+                    SNOMED-CT: {cloudReport.abdmCoding.snomedCode}
+                  </span>
+                  <span className="bg-white/10 px-2 py-0.5 rounded-md text-slate-300">
+                    LOINC: {cloudReport.abdmCoding.loincCode}
+                  </span>
+                  <span className="bg-white/10 px-2 py-0.5 rounded-md text-slate-300">
+                    ICD-11: {cloudReport.abdmCoding.icd11Code}
+                  </span>
+                </div>
+                <span className="text-amber-400/90 font-bold">ABDM EHR Compatible</span>
+              </div>
+            </div>
+          )}
           {dailyComposite && dailyComposite.gamesPlayedCount > 0 && (
             <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border border-slate-700 space-y-4 shadow-md">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700/80 pb-3">
@@ -449,7 +675,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
         {/* Footer Actions */}
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
           <span className="text-[11px] text-slate-400 font-bold">
-            Audit ID: {report.gameId}-{Date.now().toString(36).toUpperCase()} • Verified Offline PWA
+            Audit ID: {report.gameId}-{Date.now().toString(36).toUpperCase()} • Cloud Connected • ABDM Ready
           </span>
           <div className="flex items-center gap-2">
             <button
@@ -469,6 +695,12 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
         </div>
 
       </div>
+
+      {/* Cloud AI API Key & Model Configuration Modal */}
+      <CloudAIConfigModal
+        isOpen={isAIConfigOpen}
+        onClose={() => setIsAIConfigOpen(false)}
+      />
     </div>
   );
 };

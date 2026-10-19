@@ -50,30 +50,26 @@ export const PatientTodayHome: React.FC<PatientTodayHomeProps> = ({
   const todayDayIndex = new Date().getDay(); // 0 = Sunday
 
   // Localized texts
-  const t = {
+  const t: Record<string, Record<SupportedLanguage, string>> = {
     workoutHeader: {
-      as: 'আজিৰ অনুশীলন (Day 1 of 7)',
-      bn: 'আজকের অনুশীলন (Day 1 of 7)',
       hi: 'आज का मानसिक अभ्यास (Day 1 of 7)',
       en: 'Day 1 of 7 • Your Daily Workout',
     },
     workoutSub: {
-      as: 'প্ৰতিটো খেল মগজুৰ ভিন্ন অংশৰ বাবে। আহক আমি শান্তভাৱে চেষ্টা কৰোঁ।',
-      bn: 'প্রতিটি খেলা মস্তিষ্কের ভিন্ন অংশের জন্য। আসুন আমরা শান্তভাবে চেষ্টা করি।',
       hi: 'प्रत्येक खेल मस्तिष्क के एक अलग हिस्से को सक्रिय करता है। आइए अभ्यास करें।',
       en: 'Each exercise works a different part of your thinking. Let\'s give them all a try.',
     },
     beginBtn: {
-      as: 'আৰম্ভ কৰক (Begin)',
-      bn: 'শুরু করুন (Begin)',
       hi: 'शुरू करें (Begin)',
-      en: 'Begin',
+      en: 'Begin Workout',
     },
     todayExercises: {
-      as: 'আজিৰ নিৰ্বাচিত খেলসমূহ (Today\'s Exercises)',
-      bn: 'আজকের নির্বাচিত খেলাসমূহ (Today\'s Exercises)',
       hi: 'आज के निर्धारित अभ्यास (Today\'s Exercises)',
       en: 'Today\'s Exercises',
+    },
+    companionNote: {
+      hi: '💡 शांति से करें, कोई जल्दी नहीं है। अपने मन को सक्रिय रखें।',
+      en: '💡 Take all the time you need. There is no rush at all — enjoy every exercise.',
     },
   };
 
@@ -160,6 +156,16 @@ export const PatientTodayHome: React.FC<PatientTodayHomeProps> = ({
           </div>
 
           <hr className="border-slate-100" />
+
+          {/* AI Companion Caregiver Callout */}
+          <div className="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl flex items-center gap-3 text-amber-950 shadow-2xs">
+            <div className="w-8 h-8 rounded-xl bg-amber-400/80 text-amber-950 flex items-center justify-center font-black shrink-0">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <p className="text-xs font-bold leading-relaxed">
+              {t.companionNote[language]}
+            </p>
+          </div>
 
           {/* Today's Exercises Section (Icons + Category pills) */}
           <div className="space-y-3">
