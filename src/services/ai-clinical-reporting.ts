@@ -233,7 +233,7 @@ export class AIClinicalReportingService {
     return {
       apiKey: (import.meta as any).env?.VITE_GEMINI_API_KEY || '',
       provider: 'gemini',
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3.8-flash',
     };
   }
 
@@ -248,7 +248,7 @@ export class AIClinicalReportingService {
 
   /**
    * Resilient Gemini Content Generation caller
-   * Strips accidental 'models/' prefixes and auto-falls back across stable Gemini model identifiers (1.5-flash, 1.5-flash-latest, 1.5-pro, 2.0-flash-exp) and versions (v1beta, v1)
+   * Strips accidental 'models/' prefixes and auto-falls back across Gemini 3.8 Flash and stable 1.5 identifiers
    */
   public static async callGeminiGenerateContent(
     apiKey: string,
@@ -256,17 +256,17 @@ export class AIClinicalReportingService {
     body: any
   ): Promise<{ text: string; actualModel: string }> {
     const cleanKey = apiKey.trim();
-    const cleanRequested = (requestedModel || 'gemini-1.5-flash').replace(/^models\//i, '').trim();
+    const cleanRequested = (requestedModel || 'gemini-3.8-flash').replace(/^models\//i, '').trim();
 
-    // Priority candidate models to attempt (1.5-flash is primary standard)
+    // Priority candidate models to attempt (gemini-3.8-flash is primary standard)
     const candidateModels = Array.from(new Set([
       cleanRequested,
+      'gemini-3.8-flash',
       'gemini-1.5-flash',
       'gemini-1.5-flash-latest',
       'gemini-1.5-flash-8b',
       'gemini-1.5-pro',
-      'gemini-2.0-flash-exp',
-      'gemini-2.0-flash',
+      'gemini-3.8-pro',
     ]));
 
     const apiVersions = ['v1beta', 'v1'];
@@ -275,11 +275,30 @@ export class AIClinicalReportingService {
     for (const model of candidateModels) {
       for (const version of apiVersions) {
         try {
+          const isGemini3 = /3\.\d+/i.test(model);
+          let requestBody = { ...body };
+
+          if (isGemini3) {
+            // Gemini 3.8 Flash uses responseMimeType and optional thinking_level (LOW, MEDIUM, HIGH)
+            // It deprecates legacy sampling parameters like temperature and maxOutputTokens limits
+            const mimeType = body.generationConfig?.responseMimeType || 'application/json';
+            requestBody = {
+              ...body,
+              generationConfig: {
+                responseMimeType: mimeType,
+                thinking_level: 'LOW',
+              },
+            };
+          }
+
           const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${cleanKey}`;
           const res = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-goog-api-key': cleanKey,
+            },
+            body: JSON.stringify(requestBody),
           });
 
           if (res.ok) {

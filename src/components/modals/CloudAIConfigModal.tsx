@@ -37,7 +37,7 @@ export const CloudAIConfigModal: React.FC<CloudAIConfigModalProps> = ({
   if (!isOpen) return null;
 
   const handleProviderChange = (provider: AIProvider) => {
-    let defaultModel = 'gemini-1.5-flash';
+    let defaultModel = 'gemini-3.8-flash';
     if (provider === 'openai') defaultModel = 'gpt-4o-mini';
     if (provider === 'groq') defaultModel = 'llama-3.3-70b-versatile';
 
@@ -164,8 +164,8 @@ export const CloudAIConfigModal: React.FC<CloudAIConfigModalProps> = ({
             >
               {config.provider === 'gemini' && (
                 <>
-                  <option value="gemini-1.5-flash">gemini-1.5-flash (Fast, Low Latency, Free Tier)</option>
-                  <option value="gemini-2.0-flash">gemini-2.0-flash (Latest Generation High Speed)</option>
+                  <option value="gemini-3.8-flash">gemini-3.8-flash (Latest Gemini 3 Generation - Recommended)</option>
+                  <option value="gemini-1.5-flash">gemini-1.5-flash (Standard Fast Tier)</option>
                   <option value="gemini-1.5-pro">gemini-1.5-pro (Deep Neuropsychological Reasoning)</option>
                 </>
               )}
