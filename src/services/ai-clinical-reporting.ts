@@ -233,7 +233,7 @@ export class AIClinicalReportingService {
     return {
       apiKey: (import.meta as any).env?.VITE_GEMINI_API_KEY || '',
       provider: 'gemini',
-      model: 'gemini-2.0-flash',
+      model: 'gemini-1.5-flash',
     };
   }
 
@@ -247,6 +247,71 @@ export class AIClinicalReportingService {
   }
 
   /**
+   * Resilient Gemini Content Generation caller
+   * Strips accidental 'models/' prefixes and auto-falls back across stable Gemini model identifiers (1.5-flash, 1.5-flash-latest, 1.5-pro, 2.0-flash-exp) and versions (v1beta, v1)
+   */
+  public static async callGeminiGenerateContent(
+    apiKey: string,
+    requestedModel: string,
+    body: any
+  ): Promise<{ text: string; actualModel: string }> {
+    const cleanKey = apiKey.trim();
+    const cleanRequested = (requestedModel || 'gemini-1.5-flash').replace(/^models\//i, '').trim();
+
+    // Priority candidate models to attempt (1.5-flash is primary standard)
+    const candidateModels = Array.from(new Set([
+      cleanRequested,
+      'gemini-1.5-flash',
+      'gemini-1.5-flash-latest',
+      'gemini-1.5-flash-8b',
+      'gemini-1.5-pro',
+      'gemini-2.0-flash-exp',
+      'gemini-2.0-flash',
+    ]));
+
+    const apiVersions = ['v1beta', 'v1'];
+    let lastError = '';
+
+    for (const model of candidateModels) {
+      for (const version of apiVersions) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${cleanKey}`;
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (text) {
+              return { text, actualModel: model };
+            }
+          } else {
+            const errJson = await res.json().catch(() => ({}));
+            lastError = errJson?.error?.message || `HTTP ${res.status}`;
+            // If it's a 404 or unsupported model, loop to next candidate
+            if (res.status === 404 || /not supported|not found/i.test(lastError)) {
+              continue;
+            } else {
+              // If it's an invalid API key (400/403), throw immediately so the user knows
+              throw new Error(lastError);
+            }
+          }
+        } catch (fetchErr: any) {
+          if (fetchErr.message && !/not supported|not found/i.test(fetchErr.message)) {
+            throw fetchErr;
+          }
+          lastError = fetchErr.message;
+        }
+      }
+    }
+
+    throw new Error(`Google Gemini API error: ${lastError || 'Model not supported for generateContent. Please verify API key.'}`);
+  }
+
+  /**
    * Test API Key connection
    */
   public static async testConnection(config: CloudAIConfig): Promise<{ success: boolean; message: string; latencyMs: number }> {
@@ -257,23 +322,21 @@ export class AIClinicalReportingService {
 
     try {
       if (config.provider === 'gemini') {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.model || 'gemini-2.0-flash'}:generateContent?key=${config.apiKey.trim()}`;
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const result = await this.callGeminiGenerateContent(
+          config.apiKey,
+          config.model || 'gemini-1.5-flash',
+          {
             contents: [{ role: 'user', parts: [{ text: 'Respond with the word OK.' }] }],
             generationConfig: { maxOutputTokens: 5 },
-          }),
-        });
+          }
+        );
 
         const elapsed = Math.round(performance.now() - start);
-        if (res.ok) {
-          return { success: true, message: `Connected to Google Gemini (${config.model}) successfully!`, latencyMs: elapsed };
-        } else {
-          const errData = await res.json().catch(() => ({}));
-          return { success: false, message: errData?.error?.message || `HTTP ${res.status}`, latencyMs: elapsed };
-        }
+        return { 
+          success: true, 
+          message: `Connected to Google Gemini (${result.actualModel}) successfully!`, 
+          latencyMs: elapsed 
+        };
       } else {
         const endpoint = config.provider === 'groq'
           ? 'https://api.groq.com/openai/v1/chat/completions'
@@ -372,12 +435,13 @@ Motor & Kinematics Spectrum:
     try {
       let rawText = '';
 
+      let resolvedModel = config.model;
+
       if (config.provider === 'gemini') {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.model || 'gemini-2.0-flash'}:generateContent?key=${config.apiKey.trim()}`;
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const geminiRes = await this.callGeminiGenerateContent(
+          config.apiKey,
+          config.model || 'gemini-1.5-flash',
+          {
             contents: [
               { role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }
             ],
@@ -386,15 +450,10 @@ Motor & Kinematics Spectrum:
               responseMimeType: 'application/json',
               maxOutputTokens: 2048,
             },
-          }),
-        });
-
-        if (!res.ok) {
-          throw new Error(`Cloud API responded with status ${res.status}`);
-        }
-
-        const data = await res.json();
-        rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          }
+        );
+        rawText = geminiRes.text;
+        resolvedModel = geminiRes.actualModel;
       } else {
         const endpoint = config.provider === 'groq'
           ? 'https://api.groq.com/openai/v1/chat/completions'
@@ -426,11 +485,12 @@ Motor & Kinematics Spectrum:
         rawText = data?.choices?.[0]?.message?.content || '';
       }
 
-      const parsed = JSON.parse(rawText);
+      const cleanJson = (t: string) => t.replace(/```(?:json)?\s*([\s\S]*?)\s*```/g, '$1').trim();
+      const parsed = JSON.parse(cleanJson(rawText));
       return {
         isCloudGenerated: true,
         provider: config.provider.toUpperCase(),
-        model: config.model,
+        model: resolvedModel,
         generatedAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
         diagnosticSummary: parsed.diagnosticSummary || 'Assessment completed.',
         dsm5Staging: parsed.dsm5Staging || 'Mild Cognitive Impairment',
@@ -598,28 +658,23 @@ ${payload.dailyRoutines.map(r => `  * [${r.time}] ${r.activity} (${r.category}) 
 
     try {
       let rawText = '';
+      let resolvedModel = config.model;
 
       if (config.provider === 'gemini') {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.model || 'gemini-2.0-flash'}:generateContent?key=${config.apiKey.trim()}`;
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const geminiRes = await this.callGeminiGenerateContent(
+          config.apiKey,
+          config.model || 'gemini-1.5-flash',
+          {
             contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
             generationConfig: {
               temperature: 0.25,
               responseMimeType: 'application/json',
               maxOutputTokens: 4096,
             },
-          }),
-        });
-
-        if (!res.ok) {
-          throw new Error(`Cloud API responded with status ${res.status}`);
-        }
-
-        const data = await res.json();
-        rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          }
+        );
+        rawText = geminiRes.text;
+        resolvedModel = geminiRes.actualModel;
       } else {
         const endpoint = config.provider === 'groq'
           ? 'https://api.groq.com/openai/v1/chat/completions'
@@ -651,12 +706,13 @@ ${payload.dailyRoutines.map(r => `  * [${r.time}] ${r.activity} (${r.category}) 
         rawText = data?.choices?.[0]?.message?.content || '';
       }
 
-      const parsed = JSON.parse(rawText);
+      const cleanJson = (t: string) => t.replace(/```(?:json)?\s*([\s\S]*?)\s*```/g, '$1').trim();
+      const parsed = JSON.parse(cleanJson(rawText));
 
       return {
         isCloudGenerated: true,
         provider: config.provider.toUpperCase(),
-        model: config.model,
+        model: resolvedModel,
         generatedAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
         diagnosticSummary: parsed.diagnosticSummary || 'Comprehensive assessment concluded.',
         dsm5Staging: parsed.dsm5Staging || 'Mild Neurocognitive Disorder (Amnestic Variant)',

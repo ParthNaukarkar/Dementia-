@@ -571,7 +571,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                           key={p}
                           type="button"
                           onClick={() => {
-                            const defaultModel = p === 'gemini' ? 'gemini-2.0-flash' : p === 'openai' ? 'gpt-4o-mini' : 'llama-3.3-70b-versatile';
+                            const defaultModel = p === 'gemini' ? 'gemini-1.5-flash' : p === 'openai' ? 'gpt-4o-mini' : 'llama-3.3-70b-versatile';
                             const updated = { ...cloudConfig, provider: p, model: defaultModel };
                             setCloudConfig(updated);
                             AIClinicalReportingService.saveConfig(updated);
