@@ -62,9 +62,10 @@ const ARCHETYPES = [
   { label: 'Early-Stage Alzheimer Dementia', baseAcc: 32, baseLat: 6800, tremor: 0.25, persev: 4 },
 ];
 
-async function callOpenAIVerification(
+async function callAIVerification(
   event: LevelChangeEvent,
-  apiKey: string
+  apiKey: string,
+  provider: 'openai' | 'gemini' = 'gemini'
 ): Promise<OpenAIAuditResult> {
   const profile = getGameCognitiveProfile(event.gameId);
 
@@ -99,45 +100,58 @@ Respond with strictly valid JSON:
 }`;
 
   try {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey.trim()}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        response_format: { type: 'json_object' },
-        temperature: 0.15,
-        max_tokens: 280,
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error(`OpenAI HTTP ${res.status}`);
+    let raw = '{}';
+    if (provider === 'gemini') {
+      const model = 'gemini-1.5-flash';
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: 'application/json' },
+        }),
+      });
+      if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
+      const data = await res.json();
+      raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    } else {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey.trim()}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }],
+          response_format: { type: 'json_object' },
+          temperature: 0.15,
+          max_tokens: 280,
+        }),
+      });
+      if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}`);
+      const data = await res.json();
+      raw = data.choices?.[0]?.message?.content || '{}';
     }
 
-    const data = await res.json();
-    const raw = data.choices?.[0]?.message?.content || '{}';
     const parsed = JSON.parse(raw);
-
     return {
       event,
       agreed: typeof parsed.agreed === 'boolean' ? parsed.agreed : true,
       openAIAction: parsed.openAIAction || event.engineAction,
       openAITier: Number(parsed.openAITier) || event.newTier,
-      clinicalReflection: parsed.clinicalReflection || 'OpenAI verified decision.',
+      clinicalReflection: parsed.clinicalReflection || `${provider.toUpperCase()} verified decision.`,
       confidenceScore: Number(parsed.confidenceScore) || 0.95,
       latencyScaleAdjustment: Number(parsed.latencyScaleAdjustment) || 0.0,
     };
   } catch (err: any) {
     return {
       event,
-      agreed: true, // fallback to avoid test halting on network error
+      agreed: true,
       openAIAction: event.engineAction,
       openAITier: event.newTier,
-      clinicalReflection: `API Error: ${err.message}`,
+      clinicalReflection: `API Error (${provider}): ${err.message}`,
       confidenceScore: 0.0,
     };
   }
@@ -219,19 +233,20 @@ export async function runOpenAILevelAudit(apiKey: string, sampleLimit: number = 
     return;
   }
 
-  // 2. Audit level changes with Live OpenAI GPT-4o
+  // 2. Audit level changes with Live AI (Gemini / OpenAI)
+  const provider = (apiKey.startsWith('AIzaSy') || cliProvider === 'gemini') ? 'gemini' : 'openai';
   const sampleToTest = levelChanges.slice(0, sampleLimit);
   const auditResults: OpenAIAuditResult[] = [];
   let agreedCount = 0;
 
-  console.log('⏳ Disagreeing / Agreeing evaluations in progress with OpenAI GPT-4o-mini...\n');
+  console.log(`⏳ Disagreeing / Agreeing evaluations in progress with Live ${provider.toUpperCase()} (${provider === 'gemini' ? 'gemini-1.5-flash' : 'gpt-4o-mini'})...\n`);
 
   for (let i = 0; i < sampleToTest.length; i++) {
     const event = sampleToTest[i];
     process.stdout.write(`   [${i + 1}/${sampleToTest.length}] Auditing ${event.gameTitle} (${event.engineAction} to Tier ${event.newTier} for ${event.diagnosisStage})... `);
     
     const startMs = Date.now();
-    const audit = await callOpenAIVerification(event, apiKey);
+    const audit = await callAIVerification(event, apiKey, provider);
     const duration = Date.now() - startMs;
     auditResults.push(audit);
 
@@ -239,27 +254,28 @@ export async function runOpenAILevelAudit(apiKey: string, sampleLimit: number = 
       agreedCount++;
       console.log(`✅ AGREED (${duration}ms)`);
     } else {
-      console.log(`⚠️ DISCREPANCY: OpenAI preferred ${audit.openAIAction} (Tier ${audit.openAITier}) (${duration}ms)`);
+      console.log(`⚠️ DISCREPANCY: ${provider.toUpperCase()} preferred ${audit.openAIAction} (Tier ${audit.openAITier}) (${duration}ms)`);
       console.log(`      Teacher Note: "${audit.clinicalReflection}"`);
     }
 
     // Small delay to prevent rate-limit bursts
-    await new Promise(r => setTimeout(r, 120));
+    await new Promise(r => setTimeout(r, 150));
   }
 
   // 3. Final Summary Report
   const agreementRate = ((agreedCount / sampleToTest.length) * 100).toFixed(1);
   console.log('\n' + '='.repeat(80));
-  console.log('📊 LIVE OPENAI AUDIT RESULTS SUMMARY');
+  console.log(`📊 LIVE ${provider.toUpperCase()} AUDIT RESULTS SUMMARY`);
   console.log('='.repeat(80));
-  console.log(`• Total Level Changes Audited by OpenAI: ${sampleToTest.length}`);
-  console.log(`• OpenAI Endorsed (Agreed): ${agreedCount} / ${sampleToTest.length} (${agreementRate}%)`);
+  console.log(`• Total Level Changes Audited by ${provider.toUpperCase()}: ${sampleToTest.length}`);
+  console.log(`• ${provider.toUpperCase()} Endorsed (Agreed): ${agreedCount} / ${sampleToTest.length} (${agreementRate}%)`);
   console.log(`• Clinical Discrepancies / Refinements: ${sampleToTest.length - agreedCount}`);
   console.log('='.repeat(80));
 }
 
 // Read CLI arguments
-const cliApiKey = process.argv[2] || process.env.OPENAI_API_KEY || '';
+const cliApiKey = process.argv[2] || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '';
 const cliLimit = Number(process.argv[3]) || 20;
+const cliProvider = (process.argv[4] as 'openai' | 'gemini') || (cliApiKey.startsWith('AIzaSy') ? 'gemini' : 'gemini');
 
 runOpenAILevelAudit(cliApiKey, cliLimit);
