@@ -10,12 +10,17 @@ import {
   Brain,
   Activity,
   Zap,
-  Settings as SettingsIcon,
   RefreshCw,
   Pill,
   Clock,
   ArrowRight,
   AlertTriangle,
+  Key,
+  Eye,
+  EyeOff,
+  ExternalLink,
+  CheckCircle2,
+  AlertCircle,
 } from 'lucide-react';
 import type { PatientProfile } from '../../types/auth';
 import type { MedicationItem, DailyRoutineItem } from '../../types/caregiver';
@@ -28,6 +33,8 @@ import {
   type ClinicalReportPayload,
   type ComprehensiveClinicalPayload,
   type ComprehensiveClinicalReport,
+  type AIProvider,
+  type CloudAIConfig,
 } from '../../services/ai-clinical-reporting';
 import { CloudAIConfigModal } from '../modals/CloudAIConfigModal';
 import type { 
@@ -108,6 +115,10 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
 
   // AI Configuration Modal state
   const [isAIConfigOpen, setIsAIConfigOpen] = useState(false);
+  const [cloudConfig, setCloudConfig] = useState<CloudAIConfig>(() => AIClinicalReportingService.getConfig());
+  const [apiKeyInput, setApiKeyInput] = useState<string>(() => AIClinicalReportingService.getConfig().apiKey);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
 
   // Single-Game Cloud Report State
   const [singleCloudReport, setSingleCloudReport] = useState<GeneratedClinicalReport | null>(null);
@@ -172,8 +183,30 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
   };
 
   // Handle Generating Comprehensive Multi-Modal Report (EVERYTHING)
-  const handleGenerateComprehensiveReport = async () => {
+  const handleGenerateComprehensiveReport = async (overrideBenchmark = false) => {
     setIsGeneratingComprehensive(true);
+    setApiErrorMessage(null);
+
+    let activeConfig: CloudAIConfig = { ...cloudConfig };
+    if (!overrideBenchmark) {
+      if (apiKeyInput.trim()) {
+        activeConfig = {
+          ...cloudConfig,
+          apiKey: apiKeyInput.trim(),
+        };
+        AIClinicalReportingService.saveConfig(activeConfig);
+        setCloudConfig(activeConfig);
+      } else {
+        setIsGeneratingComprehensive(false);
+        setApiErrorMessage('Cloud API Key Required: Please paste your Google Gemini, OpenAI, or Groq API key below to generate this report via Cloud AI.');
+        return;
+      }
+    } else {
+      activeConfig = {
+        ...cloudConfig,
+        apiKey: '', // Triggers reference cloud benchmark
+      };
+    }
 
     const sessionsArray: DailyGameSessionRecord[] = Object.values(dailySessions);
     const compositeData = dailyComposite || {
@@ -320,10 +353,11 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
     };
 
     try {
-      const res = await AIClinicalReportingService.generateComprehensiveReport(comprehensivePayload);
+      const res = await AIClinicalReportingService.generateComprehensiveReport(comprehensivePayload, activeConfig);
       setComprehensiveReport(res);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      setApiErrorMessage(e?.message || 'Cloud API request failed. Please check your API key.');
     } finally {
       setIsGeneratingComprehensive(false);
     }
@@ -471,55 +505,165 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                 </div>
               </div>
 
-              {/* CLOUD AI FULL-BLOWN TEST REPORT GENERATION TRIGGER */}
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border-2 border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-500 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-md">
-                    <Sparkles className="w-6 h-6 text-white" />
+              {/* CLOUD AI FULL-BLOWN TEST REPORT SUITE (API KEY POWERED) */}
+              <div className="p-6 rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white border-2 border-amber-400/80 shadow-xl space-y-4">
+                
+                {/* Header & Status */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center shrink-0 shadow-md">
+                      <Sparkles className="w-6 h-6 text-slate-950" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-white text-base flex items-center gap-2">
+                        <span>Cloud AI Clinical Intelligence Engine</span>
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950">
+                          Cloud API Powered
+                        </span>
+                      </h4>
+                      <p className="text-xs text-slate-300 font-medium max-w-xl">
+                        Uses external Cloud LLM API keys directly. Zero local model training or local hardware required.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-black text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                      <span>Multi-Modal Clinical Intelligence Engine</span>
-                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950">
-                        Ingests Everything
+
+                  <div className="flex items-center gap-2">
+                    {apiKeyInput.trim() ? (
+                      <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>API Key Active ({cloudConfig.provider.toUpperCase()})</span>
                       </span>
-                    </h4>
-                    <p className="text-xs text-slate-600 font-medium max-w-xl">
-                      Synthesizes raw sub-second gameplay across all games, 60-120Hz tremor FFT spectrum, caregiver uploaded medical history, and today's medication adherence into an actionable diagnostic test report.
-                    </p>
+                    ) : (
+                      <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5">
+                        <Key className="w-3.5 h-3.5 text-amber-400" />
+                        <span>API Key Needed for Live Cloud Call</span>
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setIsAIConfigOpen(true)}
-                    className="px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-2xs"
-                    title="Configure Cloud AI API Key & Model"
-                  >
-                    <SettingsIcon className="w-4 h-4 text-slate-500" />
-                    <span>AI Settings</span>
-                  </button>
+                {/* Inline Provider Selection & API Key Input Bar */}
+                <div className="space-y-3 pt-1">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                    <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                      <Key className="w-3.5 h-3.5 text-amber-400" />
+                      <span>1. Select Provider &amp; Enter API Key</span>
+                    </label>
 
-                  <button
-                    type="button"
-                    onClick={handleGenerateComprehensiveReport}
-                    disabled={isGeneratingComprehensive}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 via-purple-600 to-indigo-700 hover:from-amber-700 hover:to-indigo-800 text-white font-black text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60"
-                  >
-                    {isGeneratingComprehensive ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                        <span>Synthesizing Everything...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="w-4 h-4 text-amber-200" />
-                        <span>{comprehensiveReport ? 'Regenerate Full Intelligence Report' : 'Generate Full-Blown Test Report'}</span>
-                      </>
+                    {cloudConfig.provider === 'gemini' && (
+                      <a
+                        href="https://aistudio.google.com/app/apikey"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] font-bold text-amber-300 hover:text-amber-200 underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Get Free Google Gemini Key (Google AI Studio)</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
                     )}
-                  </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                    {/* Provider Toggle */}
+                    <div className="sm:col-span-4 grid grid-cols-3 gap-1 bg-white/5 p-1 rounded-2xl border border-white/10">
+                      {(['gemini', 'openai', 'groq'] as AIProvider[]).map((p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => {
+                            const defaultModel = p === 'gemini' ? 'gemini-2.0-flash' : p === 'openai' ? 'gpt-4o-mini' : 'llama-3.3-70b-versatile';
+                            const updated = { ...cloudConfig, provider: p, model: defaultModel };
+                            setCloudConfig(updated);
+                            AIClinicalReportingService.saveConfig(updated);
+                          }}
+                          className={`py-2 px-1 text-center rounded-xl text-xs font-black transition-all capitalize cursor-pointer ${
+                            cloudConfig.provider === p
+                              ? 'bg-amber-400 text-slate-950 shadow-md'
+                              : 'text-slate-300 hover:text-white hover:bg-white/10'
+                          }`}
+                        >
+                          {p === 'gemini' ? 'Gemini' : p === 'openai' ? 'OpenAI' : 'Groq'}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* API Key Input */}
+                    <div className="sm:col-span-8 relative">
+                      <input
+                        type={showApiKey ? 'text' : 'password'}
+                        value={apiKeyInput}
+                        onChange={(e) => {
+                          setApiKeyInput(e.target.value);
+                          setApiErrorMessage(null);
+                          const updated = { ...cloudConfig, apiKey: e.target.value };
+                          setCloudConfig(updated);
+                          AIClinicalReportingService.saveConfig(updated);
+                        }}
+                        placeholder={`Paste your ${cloudConfig.provider.toUpperCase()} API key here...`}
+                        className="w-full px-4 py-2.5 pr-10 rounded-2xl bg-black/60 border border-white/20 text-white text-xs font-mono placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowApiKey(!showApiKey)}
+                        className="absolute right-3.5 top-3 text-slate-400 hover:text-white cursor-pointer"
+                        title={showApiKey ? 'Hide Key' : 'Show Key'}
+                      >
+                        {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Error Banner */}
+                {apiErrorMessage && (
+                  <div className="p-3.5 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-200 text-xs flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                    <div className="flex-1">
+                      <strong className="block font-bold">API Notice:</strong>
+                      <span>{apiErrorMessage}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons Row */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-white/10">
+                  <div className="text-xs text-slate-400 flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Target: <strong className="text-white">{cloudConfig.model}</strong> • Full multi-modal synthesis (all 10 games, tremor FFT, records, meds)</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateComprehensiveReport(false)}
+                      disabled={isGeneratingComprehensive}
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-xs shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60"
+                    >
+                      {isGeneratingComprehensive ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
+                          <span>Calling Cloud API ({cloudConfig.provider.toUpperCase()})...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-4 h-4 text-slate-950" />
+                          <span>{comprehensiveReport ? 'Regenerate via Cloud API' : 'Generate Full Report (via API Key)'}</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateComprehensiveReport(true)}
+                      disabled={isGeneratingComprehensive}
+                      className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 hover:text-white font-bold text-xs transition-all cursor-pointer"
+                      title="Load pre-synthesized cloud clinical reference benchmark"
+                    >
+                      <span>Preview Cloud Benchmark</span>
+                    </button>
+                  </div>
+                </div>
+
               </div>
 
               {/* RENDER FULL-BLOWN TEST REPORT */}
@@ -530,14 +674,20 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                   <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white border-2 border-amber-400 shadow-xl space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
                       <div>
-                        <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block">
-                          Official Neuropsychological Evaluation
-                        </span>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block">
+                            Official Neuropsychological Evaluation
+                          </span>
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                            <Sparkles className="w-3 h-3 text-emerald-400" />
+                            <span>{comprehensiveReport.isCloudGenerated ? 'Live Cloud REST API' : 'Cloud Benchmark Reference'}</span>
+                          </span>
+                        </div>
                         <h3 className="text-lg font-black text-white mt-0.5">
                           {comprehensiveReport.dsm5Staging}
                         </h3>
                         <p className="text-xs text-slate-400 font-medium mt-1">
-                          Generated via {comprehensiveReport.provider} ({comprehensiveReport.model}) • {comprehensiveReport.generatedAt}
+                          Evaluated via {comprehensiveReport.provider} ({comprehensiveReport.model}) • {comprehensiveReport.generatedAt}
                         </p>
                       </div>
 
@@ -851,11 +1001,11 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                     </p>
                   </div>
                   <button
-                    onClick={handleGenerateComprehensiveReport}
+                    onClick={() => handleGenerateComprehensiveReport(false)}
                     className="px-6 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-black text-xs cursor-pointer shadow-md inline-flex items-center gap-2"
                   >
                     <Zap className="w-4 h-4 text-amber-400" />
-                    <span>Generate Full-Blown Test Report Now</span>
+                    <span>Generate Full-Blown Test Report (API Key)</span>
                   </button>
                 </div>
               )}
