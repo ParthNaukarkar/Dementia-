@@ -11,6 +11,7 @@ import {
   Heart,
   AlertTriangle,
   LogOut,
+  Cpu,
 } from 'lucide-react';
 
 import type { SupportedLanguage, PatientPrescription, GameId } from '../../types/prescription';
@@ -47,6 +48,8 @@ import { CognitiveLibrary } from '../hub/CognitiveLibrary';
 import { WorkoutProgressHeader } from '../workout/WorkoutProgressHeader';
 import { WorkoutIntermissionModal } from '../workout/WorkoutIntermissionModal';
 import { WorkoutCompletedCelebrationModal } from '../workout/WorkoutCompletedCelebrationModal';
+import { AIGameCalibratorService, type GameAIConfig } from '../../services/ai-game-calibrator';
+import { CloudAIConfigModal } from '../modals/CloudAIConfigModal';
 
 interface PatientPortalProps {
   language: SupportedLanguage;
@@ -82,6 +85,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [isIntermissionOpen, setIsIntermissionOpen] = useState<boolean>(false);
   const [isWorkoutCelebrationOpen, setIsWorkoutCelebrationOpen] = useState<boolean>(false);
   const [lastFlowRecommendation, setLastFlowRecommendation] = useState<FlowRecommendation | null>(null);
+  const [isAIModalOpen, setIsAIModalOpen] = useState<boolean>(false);
+  const [gameAIConfig, setGameAIConfig] = useState<GameAIConfig>(() => AIGameCalibratorService.getConfig());
 
   // Synchronize active workout playlist when prescription changes outside workout
   useEffect(() => {
@@ -269,6 +274,20 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
           {/* Right Controls: Language & Switch to Caregiver */}
           <div className="flex items-center gap-3">
+            {/* AI Game Director Settings Button */}
+            <button
+              onClick={() => setIsAIModalOpen(true)}
+              className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black transition-all cursor-pointer ${
+                gameAIConfig.apiKey.trim() && gameAIConfig.enabled
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+              }`}
+              title="Configure OpenAI Game Director API Key"
+            >
+              <Cpu className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{gameAIConfig.apiKey.trim() && gameAIConfig.enabled ? `Game AI: OpenAI (${gameAIConfig.model})` : 'Game AI: IRT Math'}</span>
+            </button>
+
             {/* Language Selector */}
             <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
               {(['en', 'hi'] as SupportedLanguage[]).map((lang) => (
@@ -868,6 +887,15 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           setIsWorkoutCelebrationOpen(false);
           setActiveTab('workout');
         }}
+      />
+
+      <CloudAIConfigModal
+        isOpen={isAIModalOpen}
+        onClose={() => {
+          setIsAIModalOpen(false);
+          setGameAIConfig(AIGameCalibratorService.getConfig());
+        }}
+        initialTab="GAMES_AI"
       />
 
     </div>

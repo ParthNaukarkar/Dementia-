@@ -11,13 +11,16 @@ import {
   Sliders, 
   ShieldCheck, 
   Eye, 
-  HelpCircle 
+  HelpCircle,
+  Cpu
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { 
   MemoryMatchEngine, 
   MEMORY_MATCH_TIERS 
 } from './engine';
+import { AIGameCalibratorService, type GameAIConfig } from '../../services/ai-game-calibrator';
+import { CloudAIConfigModal } from '../../components/modals/CloudAIConfigModal';
 import { memoryMatchAudio } from './audio';
 import type { 
   CardItem, 
@@ -96,6 +99,8 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
   const [liveAssistanceProfile, setLiveAssistanceProfile] = useState<AssistanceProfileConfig>(() =>
     engine.deriveAssistanceProfile(0, 100, 0)
   );
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [gameAIConfig, setGameAIConfig] = useState<GameAIConfig>(() => AIGameCalibratorService.getConfig());
 
   // Localized UI Dictionary
   const t = {
@@ -567,6 +572,45 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
     setAiAdaptationFlash(true);
     setTimeout(() => setAiAdaptationFlash(false), 5000);
 
+    // Dynamic AI Game Director Calibration (OpenAI / Gemini / Bayesian IRT)
+    const roundAccuracy = Math.min(100, Math.round(((currentTier.pairCount * 2) / Math.max(1, totalFlips)) * 100));
+    AIGameCalibratorService.calibrateGameLevel({
+      gameId: 'memory-match',
+      gameTitle: 'Memory Match (CANTAB Paired Associates)',
+      roundIndex: currentRoundIdx + 1,
+      totalRounds,
+      currentTier: currentTier.tier,
+      maxTiers: MEMORY_MATCH_TIERS.length,
+      accuracyPercentage: roundAccuracy,
+      averageLatencyMs: flipEventsRef.current.length > 0
+        ? Math.round(flipEventsRef.current.reduce((a, b) => a + b.deliberationMs, 0) / flipEventsRef.current.length)
+        : 2200,
+      perseverationErrors: perseverations,
+      firstTrialCorrectCount,
+      totalTrialsOrFlips: totalFlips,
+      autonomyScore,
+      wasAutoAssisted,
+    }).then(calibration => {
+      if (calibration.recommendedTier !== currentTier.tier && manualTierOverride === null) {
+        const nextTierObj = MEMORY_MATCH_TIERS.find(t => t.tier === calibration.recommendedTier);
+        if (nextTierObj) {
+          setCurrentTier(nextTierObj);
+        }
+      }
+
+      const providerLabel = calibration.calibratorProvider === 'openai' 
+        ? `🤖 OpenAI (${calibration.calibratorModel}) Director`
+        : calibration.calibratorProvider === 'gemini'
+        ? `✨ Gemini (${calibration.calibratorModel}) Director`
+        : `🧠 Psychometric IRT Director`;
+
+      setAiLiveReasoning(`${providerLabel}: ${calibration.clinicalRationale}`);
+      setAiAdaptationFlash(true);
+      setTimeout(() => setAiAdaptationFlash(false), 6000);
+    }).catch(err => {
+      console.warn('AI Calibrator error:', err);
+    });
+
     // Total Errors Adjusted (TEA)
     const tea = mismatches + Math.max(0, currentTier.tier - 3) * 0.5;
 
@@ -683,13 +727,26 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
       {/* Top Controls Header */}
       <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-3 py-1 rounded-full border border-amber-300">
               Tier {currentTier.tier}/9 • {currentTier.pairCount} Pairs ({currentTier.totalCards} Cards)
             </span>
             <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
               Round {currentRoundIdx + 1} / {totalRounds}
             </span>
+            <button
+              type="button"
+              onClick={() => setIsConfigModalOpen(true)}
+              className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border flex items-center gap-1.5 transition-all cursor-pointer ${
+                gameAIConfig.apiKey.trim() && gameAIConfig.enabled
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
+                  : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+              }`}
+              title="Configure OpenAI Game Director API Key"
+            >
+              <Cpu className="w-3 h-3 text-emerald-600" />
+              <span>{gameAIConfig.apiKey.trim() && gameAIConfig.enabled ? `Game AI: OpenAI (${gameAIConfig.model})` : 'Game AI: IRT Math'}</span>
+            </button>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
             {t.title}
@@ -1023,6 +1080,16 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
           </div>
         </div>
       )}
+
+      {/* Cloud AI Config Modal for OpenAI Game Director */}
+      <CloudAIConfigModal
+        isOpen={isConfigModalOpen}
+        onClose={() => {
+          setIsConfigModalOpen(false);
+          setGameAIConfig(AIGameCalibratorService.getConfig());
+        }}
+        initialTab="GAMES_AI"
+      />
 
     </div>
   );

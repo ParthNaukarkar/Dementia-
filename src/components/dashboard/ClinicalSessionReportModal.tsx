@@ -21,6 +21,8 @@ import {
   ExternalLink,
   CheckCircle2,
   AlertCircle,
+  Settings,
+  Cpu,
 } from 'lucide-react';
 import type { PatientProfile } from '../../types/auth';
 import type { MedicationItem, DailyRoutineItem } from '../../types/caregiver';
@@ -550,17 +552,28 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                       <span>1. Select Provider &amp; Enter API Key</span>
                     </label>
 
-                    {cloudConfig.provider === 'gemini' && (
-                      <a
-                        href="https://aistudio.google.com/app/apikey"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[11px] font-bold text-amber-300 hover:text-amber-200 underline flex items-center gap-1 cursor-pointer"
+                    <div className="flex items-center gap-3">
+                      {cloudConfig.provider === 'gemini' && (
+                        <a
+                          href="https://aistudio.google.com/app/apikey"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] font-bold text-amber-300 hover:text-amber-200 underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>Get Free Gemini Key</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIsAIConfigOpen(true)}
+                        className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer"
+                        title="Configure OpenAI Game Director & Report Keys"
                       >
-                        <span>Get Free Google Gemini Key (Google AI Studio)</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
+                        <Settings className="w-3 h-3 text-amber-400" />
+                        <span>Manage Keys &amp; Models</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
@@ -967,6 +980,24 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
 
                   </div>
 
+                  {/* 5B. 🤖 AI GAME DIRECTOR (OPENAI) DYNAMIC LEVEL SYNTHESIS */}
+                  {comprehensiveReport.aiGameCalibrationReview && (
+                    <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-indigo-50 border-2 border-emerald-300 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-emerald-950 font-black text-xs uppercase tracking-wider">
+                          <Cpu className="w-4 h-4 text-emerald-600" />
+                          <span>OpenAI Game Director Dynamic Level &amp; Scaffolding Synthesis</span>
+                        </div>
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 border border-emerald-300">
+                          In-Game Calibrations Ingested
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-emerald-950/90 leading-relaxed font-medium bg-white/80 p-3.5 rounded-xl border border-emerald-200 shadow-2xs">
+                        {comprehensiveReport.aiGameCalibrationReview}
+                      </p>
+                    </div>
+                  )}
+
                   {/* 6. RED FLAG WARNING SIGNS & ABDM CODING */}
                   <div className="p-5 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-3">
                     <div className="flex items-center gap-2 text-rose-900 font-black text-xs uppercase tracking-wider">
@@ -1126,7 +1157,13 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
       {/* Cloud AI Config Modal */}
       <CloudAIConfigModal
         isOpen={isAIConfigOpen}
-        onClose={() => setIsAIConfigOpen(false)}
+        onClose={() => {
+          setIsAIConfigOpen(false);
+          const fresh = AIClinicalReportingService.getConfig();
+          setCloudConfig(fresh);
+          setApiKeyInput(fresh.apiKey);
+        }}
+        initialTab="REPORT_AI"
       />
     </div>
   );

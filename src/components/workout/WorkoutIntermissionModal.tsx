@@ -5,9 +5,11 @@ import {
   Sparkles, 
   Coffee,
   Heart,
-  X
+  X,
+  Cpu
 } from 'lucide-react';
 import type { SupportedLanguage } from '../../types/prescription';
+import { AIGameCalibratorService } from '../../services/ai-game-calibrator';
 
 interface WorkoutIntermissionModalProps {
   isOpen: boolean;
@@ -48,6 +50,8 @@ export const WorkoutIntermissionModal: React.FC<WorkoutIntermissionModalProps> =
 
   const currentStep = completedIndex + 1;
   const progressPercent = Math.round((currentStep / totalExercises) * 100);
+  const recentCalibrations = AIGameCalibratorService.getHistory();
+  const lastCalibration = recentCalibrations.length > 0 ? recentCalibrations[0] : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
@@ -128,6 +132,30 @@ export const WorkoutIntermissionModal: React.FC<WorkoutIntermissionModalProps> =
               </div>
             )}
           </div>
+
+          {/* AI Game Director Micro-Calibration Card (OpenAI / IRT) */}
+          {lastCalibration && (
+            <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs flex items-start gap-3 text-emerald-950 animate-fadeIn">
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5 font-black">
+                <Cpu className="w-4 h-4 text-emerald-700" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-black text-[10px] uppercase tracking-wider text-emerald-800">
+                    {lastCalibration.calibratorProvider === 'openai' 
+                      ? `OpenAI (${lastCalibration.calibratorModel}) Director` 
+                      : 'AI Game Calibrator'} • {lastCalibration.action.replace('_', ' ')}
+                  </span>
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900">
+                    Tier {lastCalibration.recommendedTier} Target
+                  </span>
+                </div>
+                <p className="text-[11px] font-medium leading-relaxed mt-1 text-emerald-900/90">
+                  {lastCalibration.clinicalRationale}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Up Next Card */}
           <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-2">

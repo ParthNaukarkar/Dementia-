@@ -9,6 +9,7 @@
 
 import type { MedicationItem, DailyRoutineItem } from '../types/caregiver';
 import type { MedicalReportItem } from '../utils/caregiverStorage';
+import { AIGameCalibratorService } from './ai-game-calibrator';
 
 export type AIProvider = 'gemini' | 'openai' | 'groq';
 
@@ -108,6 +109,18 @@ export interface ComprehensiveClinicalPayload {
   uploadedMedicalReports: MedicalReportItem[];
   medications: MedicationItem[];
   dailyRoutines: DailyRoutineItem[];
+  aiGameCalibrations?: {
+    gameId: string;
+    roundIndex: number;
+    previousTier: number;
+    recommendedTier: number;
+    tierDelta: number;
+    action: string;
+    cognitiveLoad: string;
+    clinicalRationale: string;
+    calibratorModel: string;
+    calibratedAt?: string;
+  }[];
 }
 
 /** Single-game generated report */
@@ -207,7 +220,10 @@ export interface ComprehensiveClinicalReport {
   // 8. Warning Signs for Neurologist Escalation
   redFlagWarningSigns: string[];
 
-  // 9. Standardized ABDM Codes
+  // 9. AI Game Director Dynamic Level Review
+  aiGameCalibrationReview?: string;
+
+  // 10. Standardized ABDM Codes
   abdmCoding: {
     snomedCode: string;
     loincCode: string;
@@ -619,12 +635,17 @@ Output your evaluation strictly as valid JSON matching this schema:
     "Red flag sign 1 that warrants immediate physician review",
     "Red flag sign 2"
   ],
+  "aiGameCalibrationReview": "Detailed clinical synthesis of how the patient responded to dynamic level promotions, demotions, and scaffolding modulated by the AI Game Director (OpenAI / IRT).",
   "abdmCoding": {
     "snomedCode": "373068000 (Neuropsychological cognitive evaluation)",
     "loincCode": "72172-0 (MoCA Total Score)",
     "icd11Code": "6D71 (Mild neurocognitive disorder)"
   }
 }`;
+
+    const gameCalibrations = (payload.aiGameCalibrations && payload.aiGameCalibrations.length > 0)
+      ? payload.aiGameCalibrations
+      : AIGameCalibratorService.getHistory();
 
     const userPrompt = `PATIENT DOSSIER:
 - Name: ${payload.patient.name}
@@ -644,6 +665,11 @@ ALL GAMES SESSIONS COMPLETED:
 ${payload.allGameSessions.length > 0 
   ? payload.allGameSessions.map(s => `  * Game: ${s.gameTitle} (${s.gameId}) | Accuracy: ${s.accuracyPercentage}% | Latency: ${(s.averageLatencyMs / 1000).toFixed(2)}s | θ: ${s.finalTheta.toFixed(2)} | Autonomy: ${s.autonomyScore ?? 100}% | Assists: ${s.autoAssistedRounds ?? 0} | Completed: ${s.completedAt}`).join('\n')
   : '  * No individual game records logged today; evaluating historical baseline.'}
+
+OPENAI GAME DIRECTOR DYNAMIC LEVEL CALIBRATIONS:
+${gameCalibrations.length > 0
+  ? gameCalibrations.map(c => `  * [${c.calibratorModel}] ${c.gameId} Round ${c.roundIndex}: Tier ${c.previousTier} -> Tier ${c.recommendedTier} (${c.action}) | Load: ${c.cognitiveLoad} | Rationale: "${c.clinicalRationale}"`).join('\n')
+  : '  * Standard psychometric Bayesian 2PL calibration maintained across rounds.'}
 
 KINEMATICS & TREMOR SPECTRAL DECOMPOSITION:
 - Path Trajectory Efficiency: ${(payload.kinematicMetrics.pathEfficiencyRatio * 100).toFixed(1)}%
@@ -756,6 +782,7 @@ ${payload.dailyRoutines.map(r => `  * [${r.time}] ${r.activity} (${r.category}) 
             'Severe increase in resting tremor (4-6 Hz) or gait freezing episodes.',
             'Refusal of evening Donepezil doses for consecutive days leading to cholinergic withdrawal rebound.'
           ],
+        aiGameCalibrationReview: parsed.aiGameCalibrationReview || 'Dynamic in-game level calibration remained balanced within the patient\'s Zone of Proximal Development.',
         abdmCoding: parsed.abdmCoding || {
           snomedCode: '373068000 (Neuropsychological testing procedure)',
           loincCode: '72172-0 (MoCA Total Score equivalent)',
@@ -937,6 +964,7 @@ ${payload.dailyRoutines.map(r => `  * [${r.time}] ${r.activity} (${r.category}) 
         'Emergence of resting tremor (4-6 Hz) in dominant hand during quiet sitting.',
         'Persistent skipping or doubling of Donepezil / Memantine dosages.'
       ],
+      aiGameCalibrationReview: 'Patient exhibited strong compensatory mechanisms when progressing through higher tiers. Response to scaffolding demotions was positive, effectively eliminating catastrophic cognitive fatigue spikes.',
       abdmCoding: {
         snomedCode: '373068000 (Neuropsychological testing procedure)',
         loincCode: '72172-0 (MoCA Total Score equivalent)',
