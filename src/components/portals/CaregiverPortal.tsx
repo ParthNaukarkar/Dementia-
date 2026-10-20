@@ -1257,8 +1257,8 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                             <p className="text-xs text-[#636B65] mt-1 leading-relaxed">
                               {todaySessionsList.length > 0
                                 ? (isHi 
-                                    ? `औसत सटीकता: ${compositeScore.meanAccuracy}% • प्रतिक्रिया गति: ${(compositeScore.meanLatencyMs / 1000).toFixed(1)} सेकंड`
-                                    : `Average accuracy: ${compositeScore.meanAccuracy}% • Deliberation: ${(compositeScore.meanLatencyMs / 1000).toFixed(1)}s per move`)
+                                    ? `औसत सटीकता: ${compositeScore.meanAccuracy != null && compositeScore.meanAccuracy > 0 ? `${compositeScore.meanAccuracy}%` : 'no data'} • प्रतिक्रिया गति: ${compositeScore.meanLatencyMs != null && compositeScore.meanLatencyMs > 0 ? `${(compositeScore.meanLatencyMs / 1000).toFixed(1)} सेकंड` : 'no data'}`
+                                    : `Average accuracy: ${compositeScore.meanAccuracy != null && compositeScore.meanAccuracy > 0 ? `${compositeScore.meanAccuracy}%` : 'no data'} • Deliberation: ${compositeScore.meanLatencyMs != null && compositeScore.meanLatencyMs > 0 ? `${(compositeScore.meanLatencyMs / 1000).toFixed(1)}s per move` : 'no data'}`)
                                 : (isHi
                                     ? 'आज के निर्धारित ३ अभ्यास: स्मृति मिलान, पैटर्न अनुक्रम, और शब्द स्मरण'
                                     : '3 scheduled exercises: Memory Match, Pattern Sequence, and Word Recall')}
@@ -1978,7 +1978,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                                 {language === 'hi' ? 'स्कोर / सटीकता' : 'Score / Accuracy'}
                               </span>
                               <p className="font-['Sora'] font-extrabold text-sm text-[#28573E]">
-                                {item.score ?? item.accuracyPercentage ?? 85}%
+                                {item.score != null ? `${item.score}%` : item.accuracyPercentage != null ? `${item.accuracyPercentage}%` : 'no data'}
                               </p>
                               <span className="text-[10px] text-[#636B65]">
                                 {item.statusBadge || 'Stable'}
@@ -1990,7 +1990,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                                 {language === 'hi' ? 'प्रतिक्रिया विलंबता' : 'Reaction Latency'}
                               </span>
                               <p className="font-['Sora'] font-extrabold text-sm text-[#1F2421]">
-                                {item.averageLatencyMs ? `${(item.averageLatencyMs / 1000).toFixed(2)}s` : '2.35s'}
+                                {item.averageLatencyMs != null ? `${(item.averageLatencyMs / 1000).toFixed(2)}s` : 'no data'}
                               </p>
                               <span className="text-[10px] text-[#636B65]">
                                 {language === 'hi' ? 'सहज गति' : 'Smooth Pace'}
@@ -2002,7 +2002,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                                 {language === 'hi' ? 'आत्मनिर्भरता' : 'Autonomy'}
                               </span>
                               <p className="font-['Sora'] font-extrabold text-sm text-[#28573E]">
-                                {item.autonomyScore ?? 94}%
+                                {item.autonomyScore != null ? `${item.autonomyScore}%` : 'no data'}
                               </p>
                               <span className="text-[10px] text-[#636B65]">
                                 {language === 'hi' ? 'न्यूनतम संकेत' : 'Minimal prompts'}
@@ -2943,7 +2943,9 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
                       {language === 'hi' ? 'स्कोर / सटीकता' : 'Score / Accuracy'}
                     </span>
-                    <p className="font-['Sora'] font-extrabold text-base text-[#28573E] mt-0.5">{selectedViewReport.score}%</p>
+                    <p className="font-['Sora'] font-extrabold text-base text-[#28573E] mt-0.5">
+                      {selectedViewReport.score != null ? `${selectedViewReport.score}%` : 'no data'}
+                    </p>
                     <span className="text-[10px] text-[#636B65]">{selectedViewReport.statusBadge || 'Stable'}</span>
                   </div>
                   <div className="p-3.5 rounded-xl bg-white border border-[#E5DFD5]">
@@ -2951,7 +2953,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                       {language === 'hi' ? 'प्रतिक्रिया विलंबता' : 'Deliberation Latency'}
                     </span>
                     <p className="font-['Sora'] font-extrabold text-base text-[#1F2421] mt-0.5">
-                      {selectedViewReport.averageLatencyMs ? (selectedViewReport.averageLatencyMs / 1000).toFixed(2) : '2.35'}s
+                      {selectedViewReport.averageLatencyMs != null ? `${(selectedViewReport.averageLatencyMs / 1000).toFixed(2)}s` : 'no data'}
                     </p>
                     <span className="text-[10px] text-[#636B65]">{language === 'hi' ? 'सहज प्रतिक्रिया' : 'Smooth Reaction'}</span>
                   </div>
@@ -2959,7 +2961,9 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
                       {language === 'hi' ? 'आत्मनिर्भरता स्कोर' : 'Autonomy Score'}
                     </span>
-                    <p className="font-['Sora'] font-extrabold text-base text-[#28573E] mt-0.5">{selectedViewReport.autonomyScore ?? 94}%</p>
+                    <p className="font-['Sora'] font-extrabold text-base text-[#28573E] mt-0.5">
+                      {selectedViewReport.autonomyScore != null ? `${selectedViewReport.autonomyScore}%` : 'no data'}
+                    </p>
                     <span className="text-[10px] text-[#636B65]">{language === 'hi' ? 'न्यूनतम संकेत' : 'Minimal Prompts'}</span>
                   </div>
                   <div className="p-3.5 rounded-xl bg-white border border-[#E5DFD5]">

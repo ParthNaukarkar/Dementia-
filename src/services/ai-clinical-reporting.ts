@@ -77,10 +77,10 @@ export interface ComprehensiveClinicalPayload {
   allGameSessions: {
     gameId: string;
     gameTitle: string;
-    accuracyPercentage: number;
-    averageLatencyMs: number;
-    finalTheta: number;
-    autonomyScore?: number;
+    accuracyPercentage: number | null;
+    averageLatencyMs: number | null;
+    finalTheta: number | null;
+    autonomyScore?: number | null;
     autoAssistedRounds?: number;
     perseverationErrors?: number;
     domain: string;
@@ -670,7 +670,7 @@ ${payload.dailyComposite.domainBreakdown.map(d => `  * ${d.label} (${d.domain}):
 
 ALL GAMES SESSIONS COMPLETED:
 ${payload.allGameSessions.length > 0 
-  ? payload.allGameSessions.map(s => `  * Game: ${s.gameTitle} (${s.gameId}) | Accuracy: ${s.accuracyPercentage}% | Latency: ${(s.averageLatencyMs / 1000).toFixed(2)}s | θ: ${s.finalTheta.toFixed(2)} | Autonomy: ${s.autonomyScore ?? 100}% | Assists: ${s.autoAssistedRounds ?? 0} | Completed: ${s.completedAt}`).join('\n')
+  ? payload.allGameSessions.map(s => `  * Game: ${s.gameTitle} (${s.gameId}) | Accuracy: ${s.accuracyPercentage != null ? `${s.accuracyPercentage}%` : 'no data'} | Latency: ${s.averageLatencyMs != null ? `${(s.averageLatencyMs / 1000).toFixed(2)}s` : 'no data'} | θ: ${s.finalTheta != null ? s.finalTheta.toFixed(2) : 'no data'} | Autonomy: ${s.autonomyScore != null ? `${s.autonomyScore}%` : 'no data'} | Assists: ${s.autoAssistedRounds ?? 0} | Completed: ${s.completedAt}`).join('\n')
   : '  * No individual game records logged today; evaluating historical baseline.'}
 
 OPENAI GAME DIRECTOR DYNAMIC LEVEL CALIBRATIONS:

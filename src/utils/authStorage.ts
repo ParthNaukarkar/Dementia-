@@ -70,7 +70,7 @@ export function setStoredRole(role: UserRole): void {
 // Initial Default Demo Setup (matches exact clinical profile from screenshot)
 export function ensureDemoProfiles(): { caretaker: CaretakerUser; patient: PatientProfile } {
   let caretaker = getStoredCaretaker();
-  if (!caretaker || caretaker.name === 'Parth') {
+  if (!caretaker) {
     caretaker = {
       id: 'caretaker_anita_01',
       name: 'Anita Joshi',
@@ -83,7 +83,7 @@ export function ensureDemoProfiles(): { caretaker: CaretakerUser; patient: Patie
 
   let patients = getStoredPatients();
   let patient = patients.find(p => p.name === 'Meera Joshi') || patients[0];
-  if (!patient || patient.name.includes('Dadu')) {
+  if (!patient) {
     patient = {
       id: '1',
       caretakerId: caretaker.id,

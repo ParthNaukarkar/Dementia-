@@ -239,15 +239,17 @@ export const MyBrainAnalytics: React.FC<MyBrainAnalyticsProps> = ({
                         <span>{title}</span>
                       </td>
                       <td className="py-3 capitalize text-slate-600">{domLabel}</td>
-                      <td className="py-3 font-bold text-emerald-700">{sess.accuracyPercentage}%</td>
+                      <td className="py-3 font-bold text-emerald-700">
+                        {sess.accuracyPercentage != null ? `${sess.accuracyPercentage}%` : 'no data'}
+                      </td>
                       <td className="py-3 font-semibold text-slate-800">
-                        {((sess.averageLatencyMs || 3000) / 1000).toFixed(1)}s
+                        {sess.averageLatencyMs != null ? `${(sess.averageLatencyMs / 1000).toFixed(1)}s` : 'no data'}
                       </td>
                       <td className="py-3 font-bold text-amber-700">
-                        {sess.finalTheta !== undefined ? `${sess.finalTheta > 0 ? '+' : ''}${sess.finalTheta.toFixed(2)}` : '0.00'}
+                        {sess.finalTheta != null ? `${sess.finalTheta > 0 ? '+' : ''}${sess.finalTheta.toFixed(2)}` : 'no data'}
                       </td>
                       <td className="py-3 font-semibold text-slate-700">
-                        {sess.autonomyScore ?? (sess.autoAssistedRounds ? 65 : 100)}%
+                        {sess.autonomyScore != null ? `${sess.autonomyScore}%` : 'no data'}
                       </td>
                       <td className="py-3 text-right">
                         <span className="bg-emerald-50 text-emerald-800 font-black text-[10px] px-2 py-0.5 rounded-full border border-emerald-200">

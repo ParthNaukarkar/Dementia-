@@ -1992,18 +1992,22 @@ ${routineBullets}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
                   <span className="text-[10px] font-bold uppercase text-slate-400">{tReport.accuracy}</span>
-                  <p className="text-2xl font-black text-slate-900 mt-0.5">{activeReport.accuracyPercentage ?? 90}%</p>
+                  <p className="text-2xl font-black text-slate-900 mt-0.5">
+                    {activeReport.accuracyPercentage != null ? `${activeReport.accuracyPercentage}%` : 'no data'}
+                  </p>
                   <span className="text-[9px] text-slate-500">{tReport.trialsCount(activeReport.totalCorrect ?? 5, activeReport.totalRounds ?? 6)}</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
                   <span className="text-[10px] font-bold uppercase text-slate-400">{tReport.reactionLatency}</span>
-                  <p className="text-2xl font-black text-slate-900 mt-0.5">{((activeReport.averageLatencyMs ?? 2400) / 1000).toFixed(1)}s</p>
+                  <p className="text-2xl font-black text-slate-900 mt-0.5">
+                    {activeReport.averageLatencyMs != null ? `${((activeReport.averageLatencyMs) / 1000).toFixed(1)}s` : 'no data'}
+                  </p>
                   <span className="text-[9px] text-slate-500">{tReport.speedLabel(activeReport.speedProfile || 'Normal')}</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
                   <span className="text-[10px] font-bold uppercase text-slate-400">{tReport.latentAbility}</span>
                   <p className="text-2xl font-black text-purple-700 mt-0.5">
-                    {activeReport.finalTheta >= 0 ? `+${activeReport.finalTheta?.toFixed(2)}` : activeReport.finalTheta?.toFixed(2) || '+0.65'}
+                    {activeReport.finalTheta != null ? `${activeReport.finalTheta >= 0 ? '+' : ''}${activeReport.finalTheta.toFixed(2)}` : 'no data'}
                   </p>
                   <span className="text-[9px] text-slate-500">{tReport.psychometrics2PL}</span>
                 </div>

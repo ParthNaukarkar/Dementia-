@@ -13,10 +13,10 @@ import { GAME_DOMAIN_MAP } from '../engine/adaptive-game-flow';
 export interface DailyGameSessionRecord {
   gameId: GameId;
   gameTitle: string;
-  accuracyPercentage: number;
-  averageLatencyMs: number;
-  finalTheta: number;
-  autonomyScore?: number;
+  accuracyPercentage: number | null;
+  averageLatencyMs: number | null;
+  finalTheta: number | null;
+  autonomyScore?: number | null;
   autoAssistedRounds?: number;
   perseverationErrors?: number;
   tremorTapsFiltered?: number;
@@ -85,6 +85,7 @@ export class DailySessionManager {
   /**
    * Records a completed game session for a specific day.
    * Only stores data for the game that was actually played.
+   * Unplayed or missing telemetry is left null without fake defaults.
    */
   public static recordSession(
     report: any,
@@ -96,13 +97,33 @@ export class DailySessionManager {
     const catalogItem = GAME_CATALOG.find(g => g.id === gameId);
     const domain = (catalogItem?.domain || GAME_DOMAIN_MAP[gameId] || 'memory') as LumosityDomain;
 
+    const rawAccuracy = report.accuracyPercentage ?? report.accuracy;
+    const accuracyPercentage = (typeof rawAccuracy === 'number' && !isNaN(rawAccuracy))
+      ? rawAccuracy
+      : null;
+
+    const rawLatency = report.averageLatencyMs ?? report.meanReactionTimeMs ?? report.meanDeliberationMs ?? report.latencyMs;
+    const averageLatencyMs = (typeof rawLatency === 'number' && !isNaN(rawLatency))
+      ? rawLatency
+      : null;
+
+    const rawTheta = report.finalTheta ?? report.theta;
+    const finalTheta = (typeof rawTheta === 'number' && !isNaN(rawTheta))
+      ? rawTheta
+      : null;
+
+    const rawAutonomy = report.autonomyScore;
+    const autonomyScore = (typeof rawAutonomy === 'number' && !isNaN(rawAutonomy))
+      ? rawAutonomy
+      : null;
+
     const record: DailyGameSessionRecord = {
       gameId,
       gameTitle: report.gameTitle || catalogItem?.title.en || gameId,
-      accuracyPercentage: report.accuracyPercentage ?? 80,
-      averageLatencyMs: report.averageLatencyMs || report.meanReactionTimeMs || report.meanDeliberationMs || 3500,
-      finalTheta: report.finalTheta ?? 0.0,
-      autonomyScore: report.autonomyScore ?? (report.autoAssistedRounds ? 65 : 100),
+      accuracyPercentage,
+      averageLatencyMs,
+      finalTheta,
+      autonomyScore,
       autoAssistedRounds: report.autoAssistedRounds ?? report.autoAssistedTrials ?? 0,
       perseverationErrors: report.perseverationErrors ?? report.commissionErrors ?? 0,
       tremorTapsFiltered: report.tremorTapsFiltered ?? report.tremorEventsSuppressed ?? 0,
@@ -134,6 +155,7 @@ export class DailySessionManager {
    * Calculates the combined composite cognitive score from ONLY the games
    * that were ACTUALLY played on that specific day.
    * If a game was NOT played, it is NOT counted.
+   * Averages only non-null values per metric, and falls back to baseline if nothing usable remains.
    */
   public static calculateDailyCompositeScore(
     dateKey: string = this.getTodayDateKey(),
@@ -142,8 +164,27 @@ export class DailySessionManager {
     const sessionsMap = this.getDailySessions(dateKey);
     const playedSessions = Object.values(sessionsMap);
 
-    // If no games were played today, return clinical baseline without penalty
-    if (playedSessions.length === 0) {
+    const validAccuracies = playedSessions
+      .map(s => s.accuracyPercentage)
+      .filter((v): v is number => typeof v === 'number' && !isNaN(v));
+
+    const validLatencies = playedSessions
+      .map(s => s.averageLatencyMs)
+      .filter((v): v is number => typeof v === 'number' && !isNaN(v));
+
+    const validThetas = playedSessions
+      .map(s => s.finalTheta)
+      .filter((v): v is number => typeof v === 'number' && !isNaN(v));
+
+    const validAutonomies = playedSessions
+      .map(s => s.autonomyScore)
+      .filter((v): v is number => typeof v === 'number' && !isNaN(v));
+
+    // Fall back to baseline path if no games played or nothing usable remains across metrics
+    if (
+      playedSessions.length === 0 ||
+      (validAccuracies.length === 0 && validThetas.length === 0 && validLatencies.length === 0 && validAutonomies.length === 0)
+    ) {
       return {
         score: baselineScore,
         meanAccuracy: 0,
@@ -157,37 +198,56 @@ export class DailySessionManager {
       };
     }
 
-    let sumAccuracy = 0;
-    let sumLatency = 0;
-    let sumTheta = 0;
-    let sumAutonomy = 0;
-    const playedGameIds: GameId[] = [];
-
-    playedSessions.forEach(session => {
-      playedGameIds.push(session.gameId);
-      sumAccuracy += session.accuracyPercentage;
-      sumLatency += session.averageLatencyMs;
-      sumTheta += session.finalTheta;
-      sumAutonomy += (session.autonomyScore ?? 100);
-    });
-
+    const playedGameIds: GameId[] = playedSessions.map(s => s.gameId);
     const count = playedSessions.length;
-    const meanAccuracy = Math.round(sumAccuracy / count);
-    const meanLatencyMs = Math.round(sumLatency / count);
-    const meanTheta = Number((sumTheta / count).toFixed(2));
-    const meanAutonomy = Math.round(sumAutonomy / count);
 
-    // Composite scoring formula grounded in CANTAB / MoCA accuracy and Bayesian theta:
-    // - Accuracy contributes 60%
-    // - Bayesian theta (-3 to +3) normalized to 0-100 contributes 25%
-    // - Autonomy contributes 15%
-    // - Excessive latency penalty (>8000ms) deducts up to 5 points
-    const thetaNormalized = Math.max(0, Math.min(100, (meanTheta + 3.0) * (100 / 6.0)));
-    const latencyDeduction = meanLatencyMs > 8000 ? 5 : meanLatencyMs > 6000 ? 2 : 0;
+    const meanAccuracy = validAccuracies.length > 0
+      ? Math.round(validAccuracies.reduce((a, b) => a + b, 0) / validAccuracies.length)
+      : 0;
 
-    const rawScore = (meanAccuracy * 0.60) + (thetaNormalized * 0.25) + (meanAutonomy * 0.15) - latencyDeduction;
+    const meanLatencyMs = validLatencies.length > 0
+      ? Math.round(validLatencies.reduce((a, b) => a + b, 0) / validLatencies.length)
+      : 0;
+
+    const meanTheta = validThetas.length > 0
+      ? Number((validThetas.reduce((a, b) => a + b, 0) / validThetas.length).toFixed(2))
+      : 0.0;
+
+    const meanAutonomy = validAutonomies.length > 0
+      ? Math.round(validAutonomies.reduce((a, b) => a + b, 0) / validAutonomies.length)
+      : 100;
+
+    // Dynamically weight non-null components
+    let weightedSum = 0;
+    let totalWeight = 0;
+
+    if (validAccuracies.length > 0) {
+      weightedSum += meanAccuracy * 0.60;
+      totalWeight += 0.60;
+    }
+
+    if (validThetas.length > 0) {
+      const thetaNormalized = Math.max(0, Math.min(100, (meanTheta + 3.0) * (100 / 6.0)));
+      weightedSum += thetaNormalized * 0.25;
+      totalWeight += 0.25;
+    }
+
+    if (validAutonomies.length > 0) {
+      weightedSum += meanAutonomy * 0.15;
+      totalWeight += 0.15;
+    }
+
+    const latencyDeduction = (validLatencies.length > 0 && meanLatencyMs > 8000)
+      ? 5
+      : (validLatencies.length > 0 && meanLatencyMs > 6000)
+        ? 2
+        : 0;
+
+    const rawScore = totalWeight > 0
+      ? (weightedSum / totalWeight) - latencyDeduction
+      : baselineScore;
+
     const finalScore = Math.max(50, Math.min(99, Math.round(rawScore)));
-
     const domainBreakdown = this.calculateDomainBreakdown(playedSessions);
 
     return {
@@ -281,20 +341,35 @@ export class DailySessionManager {
         return mapped === dom;
       });
 
-      if (matches.length === 0) {
+      const validMatchesAcc = matches
+        .map(m => m.accuracyPercentage)
+        .filter((v): v is number => typeof v === 'number' && !isNaN(v));
+
+      const validMatchesTheta = matches
+        .map(m => m.finalTheta)
+        .filter((v): v is number => typeof v === 'number' && !isNaN(v));
+
+      if (matches.length === 0 || (validMatchesAcc.length === 0 && validMatchesTheta.length === 0)) {
         return {
           domain: dom,
           label: labels[dom],
           score: null,
           accuracy: null,
-          gamesPlayed: [],
+          gamesPlayed: matches.map(m => m.gameId),
           isPlayedToday: false,
         };
       }
 
-      const avgAcc = Math.round(matches.reduce((acc, m) => acc + m.accuracyPercentage, 0) / matches.length);
-      const avgTheta = matches.reduce((acc, m) => acc + m.finalTheta, 0) / matches.length;
-      const domScore = Math.max(20, Math.min(99, Math.round(50 + avgTheta * 16 + (avgAcc - 70) * 0.3)));
+      const avgAcc = validMatchesAcc.length > 0
+        ? Math.round(validMatchesAcc.reduce((acc, m) => acc + m, 0) / validMatchesAcc.length)
+        : null;
+
+      const avgTheta = validMatchesTheta.length > 0
+        ? validMatchesTheta.reduce((acc, m) => acc + m, 0) / validMatchesTheta.length
+        : 0;
+
+      const accBonus = avgAcc != null ? (avgAcc - 70) * 0.3 : 0;
+      const domScore = Math.max(20, Math.min(99, Math.round(50 + avgTheta * 16 + accBonus)));
 
       return {
         domain: dom,

@@ -24,10 +24,10 @@ export interface GeneratedReportDocument {
   dateStr: string;
   timeStr: string;
   timestamp: number;
-  score?: number;
-  accuracyPercentage?: number;
-  averageLatencyMs?: number;
-  autonomyScore?: number;
+  score?: number | null;
+  accuracyPercentage?: number | null;
+  averageLatencyMs?: number | null;
+  autonomyScore?: number | null;
   trialsSummary?: string;
   statusBadge?: string;
   clinicalStandard?: string;
@@ -235,6 +235,18 @@ export function recordGameGeneratedReport(
   const catalogItem = GAME_CATALOG.find(g => g.id === gameId);
   const gameTitle = gameReport.gameTitle || catalogItem?.title?.en || gameId;
 
+  const rawAcc = (typeof gameReport.accuracyPercentage === 'number' && !isNaN(gameReport.accuracyPercentage))
+    ? gameReport.accuracyPercentage
+    : null;
+  const rawLat = (typeof gameReport.averageLatencyMs === 'number' && !isNaN(gameReport.averageLatencyMs))
+    ? gameReport.averageLatencyMs
+    : (typeof gameReport.meanLatencyMs === 'number' && !isNaN(gameReport.meanLatencyMs))
+      ? gameReport.meanLatencyMs
+      : null;
+  const rawAutonomy = (typeof gameReport.autonomyScore === 'number' && !isNaN(gameReport.autonomyScore))
+    ? gameReport.autonomyScore
+    : null;
+
   const newDoc: GeneratedReportDocument = {
     id: `rep_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
     patientId,
@@ -246,14 +258,14 @@ export function recordGameGeneratedReport(
     dateStr: formatDate,
     timeStr: formatTime,
     timestamp: now.getTime(),
-    score: gameReport.accuracyPercentage ?? 85,
-    accuracyPercentage: gameReport.accuracyPercentage ?? 85,
-    averageLatencyMs: gameReport.averageLatencyMs || gameReport.meanLatencyMs || 2400,
-    autonomyScore: gameReport.autonomyScore ?? (gameReport.autoAssistedRounds ? 70 : 100),
+    score: rawAcc,
+    accuracyPercentage: rawAcc,
+    averageLatencyMs: rawLat,
+    autonomyScore: rawAutonomy,
     trialsSummary: gameReport.totalCorrect !== undefined && gameReport.totalRounds !== undefined
       ? `${gameReport.totalCorrect} of ${gameReport.totalRounds} correct`
       : 'Completed',
-    statusBadge: (gameReport.accuracyPercentage ?? 85) >= 80 ? 'Optimal' : 'Needs Practice',
+    statusBadge: rawAcc != null ? (rawAcc >= 80 ? 'Optimal' : 'Needs Practice') : 'Completed',
     clinicalStandard: catalogItem?.clinicalStandard || 'Clinical Neuroplastic Exercise',
     fullPayload: gameReport,
   };
@@ -312,9 +324,9 @@ export function downloadReportDocument(
   const dateStr = report.dateStr || new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   const timeStr = report.timeStr || new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
-  const scoreVal = report.score ?? report.accuracyPercentage ?? 84;
-  const latencyVal = report.averageLatencyMs ? ((report.averageLatencyMs) / 1000).toFixed(2) : '2.35';
-  const autonomyVal = report.autonomyScore ?? 94;
+  const scoreVal = report.score != null ? `${report.score}%` : (report.accuracyPercentage != null ? `${report.accuracyPercentage}%` : 'no data');
+  const latencyVal = report.averageLatencyMs != null ? `${((report.averageLatencyMs) / 1000).toFixed(2)}s` : 'no data';
+  const autonomyVal = report.autonomyScore != null ? `${report.autonomyScore}%` : 'no data';
   const trialsVal = report.trialsSummary || '5 of 6 correct';
 
   const content = `================================================================================
