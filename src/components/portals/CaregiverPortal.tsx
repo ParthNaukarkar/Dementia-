@@ -209,14 +209,31 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Minimised / Expanded Sidebar state with persistence
+  // Minimised / Expanded Sidebar state with persistence & mobile responsiveness
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      return true; // Always default to collapsed on mobile/tablet viewports
+    }
     try {
-      return localStorage.getItem('smriti_caregiver_sidebar_collapsed') === 'true';
+      const saved = localStorage.getItem('smriti_caregiver_sidebar_collapsed');
+      if (saved !== null) return saved === 'true';
     } catch {
       return false;
     }
+    return false;
   });
+
+  // Automatically collapse sidebar when window shrinks to mobile/tablet width
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsSidebarCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(prev => {
@@ -451,7 +468,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
       {/* ─── UNIFIED CLINICAL SIDEBAR (Keen Design System - Minimisable with 3-Line Orientation Toggle) ─── */}
       <aside
         className={`${
-          isSidebarCollapsed ? 'w-20' : 'w-68'
+          isSidebarCollapsed ? 'w-16 sm:w-20' : 'w-68'
         } bg-[#FAF8F5] text-[#1F2421] flex flex-col shrink-0 select-none border-r border-[#E5DFD5] shadow-xs z-20 transition-all duration-300 ease-in-out`}
       >
         

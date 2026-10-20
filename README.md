@@ -155,30 +155,25 @@ npm install
 
 ### Running the Application
 
-#### Option A: Unified Single-Origin Mode (Recommended for Production & Unified Dev)
-NeuroSaathi supports unified single-origin routing. Both portals and authentication run on a single host and port with zero iframe bridging:
+#### Multi-Server Architecture (Default: `npm run dev`)
+To launch both portals concurrently on their dedicated servers with cross-portal synchronization:
 ```bash
 npm run dev
+# or: npm run dev:both
 ```
-- **Patient Portal**: [http://localhost:5173/patient](http://localhost:5173/patient)
-- **Caregiver Portal**: [http://localhost:5173/caregiver](http://localhost:5173/caregiver)
-- **Login / Landing**: [http://localhost:5173/login](http://localhost:5173/login)
+- **Patient Portal Server**: Open [http://localhost:5173](http://localhost:5173) in your browser.
+- **Caregiver Portal Server**: Open [http://localhost:5174](http://localhost:5174) in your browser.
 
-#### Option B: Dual-Port Development Architecture (`npm run dev:both`)
-To run both the **Patient Portal** and **Caregiver Portal** concurrently on dedicated ports (5173 and 5174) with the hardened cross-port storage relay:
-```bash
-npm run dev:both
-```
-- **Patient Portal**: Open [http://localhost:5173](http://localhost:5173) in your browser.
-- **Caregiver Portal**: Open [http://localhost:5174](http://localhost:5174) in your browser.
-
-Alternatively, start individual dev ports:
+Alternatively, start servers individually:
 ```bash
 # Patient Portal only (port 5173)
 npm run dev:patient
 
 # Caregiver Portal only (port 5174)
 npm run dev:caregiver
+
+# Single-Server Mode (port 5173 with unified routes)
+npm run dev:single
 ```
 
 ### Building for Production

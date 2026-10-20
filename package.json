@@ -4,10 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5173",
+    "dev": "node scripts/start_both_portals.js",
+    "dev:both": "node scripts/start_both_portals.js",
     "dev:patient": "vite --port 5173",
     "dev:caregiver": "vite --port 5174",
-    "dev:both": "node scripts/start_both_portals.js",
+    "dev:single": "vite --port 5173",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",

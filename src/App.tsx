@@ -136,6 +136,16 @@ export function App() {
   };
 
   const handleLogin = (role: 'patient' | 'caregiver') => {
+    if (typeof window !== 'undefined') {
+      if (role === 'caregiver' && window.location.port === '5173') {
+        window.location.href = `${window.location.protocol}//${window.location.hostname}:5174/caregiver`;
+        return;
+      }
+      if (role === 'patient' && window.location.port === '5174') {
+        window.location.href = `${window.location.protocol}//${window.location.hostname}:5173/patient`;
+        return;
+      }
+    }
     updateView(role);
   };
 
@@ -147,10 +157,18 @@ export function App() {
   };
 
   const handleSwitchToCaregiver = () => {
+    if (typeof window !== 'undefined' && window.location.port === '5173') {
+      window.location.href = `${window.location.protocol}//${window.location.hostname}:5174/caregiver`;
+      return;
+    }
     updateView('caregiver');
   };
 
   const handleSwitchToPatient = () => {
+    if (typeof window !== 'undefined' && window.location.port === '5174') {
+      window.location.href = `${window.location.protocol}//${window.location.hostname}:5173/patient`;
+      return;
+    }
     updateView('patient');
   };
 
