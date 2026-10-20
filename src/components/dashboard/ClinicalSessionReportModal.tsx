@@ -52,6 +52,9 @@ import type {
 } from '../../utils/dailySessionManager';
 
 import type { SupportedLanguage } from '../../types/prescription';
+import { safeSessionStorage } from '../../utils/safeStorage';
+
+const CLOUD_CONSENT_KEY = 'smriti_cloud_consent_accepted';
 
 interface ClinicalSessionReportModalProps {
   isOpen: boolean;
@@ -82,8 +85,6 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
   onLaunchGame,
   language = 'en',
 }) => {
-  if (!isOpen) return null;
-
   // Active view mode: 'CARE_SUMMARY' (Default: Easy points for Caretaker) vs 'COMPREHENSIVE' (Deep AI Clinical Synthesis) vs 'SINGLE_SESSION' (Game Telemetry)
   const [reportMode, setReportMode] = useState<'CARE_SUMMARY' | 'COMPREHENSIVE' | 'SINGLE_SESSION'>('CARE_SUMMARY');
   const [copySuccess, setCopySuccess] = useState(false);
@@ -142,63 +143,98 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
   const [comprehensiveReport, setComprehensiveReport] = useState<ComprehensiveClinicalReport | null>(null);
   const [isGeneratingComprehensive, setIsGeneratingComprehensive] = useState(false);
 
+  // Cloud AI Consent State
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [pendingConsentAction, setPendingConsentAction] = useState<(() => void) | null>(null);
+
+  const requestConsentThenExecute = (action: () => void) => {
+    try {
+      const consented = safeSessionStorage.getItem(CLOUD_CONSENT_KEY) === 'true';
+      if (consented) {
+        action();
+        return;
+      }
+    } catch {}
+    setPendingConsentAction(() => action);
+    setShowConsentModal(true);
+  };
+
+  const handleConfirmConsent = () => {
+    try {
+      safeSessionStorage.setItem(CLOUD_CONSENT_KEY, 'true');
+    } catch {}
+    setShowConsentModal(false);
+    if (pendingConsentAction) {
+      const run = pendingConsentAction;
+      setPendingConsentAction(null);
+      run();
+    }
+  };
+
   // Handle Generating Single Game Report
   const handleGenerateSingleReport = async () => {
-    setIsGeneratingSingle(true);
-    const payload: ClinicalReportPayload = {
-      patient: {
-        name: patientName,
-        age: patientAge,
-        gender: patient?.gender,
-        diagnosisStage: diagnosis,
-      },
-      gameData: {
-        gameId: activeReport.gameId || 'memory-match',
-        gameTitle,
-        accuracyPercentage: activeReport.accuracyPercentage ?? 90,
-        totalTrials: activeReport.totalRounds ?? activeReport.totalTrials ?? 6,
-        correctTrials: activeReport.totalCorrect ?? activeReport.correctTrials ?? 5,
-        averageLatencyMs: activeReport.averageLatencyMs || 2400,
-        finalTheta: activeReport.finalTheta ?? 0.65,
-        estimatedMoCAScore: activeReport.estimatedMoCAMemoryScore ?? 4,
-        transpositionErrors: activeReport.transpositionErrors ?? 0,
-        intrusionErrors: activeReport.intrusionErrors ?? 0,
-        perseverationErrors: activeReport.perseverationErrors ?? 0,
-        autoAssistedRounds: activeReport.autoAssistedRounds ?? 0,
-        speedProfile: activeReport.speedProfile || 'normal',
-        maxSpanAchieved: activeReport.maxSpanAchieved ?? 4,
-      },
-      kinematicData: {
-        pathEfficiencyRatio: 0.94,
-        bandPower_4_6Hz: 0.09,
-        bandPower_8_12Hz: 0.11,
-        tremorPhenotype: 'normal_smooth',
-        tremorSeverityIndex: 0.08,
-        fittsPerformanceIndex: 1.88,
-      },
-      dailyComposite: dailyComposite ? {
-        overallScore: dailyComposite.score,
-        domainBreakdown: dailyComposite.domainBreakdown.map((d) => ({
-          domain: d.domain,
-          score: d.score,
-          accuracy: d.accuracy ?? 0,
-        })),
-      } : undefined,
+    const runSingleReport = async () => {
+      setIsGeneratingSingle(true);
+      const payload: ClinicalReportPayload = {
+        patient: {
+          name: patientName,
+          age: patientAge,
+          gender: patient?.gender,
+          diagnosisStage: diagnosis,
+        },
+        gameData: {
+          gameId: activeReport.gameId || 'memory-match',
+          gameTitle,
+          accuracyPercentage: activeReport.accuracyPercentage ?? 90,
+          totalTrials: activeReport.totalRounds ?? activeReport.totalTrials ?? 6,
+          correctTrials: activeReport.totalCorrect ?? activeReport.correctTrials ?? 5,
+          averageLatencyMs: activeReport.averageLatencyMs || 2400,
+          finalTheta: activeReport.finalTheta ?? 0.65,
+          estimatedMoCAScore: activeReport.estimatedMoCAMemoryScore ?? 4,
+          transpositionErrors: activeReport.transpositionErrors ?? 0,
+          intrusionErrors: activeReport.intrusionErrors ?? 0,
+          perseverationErrors: activeReport.perseverationErrors ?? 0,
+          autoAssistedRounds: activeReport.autoAssistedRounds ?? 0,
+          speedProfile: activeReport.speedProfile || 'normal',
+          maxSpanAchieved: activeReport.maxSpanAchieved ?? 4,
+        },
+        kinematicData: {
+          pathEfficiencyRatio: 0.94,
+          bandPower_4_6Hz: 0.09,
+          bandPower_8_12Hz: 0.11,
+          tremorPhenotype: 'normal_smooth',
+          tremorSeverityIndex: 0.08,
+          fittsPerformanceIndex: 1.88,
+        },
+        dailyComposite: dailyComposite ? {
+          overallScore: dailyComposite.score,
+          domainBreakdown: dailyComposite.domainBreakdown.map((d) => ({
+            domain: d.domain,
+            score: d.score,
+            accuracy: d.accuracy ?? 0,
+          })),
+        } : undefined,
+      };
+
+      try {
+        const res = await AIClinicalReportingService.generateReport(payload);
+        setSingleCloudReport(res);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsGeneratingSingle(false);
+      }
     };
 
-    try {
-      const res = await AIClinicalReportingService.generateReport(payload);
-      setSingleCloudReport(res);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsGeneratingSingle(false);
+    if (cloudConfig.apiKey?.trim()) {
+      requestConsentThenExecute(runSingleReport);
+    } else {
+      await runSingleReport();
     }
   };
 
   // Handle Generating Comprehensive Multi-Modal Report (EVERYTHING)
   const handleGenerateComprehensiveReport = async (overrideBenchmark = false) => {
-    setIsGeneratingComprehensive(true);
     setApiErrorMessage(null);
 
     let activeConfig: CloudAIConfig = { ...cloudConfig };
@@ -222,158 +258,165 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
       };
     }
 
-    const sessionsArray: DailyGameSessionRecord[] = Object.values(dailySessions);
-    const compositeData = dailyComposite || {
-      score: 82,
-      meanAccuracy: 88.5,
-      meanLatencyMs: 2350,
-      meanTheta: 0.62,
-      meanAutonomy: 94,
-      gamesPlayedCount: sessionsArray.length,
-      playedGameIds: sessionsArray.map(s => s.gameId),
-      isBaseline: sessionsArray.length === 0,
-      domainBreakdown: [
-        { domain: 'memory', label: 'Memory (Hippocampal)', score: 84, accuracy: 89, gamesPlayed: ['memory-match'], isPlayedToday: true },
-        { domain: 'attention', label: 'Attention (Prefrontal)', score: 80, accuracy: 86, gamesPlayed: ['sequence-recall'], isPlayedToday: true },
-        { domain: 'executive', label: 'Executive (Decision)', score: 81, accuracy: 87, gamesPlayed: ['odd-one-out'], isPlayedToday: true },
-        { domain: 'spatial', label: 'Spatial (Parietal)', score: 85, accuracy: 91, gamesPlayed: ['jigsaw-puzzle'], isPlayedToday: true },
-        { domain: 'language', label: 'Language (Temporal)', score: 79, accuracy: 84, gamesPlayed: ['word-recall'], isPlayedToday: true },
-      ]
+    const runComprehensiveReport = async () => {
+      setIsGeneratingComprehensive(true);
+      const sessionsArray: DailyGameSessionRecord[] = Object.values(dailySessions);
+      const compositeData = dailyComposite || {
+        score: 82,
+        meanAccuracy: 88.5,
+        meanLatencyMs: 2350,
+        meanTheta: 0.62,
+        meanAutonomy: 94,
+        gamesPlayedCount: sessionsArray.length,
+        playedGameIds: sessionsArray.map(s => s.gameId),
+        isBaseline: sessionsArray.length === 0,
+        domainBreakdown: [
+          { domain: 'memory', label: 'Memory (Hippocampal)', score: 84, accuracy: 89, gamesPlayed: ['memory-match'], isPlayedToday: true },
+          { domain: 'attention', label: 'Attention (Prefrontal)', score: 80, accuracy: 86, gamesPlayed: ['sequence-recall'], isPlayedToday: true },
+          { domain: 'executive', label: 'Executive (Decision)', score: 81, accuracy: 87, gamesPlayed: ['odd-one-out'], isPlayedToday: true },
+          { domain: 'spatial', label: 'Spatial (Parietal)', score: 85, accuracy: 91, gamesPlayed: ['jigsaw-puzzle'], isPlayedToday: true },
+          { domain: 'language', label: 'Language (Temporal)', score: 79, accuracy: 84, gamesPlayed: ['word-recall'], isPlayedToday: true },
+        ]
+      };
+
+      const comprehensivePayload: ComprehensiveClinicalPayload = {
+        patient: {
+          name: patientName,
+          age: patientAge,
+          gender: patient?.gender || 'Female',
+          diagnosisStage: diagnosis,
+          educationYears: 14,
+        },
+        allGameSessions: sessionsArray.length > 0 ? sessionsArray.map(s => ({
+          gameId: s.gameId,
+          gameTitle: s.gameTitle,
+          accuracyPercentage: s.accuracyPercentage,
+          averageLatencyMs: s.averageLatencyMs,
+          finalTheta: s.finalTheta,
+          autonomyScore: s.autonomyScore,
+          autoAssistedRounds: s.autoAssistedRounds,
+          perseverationErrors: s.perseverationErrors,
+          domain: s.domain,
+          completedAt: s.completedAt,
+        })) : [
+          {
+            gameId: 'memory-match',
+            gameTitle: 'Memory Match (Paired Associates)',
+            accuracyPercentage: 88,
+            averageLatencyMs: 2200,
+            finalTheta: 0.65,
+            autonomyScore: 100,
+            autoAssistedRounds: 0,
+            perseverationErrors: 0,
+            domain: 'memory',
+            completedAt: 'Today, 10:15 AM',
+          },
+          {
+            gameId: 'sequence-recall',
+            gameTitle: 'Sequence Recall (Corsi Span)',
+            accuracyPercentage: 85,
+            averageLatencyMs: 2450,
+            finalTheta: 0.58,
+            autonomyScore: 90,
+            autoAssistedRounds: 1,
+            perseverationErrors: 0,
+            domain: 'attention',
+            completedAt: 'Today, 10:22 AM',
+          }
+        ],
+        kinematicMetrics: {
+          pathEfficiencyRatio: 0.942,
+          bandPower_4_6Hz: 0.086,
+          bandPower_8_12Hz: 0.112,
+          tremorPhenotype: 'Normal smooth motor trajectory (Sub-clinical 4-6 Hz band)',
+          tremorSeverityIndex: 0.08,
+          fittsPerformanceIndex: 1.89,
+          jerkSmoothnessPercent: 94.6,
+        },
+        dailyComposite: {
+          overallScore: compositeData.score,
+          isBaseline: compositeData.isBaseline,
+          gamesPlayedCount: compositeData.gamesPlayedCount,
+          meanAccuracy: compositeData.meanAccuracy,
+          meanLatencyMs: compositeData.meanLatencyMs,
+          meanTheta: compositeData.meanTheta,
+          domainBreakdown: compositeData.domainBreakdown.map(d => ({
+            domain: d.domain,
+            label: d.label,
+            score: d.score,
+            accuracy: d.accuracy ?? 0,
+            gamesPlayed: d.gamesPlayed,
+          })),
+        },
+        uploadedMedicalReports: uploadedReports.length > 0 ? uploadedReports : [
+          {
+            id: 'rep_01',
+            name: 'MMSE_Assessment_August.pdf',
+            uploadDate: 'Aug 15, 2024',
+            sizeBytes: 245000,
+          },
+          {
+            id: 'rep_02',
+            name: 'Brain_MRI_Hippocampal_Volumetry.pdf',
+            uploadDate: 'Sep 02, 2024',
+            sizeBytes: 512000,
+          }
+        ],
+        medications: medications.length > 0 ? medications : [
+          {
+            id: 'med_01',
+            patientId: patient?.id || 'p_01',
+            name: 'Donepezil Hydrochloride',
+            dosage: '5 mg',
+            timing: 'bedtime',
+            instructions: 'Take 1 tablet at night with water. Cholinesterase inhibitor for memory consolidation.',
+            takenToday: true,
+            prescribedBy: 'Dr. A. Sarma (Neurology, GMCH)',
+          },
+          {
+            id: 'med_02',
+            patientId: patient?.id || 'p_01',
+            name: 'Memantine HCl',
+            dosage: '10 mg',
+            timing: 'morning',
+            instructions: 'Take in the morning with breakfast. NMDA receptor antagonist preventing excitotoxicity.',
+            takenToday: false,
+            prescribedBy: 'Dr. A. Sarma (Neurology, GMCH)',
+          },
+          {
+            id: 'med_03',
+            patientId: patient?.id || 'p_01',
+            name: 'Vitamin B12 & Folate',
+            dosage: '1500 mcg',
+            timing: 'morning',
+            instructions: 'Neuro-protective vitamin supplement supporting cellular myelin.',
+            takenToday: true,
+            prescribedBy: 'Dr. P. Goswami (Geriatrics)',
+          }
+        ],
+        dailyRoutines: routines.length > 0 ? routines : [
+          { id: 'r1', patientId: patient?.id || 'p_01', time: '08:00 AM', activity: 'Morning Walk & Sunlight', category: 'exercise', completed: true },
+          { id: 'r2', patientId: patient?.id || 'p_01', time: '10:00 AM', activity: 'Cognitive Game Workout', category: 'cognitive', completed: true },
+          { id: 'r3', patientId: patient?.id || 'p_01', time: '01:00 PM', activity: 'Nutritious Lunch & Rest', category: 'meal', completed: true },
+          { id: 'r4', patientId: patient?.id || 'p_01', time: '05:00 PM', activity: 'Family Tea & Conversation', category: 'social', completed: false },
+        ],
+      };
+
+      try {
+        const res = await AIClinicalReportingService.generateComprehensiveReport(comprehensivePayload, activeConfig);
+        setComprehensiveReport(res);
+      } catch (e: any) {
+        console.error(e);
+        setApiErrorMessage(e?.message || 'Cloud API request failed. Please check your API key.');
+      } finally {
+        setIsGeneratingComprehensive(false);
+      }
     };
 
-    const comprehensivePayload: ComprehensiveClinicalPayload = {
-      patient: {
-        name: patientName,
-        age: patientAge,
-        gender: patient?.gender || 'Female',
-        diagnosisStage: diagnosis,
-        educationYears: 14,
-        clinicalNotes: 'Patient demonstrates high alertness to familiar routine cues. Keep morning exercise timing consistent.',
-        emergencyContact: '+91 98765 43210 (Anita Joshi - Caregiver)',
-      },
-      allGameSessions: sessionsArray.length > 0 ? sessionsArray.map(s => ({
-        gameId: s.gameId,
-        gameTitle: s.gameTitle,
-        accuracyPercentage: s.accuracyPercentage,
-        averageLatencyMs: s.averageLatencyMs,
-        finalTheta: s.finalTheta,
-        autonomyScore: s.autonomyScore,
-        autoAssistedRounds: s.autoAssistedRounds,
-        perseverationErrors: s.perseverationErrors,
-        domain: s.domain,
-        completedAt: s.completedAt,
-      })) : [
-        {
-          gameId: 'memory-match',
-          gameTitle: 'Memory Match (Paired Associates)',
-          accuracyPercentage: 88,
-          averageLatencyMs: 2200,
-          finalTheta: 0.65,
-          autonomyScore: 100,
-          autoAssistedRounds: 0,
-          perseverationErrors: 0,
-          domain: 'memory',
-          completedAt: 'Today, 10:15 AM',
-        },
-        {
-          gameId: 'sequence-recall',
-          gameTitle: 'Sequence Recall (Corsi Span)',
-          accuracyPercentage: 85,
-          averageLatencyMs: 2450,
-          finalTheta: 0.58,
-          autonomyScore: 90,
-          autoAssistedRounds: 1,
-          perseverationErrors: 0,
-          domain: 'attention',
-          completedAt: 'Today, 10:22 AM',
-        }
-      ],
-      kinematicMetrics: {
-        pathEfficiencyRatio: 0.942,
-        bandPower_4_6Hz: 0.086,
-        bandPower_8_12Hz: 0.112,
-        tremorPhenotype: 'Normal smooth motor trajectory (Sub-clinical 4-6 Hz band)',
-        tremorSeverityIndex: 0.08,
-        fittsPerformanceIndex: 1.89,
-        jerkSmoothnessPercent: 94.6,
-      },
-      dailyComposite: {
-        overallScore: compositeData.score,
-        isBaseline: compositeData.isBaseline,
-        gamesPlayedCount: compositeData.gamesPlayedCount,
-        meanAccuracy: compositeData.meanAccuracy,
-        meanLatencyMs: compositeData.meanLatencyMs,
-        meanTheta: compositeData.meanTheta,
-        domainBreakdown: compositeData.domainBreakdown.map(d => ({
-          domain: d.domain,
-          label: d.label,
-          score: d.score,
-          accuracy: d.accuracy ?? 0,
-          gamesPlayed: d.gamesPlayed,
-        })),
-      },
-      uploadedMedicalReports: uploadedReports.length > 0 ? uploadedReports : [
-        {
-          id: 'rep_01',
-          name: 'MMSE_Assessment_August.pdf',
-          uploadDate: 'Aug 15, 2024',
-          sizeBytes: 245000,
-        },
-        {
-          id: 'rep_02',
-          name: 'Brain_MRI_Hippocampal_Volumetry.pdf',
-          uploadDate: 'Sep 02, 2024',
-          sizeBytes: 512000,
-        }
-      ],
-      medications: medications.length > 0 ? medications : [
-        {
-          id: 'med_01',
-          patientId: patient?.id || 'p_01',
-          name: 'Donepezil Hydrochloride',
-          dosage: '5 mg',
-          timing: 'bedtime',
-          instructions: 'Take 1 tablet at night with water. Cholinesterase inhibitor for memory consolidation.',
-          takenToday: true,
-          prescribedBy: 'Dr. A. Sarma (Neurology, GMCH)',
-        },
-        {
-          id: 'med_02',
-          patientId: patient?.id || 'p_01',
-          name: 'Memantine HCl',
-          dosage: '10 mg',
-          timing: 'morning',
-          instructions: 'Take in the morning with breakfast. NMDA receptor antagonist preventing excitotoxicity.',
-          takenToday: false,
-          prescribedBy: 'Dr. A. Sarma (Neurology, GMCH)',
-        },
-        {
-          id: 'med_03',
-          patientId: patient?.id || 'p_01',
-          name: 'Vitamin B12 & Folate',
-          dosage: '1500 mcg',
-          timing: 'morning',
-          instructions: 'Neuro-protective vitamin supplement supporting cellular myelin.',
-          takenToday: true,
-          prescribedBy: 'Dr. P. Goswami (Geriatrics)',
-        }
-      ],
-      dailyRoutines: routines.length > 0 ? routines : [
-        { id: 'r1', patientId: patient?.id || 'p_01', time: '08:00 AM', activity: 'Morning Walk & Sunlight', category: 'exercise', completed: true },
-        { id: 'r2', patientId: patient?.id || 'p_01', time: '10:00 AM', activity: 'Cognitive Game Workout', category: 'cognitive', completed: true },
-        { id: 'r3', patientId: patient?.id || 'p_01', time: '01:00 PM', activity: 'Nutritious Lunch & Rest', category: 'meal', completed: true },
-        { id: 'r4', patientId: patient?.id || 'p_01', time: '05:00 PM', activity: 'Family Tea & Conversation', category: 'social', completed: false },
-      ],
-    };
-
-    try {
-      const res = await AIClinicalReportingService.generateComprehensiveReport(comprehensivePayload, activeConfig);
-      setComprehensiveReport(res);
-    } catch (e: any) {
-      console.error(e);
-      setApiErrorMessage(e?.message || 'Cloud API request failed. Please check your API key.');
-    } finally {
-      setIsGeneratingComprehensive(false);
+    if (!overrideBenchmark && activeConfig.apiKey.trim()) {
+      requestConsentThenExecute(runComprehensiveReport);
+    } else {
+      await runComprehensiveReport();
     }
   };
 
@@ -598,13 +641,13 @@ ${routineBullets}
     generateFullReport: isHi ? 'पूर्ण रिपोर्ट तैयार करें (API कुंजी द्वारा)' : 'Generate Full Report (via API Key)',
     regenerateReport: isHi ? 'क्लाउड API द्वारा पुनः उत्पन्न करें' : 'Regenerate via Cloud API',
     previewBenchmark: isHi ? 'क्लाउड बेंचमार्क पूर्वावलोकन' : 'Preview Cloud Benchmark',
-    officialEvaluation: isHi ? 'आधिकारिक न्यूरोसाइकोलॉजिकल मूल्यांकन' : 'Official Neuropsychological Evaluation',
+    officialEvaluation: isHi ? 'संज्ञानात्मक स्क्रीनिंग एवं अवलोकन मूल्यांकन' : 'Cognitive Screening & Observational Assessment',
     liveCloudRestApi: isHi ? 'लाइव क्लाउड REST API' : 'Live Cloud REST API',
     cloudBenchmarkRef: isHi ? 'क्लाउड बेंचमार्क संदर्भ' : 'Cloud Benchmark Reference',
     evaluatedVia: isHi ? 'मूल्यांकनकर्ता' : 'Evaluated via',
     estimatedMoCA: isHi ? 'अनुमानित MoCA' : 'Estimated MoCA',
     declineRisk: isHi ? 'गिरावट का जोखिम' : 'Decline Risk',
-    executiveSummary: isHi ? 'कार्यकारी नैदानिक सारांश' : 'Executive Diagnostic Summary',
+    executiveSummary: isHi ? 'संज्ञानात्मक जोखिम वर्गीकरण (स्क्रीनिंग)' : 'Cognitive Risk Stratification (Screening Concordance)',
     topPriorityMeds: isHi ? 'सर्वोच्च प्राथमिकता वाली दवाएं व समय-सारणी' : 'Top Priority Medications & Adherence Schedule',
     topPriorityBadge: isHi ? 'सर्वोच्च प्राथमिकता' : 'Top Priority',
     medsSubtitle: isHi ? 'न्यूरो-सुरक्षात्मक दवाओं और समय पर खुराक को प्राथमिकता देने वाला क्लिनिकल शेड्यूल।' : 'Ranked clinical schedule prioritizing neuro-protective agents and active dosage compliance.',
@@ -661,6 +704,8 @@ ${routineBullets}
     apiNotice: isHi ? 'API सूचना:' : 'API Notice:',
     psychometrics2PL: isHi ? '2PL साइकोमेट्रिक्स' : '2PL Psychometrics',
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
@@ -1499,6 +1544,14 @@ ${routineBullets}
 
                   {/* 1. EXECUTIVE DIAGNOSTIC STAGING & RISK BANNER */}
                   <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white border-2 border-amber-400 shadow-xl space-y-4">
+                    {/* STATUTORY CLINICAL NOTICE BANNER */}
+                    <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-start gap-2.5 text-amber-200">
+                      <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <p className="text-[11px] leading-relaxed font-medium">
+                        <strong className="font-bold text-amber-300">STATUTORY CLINICAL NOTICE:</strong> This assessment provides algorithmic cognitive screening concordance and observational risk indicators. It is NOT a medical diagnosis. Definitive clinical diagnosis of Alzheimer&apos;s disease or dementia requires comprehensive neurological, laboratory, and radiological evaluation by a licensed specialist.
+                      </p>
+                    </div>
+
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
@@ -1967,6 +2020,51 @@ ${routineBullets}
         </div>
 
       </div>
+
+      {/* One-Time Cloud AI Consent Notice Modal */}
+      {showConsentModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white max-w-md w-full rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center gap-3 text-emerald-700">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Cloud AI Consent</h3>
+                <p className="text-xs text-slate-500">Privacy & Data Protection Notice</p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+              <p className="text-sm font-medium text-slate-700 leading-relaxed">
+                Anonymised gameplay data will be sent to {cloudConfig.provider || 'gemini'}.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConsentModal(false);
+                  setPendingConsentAction(null);
+                  setIsGeneratingComprehensive(false);
+                  setIsGeneratingSingle(false);
+                }}
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmConsent}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#28573E] text-white hover:bg-[#1E4330] transition-colors shadow-sm"
+              >
+                Consent & Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cloud AI Config Modal */}
       <CloudAIConfigModal

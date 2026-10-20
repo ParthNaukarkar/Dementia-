@@ -13,6 +13,7 @@
 
 import { getGameCognitiveProfile } from './game-cognitive-profiles';
 import { PatientAdaptiveMemoryService, type TeacherReflectionRecord } from './patient-adaptive-memory';
+import { safeSessionStorage } from '../utils/safeStorage';
 
 export interface GameAIConfig {
   apiKey: string;
@@ -74,18 +75,17 @@ export class AIGameCalibratorService {
    */
   public static getConfig(): GameAIConfig {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY_GAME_AI_CONFIG);
+      const stored = safeSessionStorage.getItem(STORAGE_KEY_GAME_AI_CONFIG);
       if (stored) {
         return JSON.parse(stored);
       }
     } catch {}
 
-    const envKey = (import.meta as any).env?.VITE_OPENAI_API_KEY || '';
     return {
-      apiKey: envKey,
+      apiKey: '',
       provider: 'openai',
       model: 'gpt-4o-mini',
-      enabled: !!envKey,
+      enabled: false,
     };
   }
 
@@ -94,7 +94,7 @@ export class AIGameCalibratorService {
    */
   public static saveConfig(config: GameAIConfig): void {
     try {
-      localStorage.setItem(STORAGE_KEY_GAME_AI_CONFIG, JSON.stringify(config));
+      safeSessionStorage.setItem(STORAGE_KEY_GAME_AI_CONFIG, JSON.stringify(config));
     } catch {}
   }
 

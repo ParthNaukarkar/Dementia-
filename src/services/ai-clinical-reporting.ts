@@ -9,7 +9,11 @@
 
 import type { MedicationItem, DailyRoutineItem } from '../types/caregiver';
 import type { MedicalReportItem } from '../utils/caregiverStorage';
+import { safeSessionStorage } from '../utils/safeStorage';
 import { AIGameCalibratorService } from './ai-game-calibrator';
+
+export const STATUTORY_CLINICAL_DISCLAIMER =
+  'STATUTORY CLINICAL NOTICE: This evaluation is generated algorithmically for observational neurocognitive monitoring and screening concordance only. It does NOT constitute a formal clinical or neuropsychological diagnosis of Alzheimer\'s disease, dementia, or any psychiatric/neurological condition. Definitive diagnosis requires comprehensive medical evaluation, lab investigations, and neuroimaging by a certified neurologist or psychiatrist.';
 
 export type AIProvider = 'gemini' | 'openai' | 'groq';
 
@@ -126,6 +130,8 @@ export interface ComprehensiveClinicalPayload {
 /** Single-game generated report */
 export interface GeneratedClinicalReport {
   isCloudGenerated: boolean;
+  generationMode?: 'CLOUD_LLM_SYNTHESIS' | 'LOCAL_HEURISTIC_RULES_ENGINE';
+  statutoryClinicalDisclaimer?: string;
   provider: string;
   model: string;
   generatedAt: string;
@@ -177,6 +183,8 @@ export interface ActionPlanTimeframe {
 /** Comprehensive Multi-Modal Neurocognitive Assessment Report */
 export interface ComprehensiveClinicalReport {
   isCloudGenerated: boolean;
+  generationMode?: 'CLOUD_LLM_SYNTHESIS' | 'LOCAL_HEURISTIC_RULES_ENGINE';
+  statutoryClinicalDisclaimer?: string;
   provider: string;
   model: string;
   generatedAt: string;
@@ -240,14 +248,14 @@ export class AIClinicalReportingService {
    */
   public static getConfig(): CloudAIConfig {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY_CONFIG);
+      const stored = safeSessionStorage.getItem(STORAGE_KEY_CONFIG);
       if (stored) {
         return JSON.parse(stored);
       }
     } catch {}
 
     return {
-      apiKey: (import.meta as any).env?.VITE_GEMINI_API_KEY || '',
+      apiKey: '',
       provider: 'gemini',
       model: 'gemini-3.8-flash',
     };
@@ -258,7 +266,7 @@ export class AIClinicalReportingService {
    */
   public static saveConfig(config: CloudAIConfig): void {
     try {
-      localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(config));
+      safeSessionStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(config));
     } catch {}
   }
 
@@ -434,7 +442,7 @@ Output your evaluation as valid, strictly parsed JSON with no markdown wrapping 
 }`;
 
     const userPrompt = `Patient Profile:
-Name: ${payload.patient.name}
+Name: the patient
 Age: ${payload.patient.age}
 Baseline Diagnosis: ${payload.patient.diagnosisStage}
 
@@ -648,10 +656,9 @@ Output your evaluation strictly as valid JSON matching this schema:
       : AIGameCalibratorService.getHistory();
 
     const userPrompt = `PATIENT DOSSIER:
-- Name: ${payload.patient.name}
+- Name: the patient
 - Age: ${payload.patient.age} (${payload.patient.gender || 'Not specified'})
 - Clinical Baseline: ${payload.patient.diagnosisStage}
-- Caregiver Notes: ${payload.patient.clinicalNotes || 'Consistent morning routine advised.'}
 
 TODAY'S DAILY COMPOSITE SCORE:
 - Composite Cognitive Score: ${payload.dailyComposite.overallScore} / 100 (${payload.dailyComposite.isBaseline ? 'Baseline' : `${payload.dailyComposite.gamesPlayedCount} games combined`})
@@ -934,6 +941,8 @@ ${payload.dailyRoutines.map(r => `  * [${r.time}] ${r.activity} (${r.category}) 
 
     return {
       isCloudGenerated: false,
+      generationMode: 'LOCAL_HEURISTIC_RULES_ENGINE',
+      statutoryClinicalDisclaimer: STATUTORY_CLINICAL_DISCLAIMER,
       provider: providerLabel,
       model: 'Cloud AI Clinical Intelligence Benchmark (Gemini Schema Reference)',
       generatedAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
@@ -991,6 +1000,8 @@ ${payload.dailyRoutines.map(r => `  * [${r.time}] ${r.activity} (${r.category}) 
 
     return {
       isCloudGenerated: false,
+      generationMode: 'LOCAL_HEURISTIC_RULES_ENGINE',
+      statutoryClinicalDisclaimer: STATUTORY_CLINICAL_DISCLAIMER,
       provider: providerLabel,
       model: 'Cloud AI Clinical Evaluation Benchmark (Gemini Schema Reference)',
       generatedAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),

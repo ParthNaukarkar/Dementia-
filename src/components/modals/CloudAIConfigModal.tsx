@@ -364,6 +364,10 @@ export const CloudAIConfigModal: React.FC<CloudAIConfigModalProps> = ({
                     {showGameKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                <p className="text-[11px] text-slate-500 font-medium mt-1.5 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>The API key is stored in sessionStorage and stays in this browser tab only.</span>
+                </p>
               </div>
 
               {/* Test Status */}
@@ -552,6 +556,10 @@ export const CloudAIConfigModal: React.FC<CloudAIConfigModalProps> = ({
                     {showReportKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                <p className="text-[11px] text-slate-500 font-medium mt-1.5 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>The API key is stored in sessionStorage and stays in this browser tab only.</span>
+                </p>
               </div>
 
               {/* Report Test Status */}
