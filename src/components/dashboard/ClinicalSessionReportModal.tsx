@@ -1542,7 +1542,7 @@ ${routineBullets}
               {comprehensiveReport ? (
                 <div className="space-y-6">
 
-                  {/* 1. EXECUTIVE DIAGNOSTIC STAGING & RISK BANNER */}
+                  {/* 1. EXECUTIVE SCREENING STAGING & RISK BANNER */}
                   <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white border-2 border-amber-400 shadow-xl space-y-4">
                     {/* STATUTORY CLINICAL NOTICE BANNER */}
                     <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-start gap-2.5 text-amber-200">

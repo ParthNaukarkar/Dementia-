@@ -1060,8 +1060,8 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
               <Sparkles className="w-4 h-4 text-indigo-400" />
               <span className="text-xs font-black uppercase tracking-wider text-indigo-300">
                 {language === 'hi' 
-                  ? 'रेनसिंक चेंज ब्लाइंडनेस एवं 2PL IRT डायग्नोस्टिक्स AI टेस्टबेड' 
-                  : 'National AI Testbed: Rensink Change Blindness & Bayesian 2PL IRT Diagnostics'}
+                  ? 'रेनसिंक चेंज ब्लाइंडनेस एवं 2PL IRT संज्ञानात्मक निगरानी AI टेस्टबेड' 
+                  : 'National AI Testbed: Rensink Change Blindness & Bayesian 2PL IRT Cognitive Monitoring'}
               </span>
             </div>
             <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">

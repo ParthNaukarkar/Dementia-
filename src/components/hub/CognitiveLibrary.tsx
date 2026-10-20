@@ -31,7 +31,7 @@ const LOCALIZED_TEXTS = {
   },
   en: {
     heading: 'Cognitive Library',
-    subheading: '10 clinically validated neuroplastic exercises calibrated for memory and daily thinking.',
+    subheading: '10 cognitive monitoring exercises calibrated for memory and daily thinking.',
     playNow: 'Play Game',
     minutes: 'mins',
     filters: {
@@ -217,7 +217,7 @@ export const CognitiveLibrary: React.FC<CognitiveLibraryProps> = ({
                   </p>
                 </div>
 
-                {/* Clinical Validation & Action CTA */}
+                {/* Clinical Evidence & Action CTA */}
                 <div className="pt-4 border-t border-[#E5DFD5] flex items-center justify-between">
                   <span className="text-xs sm:text-sm font-medium text-[#636B65] max-w-[200px] truncate" title={game.clinicalStandard}>
                     {game.clinicalStandard}

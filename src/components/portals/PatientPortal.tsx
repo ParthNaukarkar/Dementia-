@@ -79,7 +79,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [activeTab, setActiveTab] = useState<'workout' | 'library' | 'medications' | 'routine' | 'settings'>('workout');
 
   // Game execution state
-  const [activeGameId, setActiveGameId] = useState<GameId | null>(null);
+  const [activeGameId, setActiveGameId] = useState<GameId | null>(() => {
+    if (typeof window !== 'undefined') {
+      const g = new URLSearchParams(window.location.search).get('game') as GameId;
+      if (g) return g;
+    }
+    return null;
+  });
   const [isWorkoutMode, setIsWorkoutMode] = useState<boolean>(false);
   const [workoutCurrentIndex, setWorkoutCurrentIndex] = useState<number>(0);
   const [activeWorkoutPlaylist, setActiveWorkoutPlaylist] = useState<GameId[]>(() => prescription.prescribedGameIds);

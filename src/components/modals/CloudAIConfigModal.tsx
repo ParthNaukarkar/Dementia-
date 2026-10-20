@@ -115,11 +115,11 @@ export const CloudAIConfigModal: React.FC<CloudAIConfigModalProps> = ({
       ? 'लाइव गेम स्तर नियंत्रण हेतु OpenAI एवं क्लिनिकल रिपोर्ट हेतु Gemini कॉन्फ़िगर करें' 
       : 'Configure OpenAI for live game level calibration & Gemini for clinical reports',
     tabGames: isHi ? '१. गेम स्तर नियंत्रक (OpenAI)' : '1. Game Level Director (OpenAI)',
-    tabReport: isHi ? '२. नैदानिक रिपोर्ट (Gemini/Cloud)' : '2. Diagnostic Report (Gemini/Cloud)',
+    tabReport: isHi ? '२. संज्ञानात्मक रिपोर्ट (Gemini/Cloud)' : '2. Cognitive Monitoring Report (Gemini/Cloud)',
     gameBannerTitle: isHi ? 'लाइव न्यूरो-अनुकूली गेम डायरेक्टर (OpenAI API)' : 'Live Neuro-Adaptive Game Director (OpenAI API)',
     gameBannerDesc: isHi 
       ? 'सटीकता, प्रतिक्रिया समय और कंपन का विश्लेषण कर खेल के स्तर को लाइव नियंत्रित करता है।' 
-      : 'Analyzes trial-by-trial accuracy, reaction latency, perseverative flips, and motor tremor to dynamically promote, maintain, or scaffold game levels on the fly. Feeds all calibrated decisions directly into the Master Diagnostic Report.',
+      : 'Analyzes trial-by-trial accuracy, reaction latency, perseverative flips, and motor tremor to dynamically promote, maintain, or scaffold game levels on the fly. Feeds all calibrated decisions directly into the Master Cognitive Monitoring Report.',
     enableGameDecider: isHi ? 'डायनामिक AI स्तर नियंत्रक सक्षम करें' : 'Enable Dynamic AI Level Decider',
     activeOpenAI: isHi ? 'सक्रिय — OpenAI खेल स्तर नियंत्रित करता है' : 'Active — OpenAI modulates game levels',
     disabledIRT: isHi ? 'अक्षम — नियतात्मक 2PL IRT गणित का उपयोग करता है' : 'Disabled — Uses deterministic 2PL IRT math',
@@ -131,10 +131,10 @@ export const CloudAIConfigModal: React.FC<CloudAIConfigModalProps> = ({
     openAIDashboard: isHi ? 'OpenAI कुंजी डैशबोर्ड' : 'OpenAI Key Dashboard',
     testGameBtn: isHi ? 'गेम AI कनेक्शन जांचें' : 'Test Game AI Connection',
     testingGameBtn: isHi ? 'गेम AI से संपर्क हो रहा है...' : 'Pinging Game AI...',
-    reportBannerTitle: isHi ? 'मुख्य क्लिनिकल नैदानिक रिपोर्ट इंजन' : 'Master Clinical Diagnostic Synthesizer',
+    reportBannerTitle: isHi ? 'मुख्य संज्ञानात्मक निगरानी रिपोर्ट इंजन' : 'Master Cognitive Monitoring Report Engine',
     reportBannerDesc: isHi 
       ? 'सभी १० खेलों, देखभालकर्ता रिपोर्टों, दवा अनुपालन और दैनिक गतिविधियों को मानकीकृत ABDM रिपोर्ट में संकलित करता है।' 
-      : 'Aggregates all 10 games, OpenAI game level transitions, caregiver uploaded lab reports, medication adherence logs, and circadian routines into a standardized ABDM neuropsychological diagnostic evaluation.',
+      : 'Aggregates all 10 games, OpenAI game level transitions, caregiver uploaded lab reports, medication adherence logs, and circadian routines into a standardized ABDM neuropsychological cognitive monitoring evaluation.',
     reportProviderLabel: isHi ? 'क्लिनिकल रिपोर्ट AI प्रदाता' : 'Clinical Report AI Provider',
     recommended: isHi ? 'अनुशंसित' : 'Recommended',
     ultraFast: isHi ? 'अति तीव्र' : 'Ultra Fast',
@@ -145,7 +145,7 @@ export const CloudAIConfigModal: React.FC<CloudAIConfigModalProps> = ({
     testingReportBtn: isHi ? 'रिपोर्ट API जांच जारी...' : 'Testing Report API...',
     pipelineNote: isHi 
       ? 'मल्टी-मॉडल क्लिनिकल पाइपलाइन: OpenAI खेल कठिनाई को रियल-टाइम में कैलिब्रेट करता है; Google Gemini / Cloud LLM समग्र रोगी रिपोर्ट तैयार करता है।' 
-      : 'Multi-Model Clinical Pipeline: OpenAI calibrates micro-telemetry and dynamic game difficulty in real time; Google Gemini / Cloud LLM synthesizes macro diagnostics and generates the comprehensive patient report.',
+      : 'Multi-Model Clinical Pipeline: OpenAI calibrates micro-telemetry and dynamic game difficulty in real time; Google Gemini / Cloud LLM synthesizes cognitive monitoring telemetry and generates the comprehensive patient report.',
     cancel: isHi ? 'रद्द करें' : 'Cancel',
     saveConfig: isHi ? 'कॉन्फ़िगरेशन सुरक्षित करें' : 'Save Configuration',
     statusConfigured: isHi ? '✓ गेम AI कॉन्फ़िगर है' : '✓ Game AI configured',
@@ -411,7 +411,7 @@ export const CloudAIConfigModal: React.FC<CloudAIConfigModalProps> = ({
           )}
 
           {/* ════════════════════════════════════════════════════════════════ */}
-          {/* TAB 2: MASTER CLINICAL DIAGNOSTIC REPORT (GEMINI / CLOUD)        */}
+          {/* TAB 2: MASTER COGNITIVE MONITORING REPORT (GEMINI / CLOUD)        */}
           {/* ════════════════════════════════════════════════════════════════ */}
           {activeTab === 'REPORT_AI' && (
             <div className="space-y-4 animate-fadeIn">
@@ -505,7 +505,7 @@ export const CloudAIConfigModal: React.FC<CloudAIConfigModalProps> = ({
                   {reportConfig.provider === 'openai' && (
                     <>
                       <option value="gpt-4o-mini">gpt-4o-mini ({isHi ? 'गति और लागत में सर्वश्रेष्ठ' : 'Recommended for speed & cost'})</option>
-                      <option value="gpt-4o">gpt-4o ({isHi ? 'अधिकतम नैदानिक सटीकता' : 'Maximum diagnostic precision'})</option>
+                      <option value="gpt-4o">gpt-4o ({isHi ? 'अधिकतम विश्लेषणात्मक सटीकता' : 'Maximum analytical precision'})</option>
                     </>
                   )}
                   {reportConfig.provider === 'groq' && (

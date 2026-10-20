@@ -484,10 +484,10 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       en: 'Executive Strategy',
     },
     aiDiagnosticSummary: {
-      as: 'AI চিকিৎসা নিদানিক সাৰাংশ',
-      bn: 'AI ক্লিনিক্যাল ডায়াগনস্টিক সারাংশ',
-      hi: 'AI नैदानिक सारांश',
-      en: 'AI Clinical Diagnostic Summary',
+      as: 'AI সংজ্ঞানাত্মক নিৰীক্ষণ সাৰাংশ',
+      bn: 'AI সংজ্ঞানাত্মক নিরীক্ষণ সারাংশ',
+      hi: 'AI संज्ञानात्मक निगरानी सारांश',
+      en: 'AI Cognitive Monitoring Summary',
     },
     returnToDashboard: {
       as: 'ডেচব’ৰ্ডলৈ উভতি যাওক',
@@ -1332,7 +1332,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             )}
           </div>
 
-          {/* Section D: Live Real-Time Diagnostics Telemetry Bar */}
+          {/* Section D: Live Real-Time Cognitive Monitoring Telemetry Bar */}
           <div className="pt-2 border-t border-white/10 grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono text-xs">
             <div>
               <span className="text-slate-400 block text-[10px] uppercase">{t.latentAbility[language]}</span>
