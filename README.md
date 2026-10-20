@@ -1,4 +1,4 @@
-# Smriti Setu (স্মৃতি সেতু / स्मृति सेतु)
+# NeuroSaathi (न्यूरोसाथी / নিউৰোসাথী / নিউরোসাথী)
 ### AI-Assisted Cognitive Screening Support & Culturally Attuned Memory Care Platform
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](#)
@@ -12,9 +12,9 @@
 
 ## 📌 Project Overview
 
-**Smriti Setu** ("Bridge of Memory") is an open-source, culturally attuned cognitive screening support and memory-assistance web platform designed specifically for older adults and individuals living with Mild Cognitive Impairment (MCI) or early-stage dementia across the North Eastern Region (NER) of India. Featuring 10 neuropsychologically inspired cognitive exercises rooted in Assamese, Bengali, and North Eastern folklore, geographical landmarks, and daily community traditions, Smriti Setu combines on-device latent ability estimation (Bayesian 2PL Item Response Theory), real-time contextual bandit scaffolding (LinUCB), digital kinematic tremor filtering, and an accessible dual-portal architecture that fosters patient dignity while providing caregivers and clinicians with longitudinal cognitive monitoring telemetry.
+**NeuroSaathi** ("Neuro-Companion", also known as Smriti Setu / স্মৃতি সেতু) is an open-source, culturally attuned cognitive screening support and memory-assistance web platform designed specifically for older adults and individuals living with Mild Cognitive Impairment (MCI) or early-stage dementia across the North Eastern Region (NER) of India. Featuring 10 neuropsychologically inspired cognitive exercises rooted in Assamese, Bengali, and North Eastern folklore, geographical landmarks, and daily community traditions, NeuroSaathi combines on-device latent ability estimation (Bayesian 2PL Item Response Theory), real-time contextual bandit scaffolding (LinUCB), digital kinematic tremor filtering, and an accessible dual-portal architecture that fosters patient dignity while providing caregivers and clinicians with longitudinal cognitive monitoring telemetry.
 
-> **Important Clinical & Regulatory Notice**: Smriti Setu is an experimental cognitive screening support and longitudinal monitoring tool intended for research and supportive care. **It is NOT a certified diagnostic medical device** and does not provide clinical diagnoses or replace evaluation by qualified neuropsychologists or geriatricians. See [docs/VALIDATION.md](docs/VALIDATION.md) for full scientific and validation disclosures.
+> **Important Clinical & Regulatory Notice**: NeuroSaathi is an experimental cognitive screening support and longitudinal monitoring tool intended for research and supportive care. **It is NOT a certified diagnostic medical device** and does not provide clinical diagnoses or replace evaluation by qualified neuropsychologists or geriatricians. See [docs/VALIDATION.md](docs/VALIDATION.md) for full scientific and validation disclosures.
 
 ---
 
@@ -27,7 +27,7 @@ Dementia and age-related neurodegenerative disorders represent an escalating pub
 3. **Pervasive Stigma**: Memory loss is frequently stigmatized or dismissed as normal aging, preventing families from seeking early supportive interventions.
 4. **Episodic vs. Continuous Monitoring**: Clinical visits are infrequent (often months or years apart), missing critical day-to-day fluctuations, circadian sundowning episodes, and response to therapeutic routines.
 
-Smriti Setu bridges this gap by embedding validated neuropsychological paradigms into relatable North Eastern cultural contexts—such as Bihu festivals, tea gardens, Kaziranga wildlife, and local market visits (*Smriti Haat*)—delivered through an accessible, non-threatening digital experience.
+NeuroSaathi bridges this gap by embedding validated neuropsychological paradigms into relatable North Eastern cultural contexts—such as Bihu festivals, tea gardens, Kaziranga wildlife, and local market visits (*Smriti Haat*)—delivered through an accessible, non-threatening digital experience.
 
 ---
 
@@ -103,7 +103,7 @@ flowchart TD
 
 ## 🎮 The 10 Cognitive Games & Clinical Tasks
 
-Each game in Smriti Setu is inspired by an established neuropsychological paradigm, reimagined using North Eastern cultural assets and community life:
+Each game in NeuroSaathi is inspired by an established neuropsychological paradigm, reimagined using North Eastern cultural assets and community life:
 
 | # | Game | Cultural Theme & Setting | Clinical Reference Paradigm | Primary Cognitive Domain |
 |---|---|---|---|---|
@@ -122,7 +122,7 @@ Each game in Smriti Setu is inspired by an established neuropsychological paradi
 
 ## 👥 The Two Portals
 
-Smriti Setu is divided into two distinct portals to serve the divergent needs of patients and their care circles:
+NeuroSaathi is divided into two distinct portals to serve the divergent needs of patients and their care circles:
 
 ### 1. Patient Portal (`http://localhost:5173`)
 - **Dignified & Accessible UI**: Adheres to WCAG 2.1 AAA contrast guidelines with large touch targets ($\ge 48\times 48\text{ px}$), gentle color palettes, and uncluttered viewports.
@@ -156,7 +156,7 @@ npm install
 ### Running the Application
 
 #### Option A: Unified Single-Origin Mode (Recommended for Production & Unified Dev)
-Smriti Setu supports unified single-origin routing. Both portals and authentication run on a single host and port with zero iframe bridging:
+NeuroSaathi supports unified single-origin routing. Both portals and authentication run on a single host and port with zero iframe bridging:
 ```bash
 npm run dev
 ```
@@ -187,7 +187,7 @@ npm run build
 ```
 
 ### Running Linter & Automated Test Suites
-Smriti Setu includes comprehensive unit tests, game engine verifications, and adversarial stress audits:
+NeuroSaathi includes comprehensive unit tests, game engine verifications, and adversarial stress audits:
 ```bash
 # Run Oxlint static analysis
 npm run lint
@@ -206,7 +206,7 @@ npm run test:audits
 
 ## 🔐 Optional Cloud AI Configuration (BYOK)
 
-Smriti Setu operates 100% offline by default with local algorithmic scoring. For advanced narrative clinical synthesis, caregivers can optionally supply their own API credentials:
+NeuroSaathi operates 100% offline by default with local algorithmic scoring. For advanced narrative clinical synthesis, caregivers can optionally supply their own API credentials:
 
 - **Supported Providers**: Google Gemini (`gemini-2.5-flash`), OpenAI (`gpt-4o-mini`), and Groq (`llama-3.3-70b-versatile`).
 - **Zero Disk Persistence**: User-provided API keys are kept strictly in browser `sessionStorage`. They are never written to `localStorage`, never sent to any intermediary backend, and are automatically purged when the browser tab is closed.
@@ -232,15 +232,15 @@ Smriti Setu operates 100% offline by default with local algorithmic scoring. For
 | *Paired-associates task with Assamese cultural iconography* |
 
 ### Demo Video Walkthrough
-> 📺 **Demo Video**: [Watch the Smriti Setu Walkthrough on YouTube (Link Coming Soon)](https://youtu.be/placeholder-smriti-setu)
+> 📺 **Demo Video**: [Watch the NeuroSaathi Walkthrough on YouTube (Link Coming Soon)](https://youtu.be/placeholder-neurosaathi)
 
 ---
 
 ## ⚠️ Limitations & Scientific Disclosures
 
-Smriti Setu is an engineering prototype and research platform. Review the complete [docs/VALIDATION.md](docs/VALIDATION.md) for detailed methodology. Please take note of the following limitations:
+NeuroSaathi is an engineering prototype and research platform. Review the complete [docs/VALIDATION.md](docs/VALIDATION.md) for detailed methodology. Please take note of the following limitations:
 
-1. **Not a Diagnostic Medical Device**: Smriti Setu does not diagnose Alzheimer's disease, vascular dementia, or any other medical condition. It is designed to assist caregivers and clinicians by gathering supplementary behavioural data.
+1. **Not a Diagnostic Medical Device**: NeuroSaathi does not diagnose Alzheimer's disease, vascular dementia, or any other medical condition. It is designed to assist caregivers and clinicians by gathering supplementary behavioural data.
 2. **Synthetic Telemetry Training Baseline**: The on-device random forest cognitive classifier was trained using synthetic gameplay telemetry features mapped against real-world demographic and clinical covariates from the Washington University OASIS-2 longitudinal dataset. Real OASIS-2 participants did not play these digital games.
 3. **Simulation Consistency Checks**: Audit benchmarks demonstrate internal algorithmic reliability and mathematical consistency across synthetic agents, but do not substitute for empirical clinical trials.
 4. **Local Prototype Storage**: In its current iteration, patient records are stored locally within the browser (`localStorage`). Multi-device cloud synchronization, encrypted remote backups, and FHIR interoperability require future enterprise backend deployment.

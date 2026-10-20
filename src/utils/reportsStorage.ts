@@ -330,7 +330,7 @@ export function downloadReportDocument(
   const trialsVal = report.trialsSummary || '5 of 6 correct';
 
   const content = `================================================================================
-SMRITI SETU - STANDARDIZED DIGITAL CLINICAL REPORT
+NEUROSAATHI - STANDARDIZED DIGITAL CLINICAL REPORT
 Healthcare Telemetry & Neurocognitive Evaluation
 ================================================================================
 
@@ -374,7 +374,7 @@ DATA REGULATORY:    ABDM Verified (M3 Micro-Level Digital Health Records)
 ${JSON.stringify(report.fullPayload || report, null, 2)}
 
 ================================================================================
-CONFIDENTIAL MEDICAL DOCUMENT - ISSUED VIA SMRITI SETU
+CONFIDENTIAL MEDICAL DOCUMENT - ISSUED VIA NEUROSAATHI
 Protected under Digital Health Privacy & Geriatric Clinical Best Practices.
 ================================================================================
 `;

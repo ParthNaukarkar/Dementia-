@@ -55,7 +55,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-['Sora'] font-extrabold text-lg text-[#1F2421] leading-tight tracking-tight">
-                  <span>Smriti</span><span className="text-[#C05634]">Setu</span>
+                  <span>Neuro</span><span className="text-[#C05634]">Saathi</span>
                 </h1>
                 <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#EDF5F0] text-[#28573E] border border-[#CCE2D4]">
                   {language === 'hi' ? 'बुजुर्ग संज्ञान मंच' : 'Cognitive Wellness'}

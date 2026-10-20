@@ -338,7 +338,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             </div>
             <div>
               <h1 className="font-['Sora'] font-extrabold text-lg text-[#1F2421] leading-tight flex items-center gap-1">
-                <span>Smriti</span><span className="text-[#C05634]">Setu</span>
+                <span>Neuro</span><span className="text-[#C05634]">Saathi</span>
               </h1>
               <p className="text-[12px] font-bold text-[#28573E] uppercase tracking-wider">
                 {t.patientPortal} • <span className="text-[#1F2421]">{patient.name}</span>

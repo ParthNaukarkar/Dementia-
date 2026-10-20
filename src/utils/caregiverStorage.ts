@@ -109,7 +109,7 @@ export function getStoredRoutine(patientId: string): DailyRoutineItem[] {
       id: 'rout_02',
       patientId,
       time: '09:30 AM',
-      activity: 'SmritiNER Daily Cognitive Therapy (Day 1 Workout)',
+      activity: 'NeuroSaathi Daily Cognitive Therapy (Day 1 Workout)',
       category: 'cognitive',
       completed: true,
     },

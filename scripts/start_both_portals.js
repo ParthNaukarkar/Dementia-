@@ -9,7 +9,7 @@ const isWindows = process.platform === 'win32';
 const npxCmd = isWindows ? 'npx.cmd' : 'npx';
 
 console.log('---------------------------------------------------------');
-console.log('🚀 Launching SmritiNER Dual-Portal Architecture');
+console.log('🚀 Launching NeuroSaathi Dual-Portal Architecture');
 console.log('   🟢 Patient Portal:   http://localhost:5173');
 console.log('   🟣 Caregiver Portal: http://localhost:5174');
 console.log('---------------------------------------------------------\n');

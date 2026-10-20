@@ -2,7 +2,7 @@
 
 ## Important Clinical & Regulatory Notice
 
-**Smriti Setu is an experimental cognitive screening support and memory-assistance research platform, NOT a certified diagnostic medical device.** It does not provide medical diagnoses, treatment decisions, or definitive staging of neurodegenerative disorders. Any clinical classification, latent ability estimate ($\theta$), or risk categorization produced by the on-device algorithms must be interpreted solely as algorithmic screening support and longitudinal monitoring signals under the supervision of qualified healthcare professionals.
+**NeuroSaathi is an experimental cognitive screening support and memory-assistance research platform, NOT a certified diagnostic medical device.** It does not provide medical diagnoses, treatment decisions, or definitive staging of neurodegenerative disorders. Any clinical classification, latent ability estimate ($\theta$), or risk categorization produced by the on-device algorithms must be interpreted solely as algorithmic screening support and longitudinal monitoring signals under the supervision of qualified healthcare professionals.
 
 ---
 
@@ -43,7 +43,7 @@ The evaluation scripts in `/scripts` (including `adaptive_flow_real_world_data_g
 
 ## 4. Next Step: Pilot Data Collection with Clinician Oversight
 
-To advance Smriti Setu from an engineering research prototype toward clinical efficacy:
+To advance NeuroSaathi from an engineering research prototype toward clinical efficacy:
 
 1. **Institutional Review Board (IRB) / Ethics Committee Protocol**: Design and submit an observational pilot study protocol conforming to Indian Council of Medical Research (ICMR) ethical guidelines for biomedical research involving human participants.
 2. **Pilot Cohort Collection with Clinician Oversight**: Conduct controlled, supervised pilot testing with older adults (including healthy controls, individuals with subjective cognitive decline, and mild cognitive impairment) in clinical or memory-clinic settings across the North Eastern Region of India.

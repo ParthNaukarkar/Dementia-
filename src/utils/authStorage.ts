@@ -75,7 +75,7 @@ export function ensureDemoProfiles(): { caretaker: CaretakerUser; patient: Patie
       id: 'caretaker_anita_01',
       name: 'Anita Joshi',
       age: 44,
-      email: 'anita.joshi@smritiner.in',
+      email: 'anita.joshi@neurosaathi.org',
       createdAt: new Date().toISOString(),
     };
     saveStoredCaretaker(caretaker);

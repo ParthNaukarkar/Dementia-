@@ -464,14 +464,14 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
           <div className={`flex items-center min-w-0 ${isSidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
             <div
               className="w-10 h-10 rounded-2xl bg-[#EDF5F0] border border-[#CCE2D4] flex items-center justify-center shadow-xs shrink-0 text-[#28573E]"
-              title="Smriti Setu"
+              title="NeuroSaathi"
             >
               <Brain className="w-5 h-5 text-[#28573E]" />
             </div>
             {!isSidebarCollapsed && (
               <div className="min-w-0 overflow-hidden">
                 <h1 className="font-['Sora'] font-extrabold text-base tracking-tight text-[#1F2421] leading-tight flex items-center gap-1 truncate">
-                  <span>Smriti</span><span className="text-[#C05634]">Setu</span>
+                  <span>Neuro</span><span className="text-[#C05634]">Saathi</span>
                 </h1>
                 <p className="text-[11px] text-[#28573E] font-bold mt-0.5 truncate">
                   {t.caregiverSupport}
@@ -891,7 +891,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     {caretaker.name}
                   </p>
                   <p className="text-xs text-[#636B65] truncate mt-0.5">
-                    {caretaker.email || 'caregiver@smritisetu.org'}
+                    {caretaker.email || 'caregiver@neurosaathi.org'}
                   </p>
                 </div>
 

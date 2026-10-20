@@ -502,7 +502,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
     const score = dailyComposite ? dailyComposite.score : 84;
     const gamesCount = dailyComposite ? dailyComposite.gamesPlayedCount : 2;
 
-    const summaryText = `📋 SMRITI SETU - CAREGIVER DAILY REPORT & QUICK ANALYSIS
+    const summaryText = `📋 NEUROSAATHI - CAREGIVER DAILY REPORT & QUICK ANALYSIS
 Patient: ${patientName} (${patientAge} yrs, ${diagnosis})
 Date & Time: ${completedDate}
 
