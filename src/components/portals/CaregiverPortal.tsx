@@ -2673,9 +2673,13 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     {t.realtimeSyncActive}
                   </p>
                   <p className="text-[11px] text-purple-600">
-                    {language === 'hi'
-                      ? 'देखभालकर्ता पोर्टल पोर्ट: 5174 • मरीज पोर्टल पोर्ट: 5173'
-                      : 'Caregiver Portal Port: 5174 • Patient Portal Port: 5173'}
+                    {typeof window !== 'undefined' && (window.location.port === '5173' || window.location.port === '5174')
+                      ? (language === 'hi'
+                          ? 'देखभालकर्ता पोर्टल पोर्ट: 5174 • मरीज पोर्टल पोर्ट: 5173'
+                          : 'Caregiver Portal Port: 5174 • Patient Portal Port: 5173')
+                      : (language === 'hi'
+                          ? 'एकल-उत्पत्ति रूटिंग: /caregiver एवं /patient'
+                          : 'Single-Origin Unified Routes: /caregiver & /patient')}
                   </p>
                 </div>
 

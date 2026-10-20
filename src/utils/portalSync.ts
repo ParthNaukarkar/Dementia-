@@ -1,5 +1,5 @@
 // Cross-Portal Synchronization Relay
-// Bridges events between Patient Portal (port 5173) and Caregiver Portal (port 5174)
+// Bridges events between Patient Portal and Caregiver Portal
 
 export type PortalSyncEventType =
   | 'SESSION_COMPLETED'
@@ -24,6 +24,7 @@ class PortalSyncRelay {
   private channel: BroadcastChannel | null = null;
   private listeners: Set<SyncCallback> = new Set();
   private iframeBridge: HTMLIFrameElement | null = null;
+  private targetOrigin: string = '';
   private isInitialized = false;
 
   constructor() {
@@ -74,10 +75,29 @@ class PortalSyncRelay {
     });
   }
 
+  private isAllowedOrigin(origin: string): boolean {
+    if (typeof window === 'undefined' || !origin) return false;
+    try {
+      const url = new URL(origin);
+      if (url.hostname !== window.location.hostname || url.protocol !== window.location.protocol) {
+        return false;
+      }
+      const allowedPorts = new Set(['5173', '5174']);
+      if (window.location.port) allowedPorts.add(window.location.port);
+      if (!url.port && !window.location.port) return true;
+      return allowedPorts.has(url.port);
+    } catch {
+      return false;
+    }
+  }
+
   private initPostMessageListener() {
     if (typeof window === 'undefined') return;
 
     window.addEventListener('message', (event: MessageEvent) => {
+      if (!this.isAllowedOrigin(event.origin)) {
+        return;
+      }
       if (event.data && typeof event.data === 'object' && event.data.isSmritiSyncMessage) {
         const message = event.data.syncMessage as PortalSyncMessage;
         if (message) {
@@ -88,16 +108,26 @@ class PortalSyncRelay {
   }
 
   /**
-   * Set up an invisible cross-origin iframe bridge to mirror data between port 5173 & 5174
+   * Set up an invisible cross-origin iframe bridge to mirror data between port 5173 & 5174 in multi-port dev mode.
+   * In single-origin / production mode, this is safely skipped as BroadcastChannel & storage events handle native sync.
    */
   public setupCrossPortBridge(targetPort: number) {
     if (typeof window === 'undefined' || this.isInitialized) return;
     this.isInitialized = true;
 
+    const currentPort = window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80);
+    const isDevHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // Only mount iframe bridge if running locally on two different dev ports
+    if (!isDevHost || !window.location.port || currentPort === targetPort) {
+      return;
+    }
+
+    this.targetOrigin = `${window.location.protocol}//${window.location.hostname}:${targetPort}`;
+
     try {
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
-      iframe.src = `http://${window.location.hostname}:${targetPort}/storage_bridge.html`;
+      iframe.src = `${this.targetOrigin}/storage_bridge.html`;
       iframe.id = 'smriti_cross_port_iframe';
       document.body.appendChild(iframe);
       this.iframeBridge = iframe;
@@ -114,7 +144,7 @@ class PortalSyncRelay {
       sourcePortal: source,
     };
 
-    // 1. BroadcastChannel
+    // 1. BroadcastChannel (fast, same-origin cross-tab)
     if (this.channel) {
       try {
         this.channel.postMessage(message);
@@ -131,12 +161,12 @@ class PortalSyncRelay {
       }, 15000);
     } catch {}
 
-    // 3. Cross-port postMessage to bridge iframe
-    if (this.iframeBridge && this.iframeBridge.contentWindow) {
+    // 3. Cross-port postMessage to bridge iframe (dev multi-port only, with explicit targetOrigin)
+    if (this.iframeBridge && this.iframeBridge.contentWindow && this.targetOrigin) {
       try {
         this.iframeBridge.contentWindow.postMessage(
           { isSmritiSyncMessage: true, syncMessage: message },
-          '*'
+          this.targetOrigin
         );
       } catch {}
     }

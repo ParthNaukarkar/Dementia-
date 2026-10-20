@@ -37,10 +37,21 @@ export function App() {
     } catch {}
 
     if (window.location.port === '5174') return 'caregiver';
+    if (window.location.port === '5173') return 'patient';
     return 'login';
   };
 
   const [activeView, setActiveView] = useState<AuthView>(detectInitialView);
+
+  // Support browser Back/Forward navigation between single-origin routes
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveView(detectInitialView());
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Vernacular Language State
   const [language, setLanguage] = useState<SupportedLanguage>(() => {
@@ -101,8 +112,12 @@ export function App() {
     try {
       localStorage.setItem('smriti_auth_view', newView);
       const url = new URL(window.location.href);
-      url.searchParams.set('portal', newView);
-      window.history.replaceState({}, '', url);
+      const targetPath = newView === 'login' ? '/login' : `/${newView}`;
+      url.pathname = targetPath;
+      if (url.searchParams.has('portal')) {
+        url.searchParams.set('portal', newView);
+      }
+      window.history.pushState({ view: newView }, '', url.toString());
     } catch {}
   };
 
@@ -125,6 +140,9 @@ export function App() {
   };
 
   const handleLogout = () => {
+    try {
+      localStorage.removeItem('smriti_auth_view');
+    } catch {}
     updateView('login');
   };
 

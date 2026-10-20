@@ -176,8 +176,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     patientPortal: 'Patient Portal',
     caregiverPortal: 'Caregiver Portal',
     switchPortal: 'Switch Portal',
-    switchToCaregiver: 'Open Caregiver Portal (Port 5174)',
-    switchToPatient: 'Open Patient Portal (Port 5173)',
+    switchToCaregiver: 'Open Caregiver Portal',
+    switchToPatient: 'Open Patient Portal',
     primaryCaregiver: 'Primary Caregiver',
     navigation: 'Navigation',
 
@@ -331,8 +331,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     patientPortal: 'ৰোগী পৰ্টেল (Patient Portal)',
     caregiverPortal: 'যত্নশীল পৰ্টেল (Caregiver Portal)',
     switchPortal: 'পৰ্টেল সলনি কৰক',
-    switchToCaregiver: 'যত্নশীল পৰ্টেল খোলক (Port 5174)',
-    switchToPatient: 'ৰোগী পৰ্টেল খোলক (Port 5173)',
+    switchToCaregiver: 'যত্নশীল পৰ্টেল খোলক',
+    switchToPatient: 'ৰোগী পৰ্টেল খোলক',
     primaryCaregiver: 'প্ৰধান যত্নশীল (Primary Caregiver)',
     navigation: 'তালিকা (Navigation)',
 
@@ -486,8 +486,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     patientPortal: 'পেশেন্ট পোর্টাল (Patient Portal)',
     caregiverPortal: 'কেয়ারগিভার পোর্টাল (Caregiver Portal)',
     switchPortal: 'পোর্টাল পরিবর্তন করুন',
-    switchToCaregiver: 'কেয়ারগিভার পোর্টাল খুলুন (Port 5174)',
-    switchToPatient: 'পেশেন্ট পোর্টাল খুলুন (Port 5173)',
+    switchToCaregiver: 'কেয়ারগিভার পোর্টাল খুলুন',
+    switchToPatient: 'পেশেন্ট পোর্টাল খুলুন',
     primaryCaregiver: 'প্রধান পরিচর্যাকারী',
     navigation: 'মেনু তালিকা',
 
@@ -641,8 +641,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     patientPortal: 'मरीज पोर्टल (Patient Portal)',
     caregiverPortal: 'देखभालकर्ता पोर्टल (Caregiver Portal)',
     switchPortal: 'पोर्टल बदलें',
-    switchToCaregiver: 'देखभालकर्ता पोर्टल खोलें (Port 5174)',
-    switchToPatient: 'मरीज पोर्टल खोलें (Port 5173)',
+    switchToCaregiver: 'देखभालकर्ता पोर्टल खोलें',
+    switchToPatient: 'मरीज पोर्टल खोलें',
     primaryCaregiver: 'प्राथमिक देखभालकर्ता',
     navigation: 'नेविगेशन',
 

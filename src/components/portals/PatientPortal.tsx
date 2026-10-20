@@ -983,9 +983,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <p className="font-bold text-[#1F2421]">{t.syncStatus}</p>
                   <p className="text-[#28573E] font-bold">{t.realtimeSyncActive}</p>
                   <p className="text-xs text-[#636B65]">
-                    {language === 'hi' 
-                      ? <>मरीज पोर्टल: <strong>Port 5173</strong> • देखभालकर्ता पोर्टल: <strong>Port 5174</strong></>
-                      : <>Patient Portal: <strong>Port 5173</strong> • Caregiver Portal: <strong>Port 5174</strong></>}
+                    {typeof window !== 'undefined' && (window.location.port === '5173' || window.location.port === '5174')
+                      ? (language === 'hi' 
+                          ? <>मरीज पोर्टल: <strong>Port 5173</strong> • देखभालकर्ता पोर्टल: <strong>Port 5174</strong></>
+                          : <>Patient Portal: <strong>Port 5173</strong> • Caregiver Portal: <strong>Port 5174</strong></>)
+                      : (language === 'hi'
+                          ? <>समान-मूल रूटिंग: <strong>/patient</strong> एवं <strong>/caregiver</strong></>
+                          : <>Unified Single Origin: <strong>/patient</strong> & <strong>/caregiver</strong></>)}
                   </p>
                 </div>
               </div>

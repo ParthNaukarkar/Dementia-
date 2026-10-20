@@ -7,9 +7,42 @@
 <body>
 <script>
   // Cross-port localStorage & Broadcast relay for SmritiNER
+  function isAllowedOrigin(origin) {
+    if (!origin || typeof origin !== 'string') return false;
+    try {
+      var url = new URL(origin);
+      // Hostname must match bridge host
+      if (url.hostname !== window.location.hostname) {
+        return false;
+      }
+      // Protocol must match
+      if (url.protocol !== window.location.protocol) {
+        return false;
+      }
+      // Allowed dev ports or same port
+      var allowedPorts = ['5173', '5174'];
+      if (window.location.port) {
+        allowedPorts.push(window.location.port);
+      }
+      // Single origin / standard ports (empty port string)
+      if (!url.port && !window.location.port) {
+        return true;
+      }
+      return allowedPorts.indexOf(url.port) !== -1;
+    } catch (e) {
+      return false;
+    }
+  }
+
   window.addEventListener('message', function(event) {
-    if (event.data && event.data.isSmritiSyncMessage) {
+    if (!isAllowedOrigin(event.origin)) {
+      return;
+    }
+
+    if (event.data && typeof event.data === 'object' && event.data.isSmritiSyncMessage) {
       var msg = event.data.syncMessage;
+      if (!msg || typeof msg !== 'object') return;
+
       try {
         // Trigger storage event on target origin with unique key
         var syncKey = 'smriti_sync_signal_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
@@ -17,9 +50,10 @@
         localStorage.setItem('smriti_sync_signal_latest', JSON.stringify(msg));
 
         // Auto-mirror domain data if included in payload
-        if (msg.payload) {
-          if (msg.payload.key && msg.payload.value) {
-            localStorage.setItem(msg.payload.key, msg.payload.value);
+        if (msg.payload && typeof msg.payload === 'object') {
+          // Strictly only allow keys that start with "smriti_"
+          if (typeof msg.payload.key === 'string' && msg.payload.key.indexOf('smriti_') === 0 && msg.payload.value !== undefined) {
+            localStorage.setItem(msg.payload.key, typeof msg.payload.value === 'string' ? msg.payload.value : JSON.stringify(msg.payload.value));
           }
           if (msg.payload.todayDateKey && msg.payload.allTodaySessions) {
             localStorage.setItem('smriti_daily_sessions_v2_' + msg.payload.todayDateKey, JSON.stringify(msg.payload.allTodaySessions));

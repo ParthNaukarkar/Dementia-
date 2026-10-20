@@ -155,14 +155,24 @@ npm install
 
 ### Running the Application
 
-To run both the **Patient Portal** and **Caregiver Portal** concurrently on dedicated ports:
+#### Option A: Unified Single-Origin Mode (Recommended for Production & Unified Dev)
+Smriti Setu supports unified single-origin routing. Both portals and authentication run on a single host and port with zero iframe bridging:
+```bash
+npm run dev
+```
+- **Patient Portal**: [http://localhost:5173/patient](http://localhost:5173/patient)
+- **Caregiver Portal**: [http://localhost:5173/caregiver](http://localhost:5173/caregiver)
+- **Login / Landing**: [http://localhost:5173/login](http://localhost:5173/login)
+
+#### Option B: Dual-Port Development Architecture (`npm run dev:both`)
+To run both the **Patient Portal** and **Caregiver Portal** concurrently on dedicated ports (5173 and 5174) with the hardened cross-port storage relay:
 ```bash
 npm run dev:both
 ```
 - **Patient Portal**: Open [http://localhost:5173](http://localhost:5173) in your browser.
 - **Caregiver Portal**: Open [http://localhost:5174](http://localhost:5174) in your browser.
 
-Alternatively, you can start portals individually:
+Alternatively, start individual dev ports:
 ```bash
 # Patient Portal only (port 5173)
 npm run dev:patient
