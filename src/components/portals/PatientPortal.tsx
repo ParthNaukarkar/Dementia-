@@ -931,9 +931,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <div className="flex gap-2.5 flex-wrap">
                     {[
                       { code: 'en', label: 'English' },
-                      { code: 'hi', label: 'हिन्दी (Hindi)' },
-                      { code: 'bn', label: 'বাংলা (Bengali)' },
-                      { code: 'as', label: 'অসমীয়া (Assamese)' },
+                      { code: 'hi', label: 'हिन्दी' },
+                      { code: 'bn', label: 'বাংলা' },
+                      { code: 'as', label: 'অসমীয়া' },
                     ].map((lang) => (
                       <button
                         key={lang.code}

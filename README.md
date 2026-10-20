@@ -12,7 +12,7 @@
 
 ## 📌 Project Overview
 
-**NeuroSaathi** ("Neuro-Companion") is an open-source, culturally attuned cognitive screening support and memory-assistance web platform designed specifically for older adults and individuals living with Mild Cognitive Impairment (MCI) or early-stage dementia across the North Eastern Region (NER) of India. Featuring 10 neuropsychologically inspired cognitive exercises rooted in Assamese, Bengali, and North Eastern folklore, geographical landmarks, and daily community traditions, NeuroSaathi combines latent ability estimation (Bayesian 2PL Item Response Theory), real-time contextual bandit scaffolding (LinUCB), digital kinematic tremor filtering, and an accessible dual-portal architecture that fosters patient dignity while providing caregivers and clinicians with longitudinal cognitive monitoring telemetry.
+**NeuroSaathi** ("Neuro-Companion") is an open-source, culturally attuned cognitive screening support and memory-assistance web platform designed specifically for older adults and individuals living with Mild Cognitive Impairment (MCI) or early-stage dementia across India. Featuring 10 neuropsychologically inspired cognitive exercises rooted in Indian cultural traditions, geographical landmarks, and daily community heritage, NeuroSaathi combines latent ability estimation (Bayesian 2PL Item Response Theory), real-time contextual bandit scaffolding (LinUCB), digital kinematic tremor filtering, and an accessible dual-portal architecture that fosters patient dignity while providing caregivers and clinicians with longitudinal cognitive monitoring telemetry.
 
 > **Important Clinical & Regulatory Notice**: NeuroSaathi is an experimental cognitive screening support and longitudinal monitoring tool intended for research and supportive care. **It is NOT a certified diagnostic medical device** and does not provide clinical diagnoses or replace evaluation by qualified neuropsychologists or geriatricians. See [docs/VALIDATION.md](docs/VALIDATION.md) for full scientific and validation disclosures.
 
@@ -20,14 +20,14 @@
 
 ## 🌍 The Problem
 
-Dementia and age-related neurodegenerative disorders represent an escalating public health crisis in India, compounded by distinct regional challenges in the North Eastern Region:
+Dementia and age-related neurodegenerative disorders represent an escalating public health crisis in India, compounded by systemic screening and accessibility challenges:
 
-1. **Severe Specialist Shortages**: Geriatricians, clinical neuropsychologists, and memory clinics are concentrated in major metropolitan hubs, leaving rural and hilly areas of the North East severely underserved.
-2. **Cultural & Linguistic Disconnect**: Standard computerized cognitive batteries (e.g., Western-developed tools) rely on unfamiliar stimuli (Western animals, foreign street signs, alien cultural references) that introduce severe cultural bias and false-positive impairment classifications.
+1. **Severe Specialist Shortages**: Geriatricians, clinical neuropsychologists, and memory clinics are concentrated in major metropolitan hubs, leaving rural and semi-urban communities severely underserved.
+2. **Cultural & Linguistic Disconnect**: Standard computerized cognitive batteries (e.g., Western-developed tools) rely on unfamiliar stimuli (foreign animals, alien street signs, non-indigenous cultural references) that introduce severe cultural bias and false-positive impairment classifications.
 3. **Pervasive Stigma**: Memory loss is frequently stigmatized or dismissed as normal aging, preventing families from seeking early supportive interventions.
 4. **Episodic vs. Continuous Monitoring**: Clinical visits are infrequent (often months or years apart), missing critical day-to-day fluctuations, circadian sundowning episodes, and response to therapeutic routines.
 
-NeuroSaathi bridges this gap by embedding validated neuropsychological paradigms into relatable North Eastern cultural contexts—such as Bihu festivals, tea gardens, Kaziranga wildlife, and local market visits (*Smriti Haat*)—delivered through an accessible, non-threatening digital experience.
+NeuroSaathi bridges this gap by embedding validated neuropsychological paradigms into relatable cultural contexts—such as community festivals, agricultural heritage, wildlife landmarks, and traditional market visits (*Smriti Haat*)—delivered through an accessible, non-threatening digital experience.
 
 ---
 
@@ -103,20 +103,20 @@ flowchart TD
 
 ## 🎮 The 10 Cognitive Games & Clinical Tasks
 
-Each game in NeuroSaathi is inspired by an established neuropsychological paradigm, reimagined using North Eastern cultural assets and community life:
+Each game in NeuroSaathi is inspired by an established neuropsychological paradigm, reimagined using cultural traditions, heritage motifs, and everyday community life:
 
 | # | Game | Cultural Theme & Setting | Clinical Reference Paradigm | Primary Cognitive Domain |
 |---|---|---|---|---|
-| **1** | **Memory Match** *(স্মৃতি মেলা)* | Bihu instruments, Assam silk, hornbill, rhino | Cambridge CANTAB Paired Associates Learning (PAL) | Visuospatial associative learning & episodic retrieval |
-| **2** | **Number Recall** *(সংখ্যা স্মৰণ)* | Traditional counting beads and Assamese numerals | WAIS-IV Digit Span (Forward & Backward) | Working memory capacity & phonological loop |
-| **3** | **Sequence Recall** *(ক্ৰম স্মৰণ)* | Traditional Brass Bell / Tal percussion patterns | Corsi Block-Tapping Test & Spatial Span | Visuospatial sequential working memory |
-| **4** | **Pattern Recall** *(নক্সা স্মৰণ)* | Traditional Gamusa & Mekhela Chador woven patterns | MoCA Visuospatial Matrix Working Memory | Visuoperceptual encoding & matrix pattern completion |
-| **5** | **Jigsaw Puzzle** *(চিত্ৰ জোৰা)* | Historic architecture (Rang Ghar, Kamakhya, Majuli) | WAIS-IV Block Design & Rey-Osterrieth praxis | Visuoconstructional praxis & spatial synthesis |
-| **6** | **What Changed?** *(কি সলনি হ'ল?)* | Village tea stall (*Dukan*) & traditional kitchen | Rensink Visual Change Blindness & Feature Binding | Visual selective attention & short-term feature memory |
-| **7** | **Where Am I?** *(মই ক'ত আছোঁ?)* | Prominent North Eastern landmarks and tea gardens | MoCA Place Orientation & Topographical Wayfinding | Topographical orientation & geographical semantic recall |
-| **8** | **Odd One Out** *(অমিল বিচাৰা)* | Indigenous flora, fauna, tools, and textiles | Wisconsin Card Sorting Test (WCST) Abstraction | Executive functioning, rule shifting & category sorting |
-| **9** | **Smriti Haat** *(স্মৃতি হাট)* | Weekly community vegetable & spice bazaar | MoCA Delayed Verbal Recall & Market Errand Task | Delayed auditory-verbal recall & semantic categorization |
-| **10** | **Brain Story** *(স্মৃতি কাহিনী)* | Folk stories (Tejimola, Lakshminath Bezbaroa tales) | WMS-IV Logical Memory & Reminiscence Therapy | Narrative episodic memory & delayed thematic recall |
+| **1** | **Memory Match** *(स्मृति मेला)* | Traditional folk instruments, cultural textiles, and regional wildlife | Cambridge CANTAB Paired Associates Learning (PAL) | Visuospatial associative learning & episodic retrieval |
+| **2** | **Number Recall** *(संख्या स्मरण)* | Traditional counting beads and cultural numerals | WAIS-IV Digit Span (Forward & Backward) | Working memory capacity & phonological loop |
+| **3** | **Sequence Recall** *(क्रम स्मरण)* | Traditional musical bell & percussion rhythm patterns | Corsi Block-Tapping Test & Spatial Span | Visuospatial sequential working memory |
+| **4** | **Pattern Recall** *(नक्शा स्मरण)* | Traditional handloom motifs and woven geometric patterns | MoCA Visuospatial Matrix Working Memory | Visuoperceptual encoding & matrix pattern completion |
+| **5** | **Jigsaw Puzzle** *(चित्र जोड़)* | Historic architecture and cultural heritage monuments | WAIS-IV Block Design & Rey-Osterrieth praxis | Visuoconstructional praxis & spatial synthesis |
+| **6** | **What Changed?** *(क्या बदला?)* | Traditional market stall (*Dukan*) & community kitchen | Rensink Visual Change Blindness & Feature Binding | Visual selective attention & short-term feature memory |
+| **7** | **Where Am I?** *(मैं कहाँ हूँ?)* | Prominent national landmarks, monuments, and heritage sites | MoCA Place Orientation & Topographical Wayfinding | Topographical orientation & geographical semantic recall |
+| **8** | **Odd One Out** *(अलग पहचानें)* | Indigenous flora, fauna, household items, and artisan tools | Wisconsin Card Sorting Test (WCST) Abstraction | Executive functioning, rule shifting & category sorting |
+| **9** | **Smriti Haat** *(स्मृति हाट)* | Weekly community vegetable & spice bazaar | MoCA Delayed Verbal Recall & Market Errand Task | Delayed auditory-verbal recall & semantic categorization |
+| **10** | **Brain Story** *(मस्तिष्क कथा)* | Cultural tales, traditional parables, and reminiscence narratives | WMS-IV Logical Memory & Reminiscence Therapy | Narrative episodic memory & delayed thematic recall |
 
 ---
 
@@ -127,7 +127,7 @@ NeuroSaathi is divided into two distinct portals to serve the divergent needs of
 ### 1. Patient Portal (`http://localhost:5173`)
 - **Dignified & Accessible UI**: Adheres to WCAG 2.1 AAA contrast guidelines with large touch targets ($\ge 48\times 48\text{ px}$), gentle color palettes, and uncluttered viewports.
 - **Motor Assistance**: Kinematic filtering debounces involuntary hand tremors and provides tactile/auditory feedback for confident selection.
-- **Multilingual Support**: Fully localized interface in English and Hindi, with Assamese and regional linguistic themes.
+- **Multilingual Support**: Fully localized interface in English and Hindi, with scalable regional language architecture.
 - **Empathetic Feedback**: Positive reinforcement and non-judgmental failure recovery that preserves dignity and prevents test anxiety.
 
 ### 2. Caregiver & Clinician Portal (`http://localhost:5174`)
@@ -224,13 +224,20 @@ NeuroSaathi operates with local client-side algorithmic scoring by default. For 
 | In-Game Experience (Memory Match) |
 | :---: |
 | ![Memory Match](docs/screenshots/game-memory-match.png) |
-| *Paired-associates task with Assamese cultural iconography* |
+| *Paired-associates task with rich cultural iconography* |
 
+---
+
+## ⚠️ Limitations & Scientific Disclosures
+
+NeuroSaathi is an engineering prototype and research platform. Review the complete [docs/VALIDATION.md](docs/VALIDATION.md) for detailed methodology. Please take note of the following limitations:
+
+1. **Not a Diagnostic Medical Device**: NeuroSaathi does not diagnose Alzheimer's disease, vascular dementia, or any other medical condition. It is designed to assist caregivers and clinicians by gathering supplementary behavioural data.
 2. **Synthetic Telemetry Training Baseline**: The client-side multinomial logistic regression cognitive classifier was trained using synthetic gameplay telemetry features mapped against real-world demographic and clinical covariates from the Washington University OASIS-2 longitudinal dataset. Real OASIS-2 participants did not play these digital games.
 3. **Simulation Consistency Checks**: Audit benchmarks demonstrate internal algorithmic reliability and mathematical consistency across synthetic agents, but do not substitute for empirical clinical trials.
 4. **Local Prototype Storage**: In its current iteration, patient records are stored locally within the browser (`localStorage`). Multi-device cloud synchronization, encrypted remote backups, and FHIR interoperability require future enterprise backend deployment.
 5. **SOS Alert Scope (Demo Mode)**: Distress notifications are transmitted across open portal instances via local browser events (`BroadcastChannel` and storage synchronization). They operate on the same device or local network for demonstration purposes; production emergency dispatch requires a remote cloud push / SMS gateway (e.g., Firebase, Supabase, Twilio).
-6. **Next Steps**: Formal observational pilot studies under Institutional Review Board (IRB) / Ethics Committee approval with clinician oversight across clinical centers in North East India.
+6. **Next Steps**: Formal observational pilot studies under Institutional Review Board (IRB) / Ethics Committee approval with clinician oversight across clinical centers and memory clinics in India.
 
 ---
 
@@ -238,4 +245,4 @@ NeuroSaathi operates with local client-side algorithmic scoring by default. For 
 
 This project is open-source under the [MIT License](LICENSE).
 
-Developed with dedicated respect for the cultural heritage and elderly communities of Assam and the North Eastern Region of India.
+Developed with dedicated respect for the cultural heritage and elderly communities across India.

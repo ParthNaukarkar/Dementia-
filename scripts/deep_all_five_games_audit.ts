@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Extreme Adversarial Stress, Vulnerability & OASIS Clinical Audit
+ * NeuroSaathi - Extreme Adversarial Stress, Vulnerability & OASIS Clinical Audit
  * Validates ALL 5 Cognitive Games:
  *   1. Smriti Haat (MoCA Word/Object Recognition)
  *   2. Memory Match (CANTAB Paired Associates Learning)
@@ -123,7 +123,7 @@ function assert(condition: boolean, testName: string, errorDetail?: string) {
 
 async function runDeepAudit() {
   console.log('================================================================================');
-  console.log('🔬 SMRITINER: EXTREME 5-GAME ADAPTIVE ASSISTANCE & ADVERSARIAL AUDIT (SIH 2026)');
+  console.log('🔬 NEUROSAATHI: EXTREME 5-GAME ADAPTIVE ASSISTANCE & ADVERSARIAL AUDIT');
   console.log('================================================================================\n');
 
   const cohort = generateOASISCohort(371);

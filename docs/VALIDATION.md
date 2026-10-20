@@ -49,6 +49,6 @@ The evaluation scripts in `/scripts` (including `adaptive_flow_real_world_data_g
 To advance NeuroSaathi from an engineering research prototype toward clinical efficacy:
 
 1. **Institutional Review Board (IRB) / Ethics Committee Protocol**: Design and submit an observational pilot study protocol conforming to Indian Council of Medical Research (ICMR) ethical guidelines for biomedical research involving human participants.
-2. **Pilot Cohort Collection with Clinician Oversight**: Conduct controlled, supervised pilot testing with older adults (including healthy controls, individuals with subjective cognitive decline, and mild cognitive impairment) in clinical or memory-clinic settings across the North Eastern Region of India.
+2. **Pilot Cohort Collection with Clinician Oversight**: Conduct controlled, supervised pilot testing with older adults (including healthy controls, individuals with subjective cognitive decline, and mild cognitive impairment) in clinical or memory-clinic settings across India.
 3. **Ground-Truth Telemetry Replacement**: Replace synthetic gameplay telemetry models with empirical distributions collected directly from patient touch, deliberation latency, and error patterns.
 4. **Independent Diagnostic Sensitivity & Specificity**: Benchmark algorithmic outputs against formal neuropsychological batteries (e.g., clinician-administered MoCA-B, HMSE, ACE-III) administered by certified neuropsychologists.

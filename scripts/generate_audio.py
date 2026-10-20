@@ -3,8 +3,8 @@ import os
 import edge_tts
 
 VOICES = {
-    'as': 'bn-IN-TanishaaNeural', # Native Eastern Indo-Aryan neural voice with natural Assamese phonetics
-    'bn': 'bn-IN-TanishaaNeural', # Native Bengali female voice
+    'as': 'bn-IN-TanishaaNeural', # Native neural voice
+    'bn': 'bn-IN-TanishaaNeural', # Native neural voice
     'hi': 'hi-IN-SwaraNeural',    # Native Hindi female voice
     'en': 'en-IN-NeerjaNeural',   # Native Indian English voice
 }

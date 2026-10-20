@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Game 10: Brain Story (Monor Sadhukatha / মনৰ সাধুকথা)
+ * NeuroSaathi - Game 10: Brain Story
  * 9-Tier Bayesian 2PL Item Response Theory (IRT) Cognitive Engine
  * WMS-IV Logical Memory & MoCA Language Calibration, 400ms Tremor Guard & Edge ML Staging.
  */

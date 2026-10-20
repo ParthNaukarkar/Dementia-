@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Dynamic Adaptive Game Flow Real-World Data Gameplay Benchmark
+ * NeuroSaathi - Dynamic Adaptive Game Flow Real-World Data Gameplay Benchmark
  * 
  * Benchmarks the dynamic adaptive workout flow against:
  * 1. 5 Curated Authentic Clinical Personas (Normal, MCI, AD, Parkinsonian, Severe Dementia)

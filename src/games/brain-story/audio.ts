@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Game 10: Brain Story (Monor Sadhukatha / মনৰ সাধুকথা)
+ * NeuroSaathi - Game 10: Brain Story
  * Web Audio API Acoustic Feedback & Accessible Web Speech Story Narrator
  */
 

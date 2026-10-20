@@ -1,5 +1,5 @@
 /**
- * Smriti-NER: Teacher-Student Reflection & Distillation Loop Test
+ * NeuroSaathi: Teacher-Student Reflection & Distillation Loop Test
  * 
  * Verifies that:
  * 1. The Student Engine decides next tier instantly in 0ms (no UI freezing).
@@ -13,7 +13,7 @@ import { PatientAdaptiveMemoryService, type TeacherReflectionRecord } from '../s
 
 async function testTeacherStudentLoop() {
   console.log('='.repeat(80));
-  console.log('🧠 SMRITI-NER: TEACHER-STUDENT DISTILLATION & REFLECTION TEST');
+  console.log('🧠 NEUROSAATHI: TEACHER-STUDENT DISTILLATION & REFLECTION TEST');
   console.log('='.repeat(80));
 
   const testPatientId = 'pt_test_elder_sharma';

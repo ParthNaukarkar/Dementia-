@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Real-World OASIS-2 Longitudinal Model Training & Flow Calibration
+ * NeuroSaathi - Real-World OASIS-2 Longitudinal Model Training & Flow Calibration
  * 
  * Ingests 371 clinical longitudinal patient records from Washington University
  * Alzheimer's Disease Research Center (OASIS-2), extracts multi-domain biomarkers,
@@ -106,7 +106,7 @@ function loadOasisData(csvPath: string): OasisRecord[] {
 
 export function trainAndExportModel(): void {
   console.log("══════════════════════════════════════════════════════════════════════");
-  console.log("  SmritiNER • Real-World OASIS-2 Clinical AI & Flow Policy Training");
+  console.log("  NeuroSaathi • Real-World OASIS-2 Clinical AI & Flow Policy Training");
   console.log("  Washington University Alzheimer's Disease Research Center");
   console.log("══════════════════════════════════════════════════════════════════════\n");
 

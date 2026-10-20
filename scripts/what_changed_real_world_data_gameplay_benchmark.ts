@@ -1,5 +1,5 @@
 /**
- * SmritiNER - What Changed? Game (Rensink Change Blindness Paradigm)
+ * NeuroSaathi - What Changed? Game (Rensink Change Blindness Paradigm)
  * Real-World Data & Authentic Clinical Gameplay Benchmark Suite
  * 
  * Evaluates real-world clinical performance using Washington University OASIS-2
@@ -70,7 +70,7 @@ function pearsonR(x: number[], y: number[]): number {
 
 async function runRealWorldBenchmark() {
   console.log('═══════════════════════════════════════════════════════════════════════════════');
-  console.log('🔬 SMRITINER: WHAT CHANGED? REAL-WORLD CLINICAL DATA GAMEPLAY BENCHMARK');
+  console.log('🔬 NEUROSAATHI: WHAT CHANGED? REAL-WORLD CLINICAL DATA GAMEPLAY BENCHMARK');
   console.log('═══════════════════════════════════════════════════════════════════════════════\n');
 
   // ─────────────────────────────────────────────────────────────────────────────

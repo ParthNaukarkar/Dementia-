@@ -89,7 +89,7 @@ async function runComparison() {
   const apiKey = process.env.OPENAI_API_KEY || process.argv[2] || '';
 
   console.log('='.repeat(80));
-  console.log('🔬 SMRITI-NER: HARDCODED IF/ELSE vs OPENAI LLM CALIBRATION AUDIT');
+  console.log('🔬 NEUROSAATHI: HARDCODED IF/ELSE vs OPENAI LLM CALIBRATION AUDIT');
   console.log('='.repeat(80));
   console.log(`OpenAI API Key: ${apiKey ? `Present (${apiKey.slice(0, 7)}...)` : 'Not supplied in CLI / env'}\n`);
 

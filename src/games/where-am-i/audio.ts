@@ -1,7 +1,7 @@
 import type { SupportedLanguage } from '../../types/prescription';
 
 /**
- * SmritiNER - Where Am I? Audio Synthesizer
+ * NeuroSaathi - Where Am I? Audio Synthesizer
  * Web Audio Synthesis and Acoustic Feedback
  * Designed for gentle geriatric acoustics and tactile feedback.
  */

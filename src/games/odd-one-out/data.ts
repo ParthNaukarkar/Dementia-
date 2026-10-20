@@ -1,7 +1,7 @@
 /**
- * SmritiNER - Game 8: Odd One Out (Omilto Basoni)
+ * NeuroSaathi - Game 8: Odd One Out
  * Culturally Grounded Semantic Taxonomy for North-Eastern Indian & Universal Domains
- * Supporting Multi-Lingual Localizations: Assamese, Bengali, Hindi, English.
+ * Supporting Multi-Lingual Localizations
  * All Subcategories configured with >= 6-8 authentic items for rigorous Tier 1-9 testing.
  */
 

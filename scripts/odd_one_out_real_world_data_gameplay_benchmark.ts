@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Game 8: Odd One Out (Omilto Basoni)
+ * NeuroSaathi - Game 8: Odd One Out
  * Real-World Data & Authentic Clinical Gameplay Benchmark
  * Calibrated against Washington University Alzheimer's Disease Research Center (ADRC)
  * Longitudinal Cohort (OASIS-2: 371 Patients, CDR 0.0 to 2.0, MMSE 15 to 30).

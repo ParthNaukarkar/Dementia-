@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Game 10: Brain Story (Monor Sadhukatha / মনৰ সাধুকথা)
+ * NeuroSaathi - Game 10: Brain Story
  * Real-World Data & Authentic Clinical Gameplay Benchmark
  * Calibrated against Washington University Alzheimer's Disease Research Center (ADRC)
  * Longitudinal Cohort (OASIS-2: 371 Patients, CDR 0.0 to 2.0, MMSE 15 to 30).

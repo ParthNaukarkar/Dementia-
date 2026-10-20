@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Game 9: Pattern Recall (Noxar Chonda / চানেকিৰ ছন্দ)
+ * NeuroSaathi - Game 9: Pattern Recall
  * Clinical Neuropsychological Evaluation & Cognitive Training
  * Paradigm: Visuospatial Working Memory, Spatial Pattern Encoding & Immediate Recall
  * Calibrated against CORSIT Block-Tapping, CANTAB Spatial Span (SSP) & MoCA Visuospatial Subtest.

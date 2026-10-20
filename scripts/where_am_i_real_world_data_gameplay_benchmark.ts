@@ -1,5 +1,5 @@
 /**
- * SMRITINER: WHERE AM I? REAL-WORLD CLINICAL DATA GAMEPLAY BENCHMARK
+ * NEUROSAATHI: WHERE AM I? REAL-WORLD CLINICAL DATA GAMEPLAY BENCHMARK
  * 
  * Validates clinical gameplay performance against:
  * 1. 5 Authentic Real-World Patient Personas (Normal, MCI, AD, Parkinsonian, Severe Dementia)
@@ -73,7 +73,7 @@ function pearsonR(x: number[], y: number[]): number {
 
 async function runRealWorldBenchmark() {
   console.log('═══════════════════════════════════════════════════════════════════════════════');
-  console.log('🔬 SMRITINER: WHERE AM I? REAL-WORLD CLINICAL DATA GAMEPLAY BENCHMARK');
+  console.log('🔬 NEUROSAATHI: WHERE AM I? REAL-WORLD CLINICAL DATA GAMEPLAY BENCHMARK');
   console.log('═══════════════════════════════════════════════════════════════════════════════\n');
 
   // ─────────────────────────────────────────────────────────────────────────────

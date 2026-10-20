@@ -1,5 +1,5 @@
 /**
- * Smriti-NER: Game Cognitive Profiles Registry
+ * NeuroSaathi: Game Cognitive Profiles Registry
  * 
  * Defines domain-specific neuropsychological baselines for each cognitive game.
  * Decouples physical motor tremor from cognitive processing speed, and establishes

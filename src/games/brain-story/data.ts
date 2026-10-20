@@ -1,6 +1,6 @@
 /**
- * SmritiNER - Game 10: Brain Story (Monor Sadhukatha / মনৰ সাধুকথা)
- * Pan-Indian Culturally Grounded Reminiscence Vignettes (Assamese, Bengali, Hindi, English)
+ * NeuroSaathi - Game 10: Brain Story
+ * Pan-Indian Culturally Grounded Reminiscence Vignettes
  * Grounded in WMS-IV Logical Memory & Reminiscence Therapy Paradigms.
  */
 

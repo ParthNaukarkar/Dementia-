@@ -14,7 +14,7 @@ export interface CircadianStatus {
   isSundowningActive: boolean;
   recommendation: string;
   recommendedMode: 'COGNITIVE_GAMES' | 'REMINISCENCE_CALM' | 'LIGHT_MAINTENANCE' | 'NIGHT_REST';
-  simulatedHour: number | null; // For hackathon demo toggles
+  simulatedHour: number | null; // For demo toggles
 }
 
 export class CircadianManager {
@@ -63,7 +63,7 @@ export class CircadianManager {
   }
 
   /**
-   * Allows judges / presenters to simulate any hour of the day during live evaluations.
+   * Allows clinicians / evaluators to simulate any hour of the day during evaluations.
    * e.g. setSimulatedHour(18) triggers Sundowning mode immediately!
    */
   public setSimulatedHour(hour: number | null) {

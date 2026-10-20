@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Game 8: Odd One Out (Omilto Basoni)
+ * NeuroSaathi - Game 8: Odd One Out
  * Clinical Neuropsychological Evaluation & Cognitive Training
  * Paradigm: Semantic Category Discrimination, Abstract Reasoning & Executive Function
  * Calibrated against Wisconsin Card Sorting Test (WCST) & MoCA Abstraction Subtest.

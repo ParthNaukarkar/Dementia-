@@ -90,8 +90,8 @@ def generate_clinical_cohort_data(n_samples_per_cohort=1000):
 
 def train_and_export():
     print("=" * 60)
-    print("SmritiNER • Clinical AI Model Training")
-    print("Item Response & Telemetry Classifier (MDoNER SIH26003)")
+    print("NeuroSaathi • Clinical AI Model Training")
+    print("Item Response & Telemetry Classifier")
     print("=" * 60)
 
     # 1. Generate clinical cohorts

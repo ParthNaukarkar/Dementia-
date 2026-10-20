@@ -64,7 +64,7 @@ export class VernacularVoiceEngine {
       const now = this.audioCtx.currentTime;
 
       if (type === 'success') {
-        // Pentatonic uplifting chime (Assamese folk scale: C5 - E5 - G5 - A5)
+        // Pentatonic uplifting chime (Traditional folk scale: C5 - E5 - G5 - A5)
         const notes = [523.25, 659.25, 783.99, 880.00];
         notes.forEach((freq, idx) => {
           const osc = this.audioCtx!.createOscillator();

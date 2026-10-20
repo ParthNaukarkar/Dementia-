@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Game 8: Odd One Out (Omilto Basoni)
+ * NeuroSaathi - Game 8: Odd One Out
  * 9-Tier Bayesian 2PL Item Response Theory (IRT) Cognitive Engine
  * Multi-Lingual Cultural Semantic Taxonomy, 400ms Tremor Filter & Edge ML Staging.
  */

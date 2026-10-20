@@ -447,7 +447,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
   };
 
   const handleDownloadPdfSpec = () => {
-    window.open('/SmritiNER_Clinical_Formulas_and_Telemetry_Specification.pdf', '_blank');
+    window.open('/NeuroSaathi_Clinical_Formulas_and_Telemetry_Specification.pdf', '_blank');
   };
 
   // Count medication & routine stats
@@ -2664,9 +2664,9 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                   <div className="flex gap-2 flex-wrap">
                     {[
                       { code: 'en', label: 'English' },
-                      { code: 'hi', label: 'हिन्दी (Hindi)' },
-                      { code: 'bn', label: 'বাংলা (Bengali)' },
-                      { code: 'as', label: 'অসমীয়া (Assamese)' },
+                      { code: 'hi', label: 'हिन्दी' },
+                      { code: 'bn', label: 'বাংলা' },
+                      { code: 'as', label: 'অসমীয়া' },
                     ].map((lang) => (
                       <button
                         key={lang.code}

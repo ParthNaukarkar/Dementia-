@@ -1,7 +1,7 @@
 /**
- * SmritiNER - Game 9: Pattern Recall (Noxar Chonda / চানেকিৰ ছন্দ)
+ * NeuroSaathi - Game 9: Pattern Recall
  * Pan-Indian Heritage Rangoli, Mandalas & Textile Motifs
- * Supporting Multi-Lingual Localizations: Assamese, Bengali, Hindi, English.
+ * Supporting Multi-Lingual Localizations
  */
 
 import type { PatternTopology } from './types';

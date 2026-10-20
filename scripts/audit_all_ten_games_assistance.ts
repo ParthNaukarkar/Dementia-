@@ -1,5 +1,5 @@
 /**
- * NeuroSaathi (SIH 26003) - Comprehensive 10-Game Adaptive Assistance Audit
+ * NeuroSaathi - Comprehensive 10-Game Adaptive Assistance Audit
  * 
  * Exhaustively tests the assistance function across ALL 10 Cognitive Games:
  *   1. Jigsaw Puzzle (Visuomotor Praxis)
@@ -51,7 +51,7 @@ function assert(condition: boolean, testName: string, detail?: string) {
 const LANGUAGES: SupportedLanguage[] = ['en', 'as', 'bn', 'hi'];
 
 console.log('================================================================================');
-console.log('🧠 NEUROSAATHI (SIH 26003) - 10-GAME EXHAUSTIVE ADAPTIVE ASSISTANCE AUDIT');
+console.log('🧠 NEUROSAATHI - 10-GAME EXHAUSTIVE ADAPTIVE ASSISTANCE AUDIT');
 console.log('================================================================================');
 
 // ============================================================================
@@ -536,7 +536,7 @@ if (failedAssertions === 0) {
   console.log('🎉 ALL 10 COGNITIVE GAMES GUARANTEE UNIVERSAL ADAPTIVE ASSISTANCE!');
   console.log('   - Initial hesitation triggers dignity hints across all tiers.');
   console.log('   - Later-half hesitation reliably guides remaining uncompleted steps.');
-  console.log('   - 100% offline and localized across Assamese, Bengali, Hindi, and English.');
+  console.log('   - Accessible multilingual interface across Indian regional languages.');
   console.log('================================================================================');
   process.exit(0);
 } else {

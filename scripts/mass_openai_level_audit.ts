@@ -1,5 +1,5 @@
 /**
- * Smriti-NER: Mass Level-Change Audit with Live OpenAI GPT-4o
+ * NeuroSaathi: Mass Level-Change Audit with Live OpenAI GPT-4o
  * 
  * Simulates patient cohorts across all 10 games.
  * Whenever the local engine triggers a Level Change (Promotion or Scaffolding Demotion),
@@ -163,7 +163,7 @@ Respond with strictly valid JSON:
 
 export async function runOpenAILevelAudit(apiKey: string, sampleLimit: number = 30) {
   console.log('='.repeat(80));
-  console.log('🔬 SMRITI-NER: MASS LEVEL-CHANGE AUDIT WITH LIVE OPENAI GPT-4o');
+  console.log('🔬 NEUROSAATHI: MASS LEVEL-CHANGE AUDIT WITH LIVE OPENAI GPT-4o');
   console.log('='.repeat(80));
   console.log(`OpenAI API Key: ${apiKey ? `Verified (${apiKey.slice(0, 7)}...)` : 'NONE SUPPLIED'}`);
   console.log(`Sampling Limit for Live OpenAI Audit: ${sampleLimit} level change events\n`);

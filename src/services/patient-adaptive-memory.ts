@@ -1,5 +1,5 @@
 /**
- * Smriti-NER: Personalized Patient Adaptive Memory Cache
+ * NeuroSaathi: Personalized Patient Adaptive Memory Cache
  * 
  * Stores personalized baseline adjustments learned over time from OpenAI Teacher reflections.
  * Blends base game cognitive profiles with patient-specific neuro-motor realities

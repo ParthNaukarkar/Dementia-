@@ -363,7 +363,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
     }
   };
 
-  // Simulation controls for Judges / Hackathon testing
+  // Simulation controls for testing / clinical evaluation
   const handleSimulateDeliberationOverload = () => {
     if (phase !== 'RECALL_PHASE') {
       engine.advanceToRecall();

@@ -1,5 +1,5 @@
 /**
- * SmritiNER - 100,000 Patient Cohort Simulation & Mass-Market Clinical Verification Testbed
+ * NeuroSaathi - 100,000 Patient Cohort Simulation & Mass-Market Clinical Verification Testbed
  * 
  * Exhaustively evaluates 100,000 simulated patient-game trials across ALL 10 games:
  *   1. Memory Match (Paired Associates Learning)
@@ -305,7 +305,7 @@ function createEmptySummary(gameId: string): GameAuditSummary {
 export async function run100kMonteCarlo() {
   const startTime = Date.now();
   console.log('================================================================================');
-  console.log('🧠 SMRITI-NER: 100,000 PATIENT COHORT SIMULATION & MASS-MARKET TESTBED');
+  console.log('🧠 NEUROSAATHI: 100,000 PATIENT COHORT SIMULATION & MASS-MARKET TESTBED');
   console.log('   Simulating 10,000 clinically stratified patients across ALL 10 games');
   console.log('   Total Game Assessments: 100,000 game-level evaluations');
   console.log('   Testing IRT Calibrator, Adaptive Assistance, and Workout Flow Integrity');

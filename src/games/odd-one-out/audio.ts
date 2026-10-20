@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Game 8: Odd One Out (Omilto Basoni)
+ * NeuroSaathi - Game 8: Odd One Out
  * Web Audio API Acoustic Feedback
  */
 

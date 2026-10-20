@@ -75,7 +75,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
   const [autoAssistedPairsCount, setAutoAssistedPairsCount] = useState(0);
   const [lastAutonomyScore, setLastAutonomyScore] = useState<number>(100);
 
-  // Audio & SIH Diagnostics Drawer
+  // Audio & Diagnostics Drawer
   const [isMuted, setIsMuted] = useState(false);
   const [showJudgeControls, setShowJudgeControls] = useState(false);
   const [tremorDebounceMs, setTremorDebounceMs] = useState(400);

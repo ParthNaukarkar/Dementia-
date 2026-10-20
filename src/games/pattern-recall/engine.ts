@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Game 9: Pattern Recall (Noxar Chonda / চানেকিৰ ছন্দ)
+ * NeuroSaathi - Game 9: Pattern Recall
  * 9-Tier Bayesian 2PL Item Response Theory (IRT) Cognitive Engine
  * 400ms Parkinsonian Tremor Guard, MoCA Visuospatial Calibration & Edge ML Staging.
  */

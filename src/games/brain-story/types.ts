@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Game 10: Brain Story (Monor Sadhukatha / মনৰ সাধুকথা)
+ * NeuroSaathi - Game 10: Brain Story
  * Clinical Neuropsychological Evaluation & Cognitive Training
  * Paradigm: Wechsler Memory Scale (WMS-IV) Logical Memory & Reminiscence Therapy
  * Assesses auditory narrative encoding, central gist vs. peripheral recall, and recognition.

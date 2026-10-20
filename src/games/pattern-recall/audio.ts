@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Game 9: Pattern Recall (Noxar Chonda / চানেকিৰ ছন্দ)
+ * NeuroSaathi - Game 9: Pattern Recall
  * Web Audio API Acoustic Feedback
  */
 

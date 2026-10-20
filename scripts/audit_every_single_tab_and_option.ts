@@ -1,5 +1,5 @@
 /**
- * SMRITI-NER / NEUROSAATHI: COMPLETE EXHAUSTIVE TAB & OPTION AUDIT
+ * NEUROSAATHI: COMPLETE EXHAUSTIVE TAB & OPTION AUDIT
  * 
  * Verifies EVERY Tab, EVERY Option, EVERY Modal, and EVERY Game:
  * 
@@ -125,7 +125,7 @@ function check(condition: boolean, title: string, details?: string) {
 
 async function runExhaustiveAudit() {
   console.log('='.repeat(80));
-  console.log('🔍 SMRITI-NER: EXHAUSTIVE 100% TAB, OPTION & GAME AUDIT');
+  console.log('🔍 NEUROSAATHI: EXHAUSTIVE 100% TAB, OPTION & GAME AUDIT');
   console.log('='.repeat(80));
 
   // --------------------------------------------------------------------------

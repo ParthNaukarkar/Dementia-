@@ -1,5 +1,5 @@
 // NeuroSaathi 4-Language Localization Dictionary
-// Covers Assamese (as), Bengali (bn), Hindi (hi), and English (en)
+// NeuroSaathi Multilingual Localization Dictionary
 
 export type SupportedLanguage = 'en' | 'hi';
 
@@ -324,7 +324,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     plannedActivities: 'Your planned activities for today.',
   },
 
-  // ─── ASSAMESE ────────────────────────────────────────────────────────────
+  // ─── REGIONAL LOCALE: as ───────────────────────────────────────────────────
   as: {
     appTitle: 'নিউৰোসাথী',
     caregiverSupport: 'যত্নশীল সহায় (Caregiver Support)',
@@ -479,7 +479,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     plannedActivities: 'আজিৰ বাবে পৰিকল্পিত কামসমূহ।',
   },
 
-  // ─── BENGALI ─────────────────────────────────────────────────────────────
+  // ─── REGIONAL LOCALE: bn ───────────────────────────────────────────────────
   bn: {
     appTitle: 'নিউরোসাথী',
     caregiverSupport: 'কেয়ারগিভার সাপোর্ট (Caregiver Support)',
