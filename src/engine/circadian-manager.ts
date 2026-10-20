@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Circadian Rhythm & Sundowning Time Manager
+ * NeuroSaathi - Circadian Rhythm & Sundowning Time Manager
  * Protects dementia patients during high-vulnerability evening hours (Sundowning)
  */
 

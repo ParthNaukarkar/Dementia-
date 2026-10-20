@@ -1,4 +1,4 @@
-// Emergency Alarm Audio Engine for Smriti Setu
+// Emergency Alarm Audio Engine for NeuroSaathi
 // Generates loud, unmistakable two-tone siren / medical distress alarm using Web Audio API
 
 class EmergencyAlarmEngine {

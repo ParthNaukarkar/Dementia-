@@ -1,5 +1,5 @@
 /**
- * Smriti Setu - Reports Storage & Management Engine
+ * NeuroSaathi - Reports Storage & Management Engine
  * 
  * Manages generated reports for the Caregiver Console:
  * - Stores Full Session Evaluations and Game-Generated Reports

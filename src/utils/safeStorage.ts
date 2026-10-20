@@ -1,5 +1,5 @@
 /**
- * Safe Storage Adapter for Smriti Setu
+ * Safe Storage Adapter for NeuroSaathi
  * 
  * Provides an isomorphic, fault-tolerant Storage implementation.
  * - In browser: Delegates to window.localStorage with quota-error shielding.

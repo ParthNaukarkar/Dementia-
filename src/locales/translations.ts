@@ -1,4 +1,4 @@
-// SmritiNER / NeuroSaathi 4-Language Localization Dictionary
+// NeuroSaathi 4-Language Localization Dictionary
 // Covers Assamese (as), Bengali (bn), Hindi (hi), and English (en)
 
 export type SupportedLanguage = 'en' | 'hi';

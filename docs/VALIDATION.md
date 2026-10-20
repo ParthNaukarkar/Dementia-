@@ -16,7 +16,9 @@ The cognitive classification model (`src/engine/trained-cognitive-model.json`) u
    - Mini-Mental State Examination (MMSE) scores (15 to 30)
    - Demographic and biological covariates (Age, Education, Socioeconomic Status, Normalized Whole Brain Volume [nwbv], Estimated Total Intracranial Volume [eTIV], Atlas Scaling Factor [ASF]).
 2. **Synthetic Gameplay Features**: **The real-world OASIS-2 cohort participants did not play these digital cognitive games.** The gameplay telemetry features (accuracy percentages, response latencies, perseverative repetitions, motor tremor debouncing counts, and assistance requests) were **synthetically generated** via parametric simulation functions linking clinical severity (CDR and MMSE deficits) to simulated task performance.
-3. **Training Methodology**: The lightweight random forest classifier (50 estimators, max depth 6) was trained on these synthetic feature vectors mapped to the real OASIS-2 demographic strata.
+3. **Training Methodology & Shipped Model Architecture**: The deployed runtime classifier (`src/engine/trained-cognitive-model.json` evaluated by `CognitiveClassifier` in `src/engine/cognitive-classifier.ts`) is a **multinomial logistic regression model** utilizing Z-score standard scaling (`StandardScaler`) and softmax activation over linear logits:
+   $$z_k = \sum_{j=1}^{6} w_{k,j} \left(\frac{x_j - \mu_j}{\sigma_j}\right) + b_k, \quad P(y = k) = \frac{e^{z_k}}{\sum_{m=1}^{3} e^{z_m}}$$
+   It operates on 6 kinematic and latency features mapped to 3 clinical stages. During offline Python training (`scripts/train_with_real_oasis.py` and `scripts/train_cognitive_model.py`), `LogisticRegression(max_iter=2000, C=1.5)` was fitted on scaled features, while a compact Random Forest (10–25 estimators, max depth 4–5) was trained strictly to evaluate non-linear feature importances and Gini impurity splits for clinical verification. The exported weights and intercepts in `trained-cognitive-model.json` are solely those of the logistic regression classifier.
 
 ---
 
@@ -37,6 +39,7 @@ The evaluation scripts in `/scripts` (including `adaptive_flow_real_world_data_g
 | **LinUCB Bandit Scaffolding** | Disjoint contextual linear bandit with Upper Confidence Bound (UCB) | Reinforcement learning heuristic for real-time task assistance |
 | **Kinematic Tremor Filter** | Discrete Fourier Transform (DFT) spectral energy band isolation (4–6 Hz & 8–12 Hz) | Digital signal processing heuristic for tremor debouncing; sub-clinical screening signal |
 | **Circadian Time Manager** | Rule-based schedule monitoring (Sundowning protection 16:30–20:30) | Behavioral routine scheduling support |
+| **Emergency SOS Telemetry** | Same-device/local-network broadcast (`BroadcastChannel` & storage bridge) | Demo/Prototype mode; production deployment requires remote push notification / SMS gateway (e.g. Firebase, Twilio) |
 | **LLM Clinical Reporting** | De-identified generative prompt synthesis via optional user-provided cloud API keys | Generative draft generation; requires explicit clinician review and verification |
 
 ---

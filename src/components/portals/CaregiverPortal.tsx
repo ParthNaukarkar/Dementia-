@@ -2373,11 +2373,14 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                 {/* ─── 1. PATIENT EMERGENCY SOS SIGNALS SECTION ─── */}
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className={`w-2.5 h-2.5 rounded-full ${activeSOSAlerts.length > 0 ? 'bg-red-600 animate-ping' : 'bg-[#28573E]'}`} />
                       <h4 className="font-['Sora'] font-black text-xs sm:text-sm tracking-wider uppercase text-[#1F2421]">
                         {language === 'hi' ? 'आपातकालीन सहायता एवं SOS संकेत' : 'Emergency Assistance & Patient SOS Signals'}
                       </h4>
+                      <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-300">
+                        {language === 'hi' ? 'डेमो मोड: स्थानीय प्रसारण' : 'Demo Mode: Local Broadcast'}
+                      </span>
                     </div>
 
                     {resolvedSOSAlerts.length > 0 && (
@@ -2506,8 +2509,8 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                           </p>
                           <p className="text-[11px] text-[#636B65] mt-0.5">
                             {language === 'hi'
-                              ? 'रोगी पोर्टल से कोई सक्रिय संकट संकेत नहीं। अलार्म स्वचालित रूप से चालू होने के लिए तैयार है।'
-                              : 'No active distress signals from patient portal. Siren listener is armed and ready.'}
+                              ? 'रोगी पोर्टल से कोई सक्रिय संकट संकेत नहीं। अलार्म स्वचालित रूप से चालू होने के लिए तैयार है। (डेमो मोड: स्थानीय ब्रॉडकास्ट चैनल; क्लाउड/एसएमएस बैकएंड उत्पादन हेतु आवश्यक है)।'
+                              : 'No active distress signals from patient portal. Siren listener is armed and ready. (Demo Mode: local cross-tab broadcast; production requires cloud push/SMS gateway).'}
                           </p>
                         </div>
                       </div>

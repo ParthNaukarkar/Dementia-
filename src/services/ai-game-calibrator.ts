@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Neuro-Adaptive AI Game Calibrator Service
+ * NeuroSaathi - Neuro-Adaptive AI Game Calibrator Service
  * 
  * Uses Cloud AI (OpenAI GPT-4o / GPT-4o-mini or Google Gemini) via API key
  * to evaluate millisecond patient telemetry during/between game rounds.
@@ -197,7 +197,7 @@ export class AIGameCalibratorService {
 
     const profile = getGameCognitiveProfile(input.gameId);
 
-    const promptSystem = `You are an expert Neuropsychological Adaptive Game Director in the SmritiNER cognitive platform.
+    const promptSystem = `You are an expert Neuropsychological Adaptive Game Director in the NeuroSaathi cognitive platform.
 Task: Analyze real-time patient gameplay telemetry and dynamically calibrate the difficulty tier (1 to ${input.maxTiers}) and cognitive scaffolding for the next round.
 
 CLINICAL NORMS FOR THIS SPECIFIC GAME ("${profile.displayName}" - ${profile.domain}):

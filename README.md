@@ -12,7 +12,7 @@
 
 ## 📌 Project Overview
 
-**NeuroSaathi** ("Neuro-Companion", also known as Smriti Setu / স্মৃতি সেতু) is an open-source, culturally attuned cognitive screening support and memory-assistance web platform designed specifically for older adults and individuals living with Mild Cognitive Impairment (MCI) or early-stage dementia across the North Eastern Region (NER) of India. Featuring 10 neuropsychologically inspired cognitive exercises rooted in Assamese, Bengali, and North Eastern folklore, geographical landmarks, and daily community traditions, NeuroSaathi combines latent ability estimation (Bayesian 2PL Item Response Theory), real-time contextual bandit scaffolding (LinUCB), digital kinematic tremor filtering, and an accessible dual-portal architecture that fosters patient dignity while providing caregivers and clinicians with longitudinal cognitive monitoring telemetry.
+**NeuroSaathi** ("Neuro-Companion") is an open-source, culturally attuned cognitive screening support and memory-assistance web platform designed specifically for older adults and individuals living with Mild Cognitive Impairment (MCI) or early-stage dementia across the North Eastern Region (NER) of India. Featuring 10 neuropsychologically inspired cognitive exercises rooted in Assamese, Bengali, and North Eastern folklore, geographical landmarks, and daily community traditions, NeuroSaathi combines latent ability estimation (Bayesian 2PL Item Response Theory), real-time contextual bandit scaffolding (LinUCB), digital kinematic tremor filtering, and an accessible dual-portal architecture that fosters patient dignity while providing caregivers and clinicians with longitudinal cognitive monitoring telemetry.
 
 > **Important Clinical & Regulatory Notice**: NeuroSaathi is an experimental cognitive screening support and longitudinal monitoring tool intended for research and supportive care. **It is NOT a certified diagnostic medical device** and does not provide clinical diagnoses or replace evaluation by qualified neuropsychologists or geriatricians. See [docs/VALIDATION.md](docs/VALIDATION.md) for full scientific and validation disclosures.
 
@@ -226,20 +226,11 @@ NeuroSaathi operates with local client-side algorithmic scoring by default. For 
 | ![Memory Match](docs/screenshots/game-memory-match.png) |
 | *Paired-associates task with Assamese cultural iconography* |
 
-### Demo Video Walkthrough
-> 📺 **Demo Video**: [Watch the NeuroSaathi Walkthrough on YouTube (Link Coming Soon)](https://youtu.be/placeholder-neurosaathi)
-
----
-
-## ⚠️ Limitations & Scientific Disclosures
-
-NeuroSaathi is an engineering prototype and research platform. Review the complete [docs/VALIDATION.md](docs/VALIDATION.md) for detailed methodology. Please take note of the following limitations:
-
-1. **Not a Diagnostic Medical Device**: NeuroSaathi does not diagnose Alzheimer's disease, vascular dementia, or any other medical condition. It is designed to assist caregivers and clinicians by gathering supplementary behavioural data.
-2. **Synthetic Telemetry Training Baseline**: The client-side random forest cognitive classifier was trained using synthetic gameplay telemetry features mapped against real-world demographic and clinical covariates from the Washington University OASIS-2 longitudinal dataset. Real OASIS-2 participants did not play these digital games.
+2. **Synthetic Telemetry Training Baseline**: The client-side multinomial logistic regression cognitive classifier was trained using synthetic gameplay telemetry features mapped against real-world demographic and clinical covariates from the Washington University OASIS-2 longitudinal dataset. Real OASIS-2 participants did not play these digital games.
 3. **Simulation Consistency Checks**: Audit benchmarks demonstrate internal algorithmic reliability and mathematical consistency across synthetic agents, but do not substitute for empirical clinical trials.
 4. **Local Prototype Storage**: In its current iteration, patient records are stored locally within the browser (`localStorage`). Multi-device cloud synchronization, encrypted remote backups, and FHIR interoperability require future enterprise backend deployment.
-5. **Next Steps**: Formal observational pilot studies under Institutional Review Board (IRB) / Ethics Committee approval with clinician oversight across clinical centers in North East India.
+5. **SOS Alert Scope (Demo Mode)**: Distress notifications are transmitted across open portal instances via local browser events (`BroadcastChannel` and storage synchronization). They operate on the same device or local network for demonstration purposes; production emergency dispatch requires a remote cloud push / SMS gateway (e.g., Firebase, Supabase, Twilio).
+6. **Next Steps**: Formal observational pilot studies under Institutional Review Board (IRB) / Ethics Committee approval with clinician oversight across clinical centers in North East India.
 
 ---
 

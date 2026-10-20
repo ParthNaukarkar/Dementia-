@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Daily Session Manager & Multi-Game Telemetry Aggregator
+ * NeuroSaathi - Daily Session Manager & Multi-Game Telemetry Aggregator
  * 
  * Aggregates, persists, and calculates daily cognitive scores from ONLY
  * the games that were actually recommended and played on a specific day.

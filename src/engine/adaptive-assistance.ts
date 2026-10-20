@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Extreme Patient-Profile-Adaptive Assistance Engine
+ * NeuroSaathi - Extreme Patient-Profile-Adaptive Assistance Engine
  * 
  * Dynamically classifies patient impairment phenotype and tailors intervention
  * latency (T_assist), scaffolding hierarchy (Level 1 Subtle -> Level 2 Contextual -> Level 3 Direct),

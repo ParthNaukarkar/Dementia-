@@ -1,5 +1,5 @@
 /**
- * Dual-Port Dev Server Runner for SmritiNER
+ * Dual-Port Dev Server Runner for NeuroSaathi
  * Starts Port 5173 (Patient Portal) and Port 5174 (Caregiver Portal) concurrently.
  */
 

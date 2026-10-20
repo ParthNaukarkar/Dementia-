@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Clinical In-Game Latency & Adaptive Timing Engine
+ * NeuroSaathi - Clinical In-Game Latency & Adaptive Timing Engine
  * Grounded in CANTAB & Cogstate Neuropsychological Standards for Elderly MCI/Dementia
  */
 

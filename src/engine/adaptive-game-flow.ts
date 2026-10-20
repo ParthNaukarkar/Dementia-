@@ -1,5 +1,5 @@
 /**
- * SmritiNER - Dynamic Adaptive Game Flow & Multi-Domain Clinical Orchestrator
+ * NeuroSaathi - Dynamic Adaptive Game Flow & Multi-Domain Clinical Orchestrator
  * 
  * Dynamically analyzes patient cognitive load, hippocampal fatigue, Parkinsonian
  * tremor spikes, and domain deficits to adapt the workout flow on the fly ("changing games on the flow").
@@ -60,7 +60,7 @@ export interface FlowEvaluationContext {
   patientLanguage?: SupportedLanguage;
 }
 
-// 10 Active Validated Games in SmritiNER
+// 10 Active Validated Games in NeuroSaathi
 export const ACTIVE_10_GAMES: GameId[] = [
   'memory-match',
   'sequence-recall',

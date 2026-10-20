@@ -201,19 +201,29 @@ export const PatientSOSModal: React.FC<PatientSOSModalProps> = ({
                   {alertSent ? <CheckCircle2 className="w-6 h-6" /> : <Bell className="w-6 h-6" />}
                 </div>
                 <div>
-                  <h3 className="font-['Sora'] font-bold text-lg text-[#1F2421]">
-                    {alertSent
-                      ? (isHi ? 'देखभालकर्ता को अलर्ट भेजा गया' : 'Caregiver Alert Sent!')
-                      : (isHi ? 'देखभालकर्ता को सूचित करें' : 'Alert Caregiver')}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-['Sora'] font-bold text-lg text-[#1F2421]">
+                      {alertSent
+                        ? (isHi ? 'देखभालकर्ता को अलर्ट भेजा गया' : 'Caregiver Alert Sent!')
+                        : (isHi ? 'देखभालकर्ता को सूचित करें' : 'Alert Caregiver')}
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-300">
+                      {isHi ? 'डेमो मोड' : 'Demo Mode'}
+                    </span>
+                  </div>
                   <p className="text-sm text-[#636B65] mt-0.5 font-medium">
                     {alertSent
                       ? (isHi
-                          ? `${caretaker.name} के डिवाइस पर संदेश भेजा गया (${alertTime})`
+                          ? `${caretaker.name} के पोर्टल पर संदेश भेजा गया (${alertTime})`
                           : `Alert dispatched to ${caretaker.name}'s portal (${alertTime})`)
                       : (isHi
                           ? `${caretaker.name} को सीधे आपातकालीन संदेश भेजें`
                           : `Send urgent notification to ${caretaker.name}`)}
+                  </p>
+                  <p className="text-[11px] text-[#8C7A6B] mt-1">
+                    {isHi
+                      ? 'ℹ️ डेमो मोड: अलर्ट स्थानीय पोर्टल सत्रों के बीच प्रसारित होता है। वास्तविक आपातकाल के लिए सीधे कॉल बटन का उपयोग करें।'
+                      : 'ℹ️ Demo Mode: Alerts broadcast across local portal sessions. For real emergencies, use direct phone call buttons below.'}
                   </p>
                 </div>
               </div>
