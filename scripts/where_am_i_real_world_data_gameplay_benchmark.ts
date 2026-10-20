@@ -10,6 +10,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { WhereAmIEngine, WHERE_AM_I_TIERS } from '../src/games/where-am-i/engine';
+import { createSeededRandom } from './seeded_rng';
 import { REAL_WORLD_WHERE_AM_I_PERSONAS, OasisWhereAmIPersona } from '../src/games/where-am-i/types';
 import type {
   WhereAmITrialTelemetry,
@@ -195,6 +196,7 @@ async function runRealWorldBenchmark() {
   const cluesList: number[] = [];
   const autonomies: number[] = [];
   let correctClassifications = 0;
+  const rng = createSeededRandom(0x42);
 
   oasisPatients.forEach(patient => {
     const pEngine = new WhereAmIEngine(0.0);
@@ -218,24 +220,24 @@ async function runRealWorldBenchmark() {
 
       // Progressive clues needed based on real clinical impairment (MMSE + CDR)
       let cluesNeeded = 1;
-      if (cdr >= 1.0 || mmse <= 18) cluesNeeded = Math.random() < 0.85 ? 4 : 3;
-      else if (cdr === 0.5 || mmse <= 24) cluesNeeded = Math.random() < 0.65 ? 3 : 2;
-      else cluesNeeded = Math.random() < 0.85 ? 1 : 2;
+      if (cdr >= 1.0 || mmse <= 18) cluesNeeded = rng() < 0.85 ? 4 : 3;
+      else if (cdr === 0.5 || mmse <= 24) cluesNeeded = rng() < 0.65 ? 3 : 2;
+      else cluesNeeded = rng() < 0.85 ? 1 : 2;
 
       let pSuccess = 0.95 - (cdr / 2.0) * 0.34 - mmseFraction * 0.46;
       if (curDiff.tierLevel >= 7) pSuccess -= 0.15;
       if (isSevere || mmse <= 16) pSuccess = Math.min(pSuccess, 0.35);
       pSuccess = Math.max(0.15, Math.min(0.98, pSuccess));
 
-      const isCorrect = Math.random() < pSuccess;
-      const deliberationMs = Math.round(Math.max(2500, baseLatency + (Math.random() - 0.5) * baseVariance * 0.8));
+      const isCorrect = rng() < pSuccess;
+      const deliberationMs = Math.round(Math.max(2500, baseLatency + (rng() - 0.5) * baseVariance * 0.8));
 
       let selectedOptionId = isCorrect ? trialData.targetLocation.id : (trialData.options.find(o => o.id !== trialData.targetLocation.id)?.id || 'distractor_0');
-      if (!isCorrect && trials.length > 0 && Math.random() < (0.05 + cdr * 0.35)) {
+      if (!isCorrect && trials.length > 0 && rng() < (0.05 + cdr * 0.35)) {
         selectedOptionId = trials[trials.length - 1].selectedOptionId;
       }
 
-      const compassUsed = (isSevere && Math.random() < 0.65) || (isImpaired && Math.random() < 0.25);
+      const compassUsed = (isSevere && rng() < 0.65) || (isImpaired && rng() < 0.25);
 
       const snap: WhereAmISettingsSnapshot = {
         compassHintUsed: compassUsed,
@@ -319,7 +321,7 @@ async function runRealWorldBenchmark() {
     console.error(`  ⚠️ ${failedTests} BENCHMARK FAILURES DETECTED!`);
     process.exit(1);
   } else {
-    console.log('  🎉 100% PASS RATE! WHERE AM I? IS FULLY CLINICALLY VALIDATED ON REAL-WORLD DATA.\n');
+    console.log(`  Simulation benchmark: ${passedTests}/${totalTests} checks passed.\n`);
   }
 }
 

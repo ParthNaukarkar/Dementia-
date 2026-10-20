@@ -10,6 +10,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { WhatChangedEngine, WHAT_CHANGED_TIERS } from '../src/games/what-changed/engine';
+import { createSeededRandom } from './seeded_rng';
 import { REAL_WORLD_OASIS_PERSONAS, OasisPatientPersona } from '../src/games/what-changed/types';
 import type { WhatChangedTrialTelemetry, WhatChangedSettingsSnapshot } from '../src/games/what-changed/types';
 import { CognitiveClassifier } from '../src/engine/cognitive-classifier';
@@ -193,6 +194,7 @@ async function runRealWorldBenchmark() {
   const visualScores: number[] = [];
   const autonomies: number[] = [];
   let correctClassifications = 0;
+  const rng = createSeededRandom(0x42);
 
   oasisPatients.forEach(patient => {
     const pEngine = new WhatChangedEngine(0.0);
@@ -220,19 +222,19 @@ async function runRealWorldBenchmark() {
       if (isSevere) pSuccess = Math.min(pSuccess, 0.35);
       pSuccess = Math.max(0.15, Math.min(0.98, pSuccess));
 
-      const isCorrect = Math.random() < pSuccess;
-      const deliberationMs = Math.round(Math.max(2500, baseLatency + (Math.random() - 0.5) * baseVariance * 0.8));
+      const isCorrect = rng() < pSuccess;
+      const deliberationMs = Math.round(Math.max(2500, baseLatency + (rng() - 0.5) * baseVariance * 0.8));
 
       let selectedSlotId = isCorrect ? pair.targetSlotId : (pair.targetSlotId + 1) % curDiff.itemCount;
       // Perseverative error modeling matching clinical dementia behavior
-      if (!isCorrect && trials.length > 0 && Math.random() < (0.05 + cdr * 0.35)) {
+      if (!isCorrect && trials.length > 0 && rng() < (0.05 + cdr * 0.35)) {
         selectedSlotId = trials[trials.length - 1].selectedSlotId;
       }
 
       const snap: WhatChangedSettingsSnapshot = {
-        haloScaffoldingActive: isSevere ? Math.random() < 0.7 : (isImpaired ? Math.random() < 0.25 : false),
+        haloScaffoldingActive: isSevere ? rng() < 0.7 : (isImpaired ? rng() < 0.25 : false),
         studyTimeUsedRatio: isSevere ? 1.0 : (isImpaired ? 0.85 : 0.6),
-        replaysUsedCount: isImpaired && Math.random() < 0.5 ? 1 : 0,
+        replaysUsedCount: isImpaired && rng() < 0.5 ? 1 : 0,
         proactiveHelpRequested: isSevere,
         isManualTierOverride: false,
         soundMuted: false,
@@ -342,7 +344,7 @@ async function runRealWorldBenchmark() {
   console.log('═══════════════════════════════════════════════════════════════════════════════');
 
   if (failedTests === 0) {
-    console.log('  🏆 ALL REAL-WORLD DATA & GAMEPLAY TESTS PASSED WITH 100% CLINICAL FIDELITY!\n');
+    console.log(`  Simulation benchmark: ${passedTests}/${totalTests} checks passed.\n`);
   } else {
     console.error(`  ⚠️ ${failedTests} BENCHMARK FAILURES DETECTED:`);
     failureDetails.forEach(f => console.error(`    ${f}`));

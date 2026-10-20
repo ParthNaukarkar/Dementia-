@@ -5,13 +5,10 @@
  */
 
 import { BayesianIRTEngine } from '../src/engine/ml/bayesian-irt-engine';
-import { LatencyTimer } from '../src/engine/latency-timer';
-import { CognitiveClassifier } from '../src/engine/cognitive-classifier';
 import { KinematicAnalyzer } from '../src/engine/ml/kinematic-analyzer';
 import { LinUCBScaffoldingBandit } from '../src/engine/ml/linucb-bandit';
 import { CircadianManager } from '../src/engine/circadian-manager';
 import { DailySessionManager } from '../src/utils/dailySessionManager';
-import { portalSync } from '../src/utils/portalSync';
 import { TRANSLATIONS } from '../src/locales/translations';
 import { GAME_CATALOG } from '../src/data/gameCatalog';
 
@@ -40,14 +37,16 @@ try {
   const engine = new BayesianIRTEngine();
   
   // What happens if trial has NaN or negative latency or extreme values?
-  const res1 = engine.updateAbility(100, 1.0, 1.0, 1.0); // huge start theta
+  engine.setTheta(100); // huge start theta
+  const res1 = engine.update({ difficultyB: 1.0, discriminationA: 1.0 }, true, 1.0);
   if (res1.newTheta <= 3.0) {
     record('IRT Engine', 'Upper bound clamping', 'PASS', `Clamped to ${res1.newTheta} (<= 3.0)`);
   } else {
     record('IRT Engine', 'Upper bound clamping', 'FAIL', `Theta escaped bound: ${res1.newTheta}`);
   }
 
-  const res2 = engine.updateAbility(-100, 1.0, 1.0, 1.0); // huge negative start theta
+  engine.setTheta(-100); // huge negative start theta
+  const res2 = engine.update({ difficultyB: 1.0, discriminationA: 1.0 }, false, 1.0);
   if (res2.newTheta >= -3.0) {
     record('IRT Engine', 'Lower bound clamping', 'PASS', `Clamped to ${res2.newTheta} (>= -3.0)`);
   } else {
@@ -55,7 +54,8 @@ try {
   }
 
   // Zero discrimination (a = 0)
-  const res3 = engine.updateAbility(0.0, 0.0, 1.0, 1.0);
+  engine.setTheta(0.0);
+  const res3 = engine.update({ difficultyB: 1.0, discriminationA: 0.0 }, true, 1.0);
   if (!isNaN(res3.newTheta) && isFinite(res3.newTheta)) {
     record('IRT Engine', 'Zero discrimination divide-by-zero check', 'PASS', `Theta is finite: ${res3.newTheta}`);
   } else {
@@ -63,7 +63,8 @@ try {
   }
 
   // Extreme difficulty b = 1000
-  const res4 = engine.updateAbility(0.0, 1.0, 1000, 1.0);
+  engine.setTheta(0.0);
+  const res4 = engine.update({ difficultyB: 1000, discriminationA: 1.0 }, true, 1.0);
   if (!isNaN(res4.newTheta) && isFinite(res4.newTheta)) {
     record('IRT Engine', 'Extreme difficulty overflow check', 'PASS', `Handled b=1000 without overflow: ${res4.newTheta}`);
   } else {
@@ -78,28 +79,31 @@ console.log('\n--- 2. Testing Kinematic Analyzer with Degenerate Inputs ---');
 try {
   const kin = new KinematicAnalyzer();
   // Empty tap points
-  const emptyRes = kin.analyzeTrajectory([]);
-  if (emptyRes && !isNaN(emptyRes.tremorBurden)) {
-    record('Kinematic Analyzer', 'Empty input handling', 'PASS', `Gracefully returned baseline: tremorBurden=${emptyRes.tremorBurden}`);
+  kin.reset();
+  const emptyRes = kin.analyze();
+  if (emptyRes && !isNaN(emptyRes.tremorSeverityIndex)) {
+    record('Kinematic Analyzer', 'Empty input handling', 'PASS', `Gracefully returned baseline: tremorSeverityIndex=${emptyRes.tremorSeverityIndex}`);
   } else {
     record('Kinematic Analyzer', 'Empty input handling', 'FAIL', 'Failed or produced NaN on empty points');
   }
 
   // Single tap point
-  const singleRes = kin.analyzeTrajectory([{ x: 100, y: 100, t: 1000 }]);
-  if (singleRes && !isNaN(singleRes.tremorBurden)) {
-    record('Kinematic Analyzer', 'Single point handling', 'PASS', `Gracefully handled single tap: tremorBurden=${singleRes.tremorBurden}`);
+  kin.reset();
+  kin.addPoint(100, 100, 1000);
+  const singleRes = kin.analyze();
+  if (singleRes && !isNaN(singleRes.tremorSeverityIndex)) {
+    record('Kinematic Analyzer', 'Single point handling', 'PASS', `Gracefully handled single tap: tremorSeverityIndex=${singleRes.tremorSeverityIndex}`);
   } else {
     record('Kinematic Analyzer', 'Single point handling', 'FAIL', 'Failed on single tap');
   }
 
   // Duplicate timestamp (dt = 0, divide by zero risk)
-  const zeroDtRes = kin.analyzeTrajectory([
-    { x: 100, y: 100, t: 1000 },
-    { x: 150, y: 150, t: 1000 }
-  ]);
-  if (zeroDtRes && isFinite(zeroDtRes.velocityVariability)) {
-    record('Kinematic Analyzer', 'Zero dt division check', 'PASS', `Velocity variability finite: ${zeroDtRes.velocityVariability}`);
+  kin.reset();
+  kin.addPoint(100, 100, 1000);
+  kin.addPoint(150, 150, 1000);
+  const zeroDtRes = kin.analyze();
+  if (zeroDtRes && isFinite(zeroDtRes.averageVelocityPxMs)) {
+    record('Kinematic Analyzer', 'Zero dt division check', 'PASS', `Average velocity finite: ${zeroDtRes.averageVelocityPxMs}`);
   } else {
     record('Kinematic Analyzer', 'Zero dt division check', 'FAIL', 'Zero dt caused NaN/Infinity');
   }
@@ -112,10 +116,10 @@ console.log('\n--- 3. Testing Daily Composite Cognitive Score Calculations ---')
 try {
   // Test baseline with 0 games
   const baseline = DailySessionManager.calculateDailyCompositeScore();
-  if (baseline.isBaseline && baseline.compositeScore === 78) {
+  if (baseline.isBaseline && baseline.score === 78) {
     record('DailySessionManager', 'Baseline with 0 games', 'PASS', `Returns 78 (baseline) with isBaseline=true`);
   } else {
-    record('DailySessionManager', 'Baseline with 0 games', 'FAIL', `Expected 78 baseline, got: ${baseline.compositeScore}`);
+    record('DailySessionManager', 'Baseline with 0 games', 'FAIL', `Expected 78 baseline, got: ${baseline.score}`);
   }
 
   // Test composite score clamping boundaries
@@ -185,19 +189,26 @@ try {
 // 6. LINUCB BANDIT (ALGORITHMIC VERIFICATION)
 console.log('\n--- 6. Auditing LinUCB Multi-Armed Bandit ---');
 try {
-  const bandit = new LinUCBScaffoldingBandit(3, 4, 0.2); // d=3, K=4, alpha=0.2
-  const context = [0.5, 0.2, 0.8];
-  const arm = bandit.selectArm(context);
-  if (arm >= 0 && arm < 4) {
-    record('LinUCB Bandit', 'Arm selection', 'PASS', `Selected arm index: ${arm}`);
+  const bandit = new LinUCBScaffoldingBandit(0.2); // alpha = 0.2
+  const context = {
+    latentAbilityTheta: 0.5,
+    fatigueIndex: 0.2,
+    recentAccuracy: 0.8,
+    tremorSeverity: 0.1,
+    hesitationZScore: 0.0,
+    consecutiveMistakes: 0,
+  };
+  const selection = bandit.selectAction(context);
+  if (selection && selection.actionIndex >= 0 && selection.actionIndex < 3) {
+    record('LinUCB Bandit', 'Arm selection', 'PASS', `Selected action: ${selection.selectedAction} (index: ${selection.actionIndex})`);
   } else {
-    record('LinUCB Bandit', 'Arm selection', 'FAIL', `Invalid arm index: ${arm}`);
+    record('LinUCB Bandit', 'Arm selection', 'FAIL', `Invalid action selection`);
   }
 
   // Update arm with reward
-  bandit.update(arm, context, 0.85);
-  const nextArm = bandit.selectArm(context);
-  record('LinUCB Bandit', 'Bayesian reward update', 'PASS', `Successfully updated matrix A & vector b, next arm: ${nextArm}`);
+  bandit.update(context, selection.selectedAction, 0.85);
+  const nextSelection = bandit.selectAction(context);
+  record('LinUCB Bandit', 'Bayesian reward update', 'PASS', `Successfully updated matrix A & vector b, next action: ${nextSelection.selectedAction}`);
 } catch (e: any) {
   record('LinUCB Bandit', 'Exception handling', 'FAIL', `Threw error: ${e.message}`);
 }
@@ -207,18 +218,28 @@ console.log('\n--- 7. Auditing Circadian Manager ---');
 try {
   const cm = new CircadianManager();
   // Morning (9 AM)
-  const morningFactor = cm.getCircadianPerformanceFactor(new Date(2026, 9, 20, 9, 0, 0));
-  // Sundowning period (6 PM - 8 PM)
-  const eveningFactor = cm.getCircadianPerformanceFactor(new Date(2026, 9, 20, 18, 30, 0));
+  cm.setSimulatedHour(9.0);
+  const morningStatus = cm.getStatus();
+  // Sundowning period (6:30 PM = 18.5)
+  cm.setSimulatedHour(18.5);
+  const eveningStatus = cm.getStatus();
   // Deep night (3 AM)
-  const nightFactor = cm.getCircadianPerformanceFactor(new Date(2026, 9, 20, 3, 0, 0));
+  cm.setSimulatedHour(3.0);
+  const nightStatus = cm.getStatus();
+  // Reset
+  cm.setSimulatedHour(null);
 
-  if (morningFactor > eveningFactor && eveningFactor > nightFactor) {
-    record('Circadian Manager', 'Sundowning circadian decay model', 'PASS', 
-      `Morning factor (${morningFactor.toFixed(2)}) > Sundowning (${eveningFactor.toFixed(2)}) > Night (${nightFactor.toFixed(2)})`);
+  if (
+    morningStatus.phase === 'MORNING_COGNITIVE' &&
+    eveningStatus.isSundowningActive === true &&
+    eveningStatus.phase === 'SUNDOWNING_VULNERABLE' &&
+    nightStatus.phase === 'NIGHT_REST'
+  ) {
+    record('Circadian Manager', 'Sundowning circadian cycle model', 'PASS', 
+      `Morning (${morningStatus.phase}) -> Sundowning (${eveningStatus.phase}, active=${eveningStatus.isSundowningActive}) -> Night (${nightStatus.phase})`);
   } else {
-    record('Circadian Manager', 'Sundowning circadian decay model', 'WARNING', 
-      `Unexpected circadian profile: Morning=${morningFactor}, Evening=${eveningFactor}, Night=${nightFactor}`);
+    record('Circadian Manager', 'Sundowning circadian cycle model', 'WARNING', 
+      `Unexpected circadian profile: Morning=${morningStatus.phase}, Evening=${eveningStatus.phase}, Night=${nightStatus.phase}`);
   }
 } catch (e: any) {
   record('Circadian Manager', 'Exception handling', 'FAIL', `Threw error: ${e.message}`);
@@ -233,3 +254,8 @@ console.log(`Warnings: ${findings.filter(f => f.status === 'WARNING').length}`);
 console.log(`Failures: ${findings.filter(f => f.status === 'FAIL').length}`);
 console.log(`Vulnerabilities: ${findings.filter(f => f.status === 'VULNERABILITY').length}`);
 console.log('================================================================================');
+
+const failedCount = findings.filter(f => f.status === 'FAIL' || f.status === 'VULNERABILITY').length;
+if (failedCount > 0) {
+  process.exit(1);
+}

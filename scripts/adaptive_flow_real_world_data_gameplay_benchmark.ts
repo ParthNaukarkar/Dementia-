@@ -365,7 +365,7 @@ export function runAdaptiveFlowBenchmark(): void {
   console.log('\n═══════════════════════════════════════════════════════════════════════');
   console.log(`  BENCHMARK SUITE FINISHED: ${passedTests} / ${totalTests} TESTS PASSED`);
   if (failedTests === 0) {
-    console.log('  🎉 100% PASS RATE! ADAPTIVE GAME FLOW IS FULLY CLINICALLY VALIDATED ON REAL-WORLD DATA.');
+    console.log(`  Simulation benchmark: ${passedTests}/${totalTests} checks passed.`);
   } else {
     console.error(`  ⚠️ ${failedTests} BENCHMARK FAILURES DETECTED!`);
     process.exit(1);

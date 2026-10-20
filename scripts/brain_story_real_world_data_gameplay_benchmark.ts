@@ -8,6 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 import { BrainStoryEngine } from '../src/games/brain-story/engine';
+import { createSeededRandom } from './seeded_rng';
 import {
   REAL_WORLD_BRAIN_STORY_PERSONAS,
   BrainStorySettingsSnapshot,
@@ -189,6 +190,7 @@ async function runRealWorldBenchmark() {
   const hintsList: number[] = [];
   const autonomies: number[] = [];
   let correctClassifications = 0;
+  const rng = createSeededRandom(0x42);
 
   oasisPatients.forEach(patient => {
     const pEngine = new BrainStoryEngine(0.0);
@@ -213,15 +215,15 @@ async function runRealWorldBenchmark() {
       // Audio replay usage
       let replaysUsed = 0;
       if (curDiff.audioReplaysAllowed > 0) {
-        if (cdr >= 1.0 || mmse <= 18) replaysUsed = Math.random() < 0.80 ? Math.min(curDiff.audioReplaysAllowed, 2) : 0;
-        else if (cdr === 0.5 || mmse <= 24) replaysUsed = Math.random() < 0.45 ? 1 : 0;
-        else replaysUsed = Math.random() < 0.10 ? 1 : 0;
+        if (cdr >= 1.0 || mmse <= 18) replaysUsed = rng() < 0.80 ? Math.min(curDiff.audioReplaysAllowed, 2) : 0;
+        else if (cdr === 0.5 || mmse <= 24) replaysUsed = rng() < 0.45 ? 1 : 0;
+        else replaysUsed = rng() < 0.10 ? 1 : 0;
       }
 
       // Clue hint usage
       const clueUsed = curDiff.clueHintAllowed && (
-        (isSevere && Math.random() < 0.70) ||
-        (isImpaired && Math.random() < 0.35)
+        (isSevere && rng() < 0.70) ||
+        (isImpaired && rng() < 0.35)
       );
 
       let pSuccess = 0.95 - (cdr / 2.0) * 0.36 - mmseFraction * 0.42;
@@ -229,8 +231,8 @@ async function runRealWorldBenchmark() {
       if (isSevere || mmse <= 16) pSuccess = Math.min(pSuccess, 0.35);
       pSuccess = Math.max(0.15, Math.min(0.98, pSuccess));
 
-      const isCorrect = Math.random() < pSuccess;
-      const deliberationMs = Math.round(Math.max(2500, baseLatency + (Math.random() - 0.5) * baseVariance * 0.8));
+      const isCorrect = rng() < pSuccess;
+      const deliberationMs = Math.round(Math.max(2500, baseLatency + (rng() - 0.5) * baseVariance * 0.8));
 
       const totalQ = trialData.activeQuestions.length;
       let correctCount = 0;
@@ -328,7 +330,7 @@ async function runRealWorldBenchmark() {
     console.error(`  ⚠️ ${failedTests} BENCHMARK FAILURES DETECTED!`);
     process.exit(1);
   } else {
-    console.log('  🎉 100% PASS RATE! BRAIN STORY IS FULLY CLINICALLY VALIDATED ON REAL-WORLD DATA.\n');
+    console.log(`  Simulation benchmark: ${passedTests}/${totalTests} checks passed.\n`);
   }
 }
 

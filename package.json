@@ -10,7 +10,10 @@
     "dev:both": "node scripts/start_both_portals.js",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:engines": "tsx scripts/test_all_10_game_engines.ts",
+    "test:audits": "tsx scripts/red_team_adversarial_audit.ts && tsx scripts/adaptive_flow_real_world_stress_and_vulnerability_audit.ts",
+    "test": "npm run test:engines && npm run test:audits"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -28,6 +31,7 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
     "oxlint": "^1.79.0",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.2",
     "vite": "^8.2.2"
   }

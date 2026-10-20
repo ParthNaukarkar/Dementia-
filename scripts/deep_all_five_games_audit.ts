@@ -430,7 +430,7 @@ async function runDeepAudit() {
   console.log('\n================================================================================');
   console.log(`AUDIT RESULTS: ${testsPassed} / ${totalTestsRun} PASSED (${((testsPassed / totalTestsRun) * 100).toFixed(2)}%)`);
   if (testsFailed === 0) {
-    console.log('🏆 100% PASS RATE: ALL 5 GAMES ARE FLAWLESS AND CLINICALLY ROBUST ACROSS ALL PROFILES!');
+    console.log(`Simulation benchmark: ${testsPassed}/${totalTestsRun} checks passed.`);
   } else {
     console.error(`⚠️ ${testsFailed} TESTS FAILED. INVESTIGATION REQUIRED.`);
   }

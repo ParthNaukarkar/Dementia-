@@ -148,28 +148,40 @@ export class AdaptiveGameFlowEngine {
     if (fatigueScore > 0.75 || (completedSummary?.accuracyPercentage != null && completedSummary.accuracyPercentage < 40 && (abilityTheta < -1.0 || completedSummary?.finalTheta == null))) {
       reason = 'palliative_scaffolding';
       const palliativeChoices: GameId[] = ['brain-story', 'where-am-i', 'what-changed'];
-      const pick = candidateGames.find(g => palliativeChoices.includes(g)) || palliativeChoices[0];
+      const pick = candidateGames.find(g => palliativeChoices.includes(g))
+        || palliativeChoices.find(g => g !== completedGameId)
+        || candidateGames.find(g => g !== completedGameId)
+        || candidateGames[0];
       selectedGameId = pick;
     }
     // Priority 2: Hippocampal Strain Relief (Verbal/Narrative Fatigue)
     else if (hippocampalStrain > 0.60) {
       reason = 'hippocampal_relief';
       const spatialChoices: GameId[] = ['jigsaw-puzzle', 'where-am-i', 'what-changed'];
-      const pick = candidateGames.find(g => spatialChoices.includes(g)) || spatialChoices[0];
+      const pick = candidateGames.find(g => spatialChoices.includes(g))
+        || spatialChoices.find(g => g !== completedGameId)
+        || candidateGames.find(g => g !== completedGameId)
+        || candidateGames[0];
       selectedGameId = pick;
     }
     // Priority 3: Motor Tremor Stabilization
     else if (tremorBurden > 0.50) {
       reason = 'motor_stabilization';
       const motorSafeChoices: GameId[] = ['where-am-i', 'brain-story', 'what-changed', 'odd-one-out'];
-      const pick = candidateGames.find(g => motorSafeChoices.includes(g)) || motorSafeChoices[0];
+      const pick = candidateGames.find(g => motorSafeChoices.includes(g))
+        || motorSafeChoices.find(g => g !== completedGameId)
+        || candidateGames.find(g => g !== completedGameId)
+        || candidateGames[0];
       selectedGameId = pick;
     }
     // Priority 4: Executive Escalation (Patient excelling with high cognitive reserve)
     else if (abilityTheta >= 0.85 && (completedSummary?.accuracyPercentage ?? 0) >= 88 && fatigueScore < 0.30) {
       reason = 'executive_escalation';
       const executiveChoices: GameId[] = ['odd-one-out', 'pattern-recall', 'sequence-recall'];
-      const pick = candidateGames.find(g => executiveChoices.includes(g)) || executiveChoices[0];
+      const pick = candidateGames.find(g => executiveChoices.includes(g))
+        || executiveChoices.find(g => g !== completedGameId)
+        || candidateGames.find(g => g !== completedGameId)
+        || candidateGames[0];
       selectedGameId = pick;
     }
     // Priority 5: Balanced Domain Diversification
@@ -177,14 +189,21 @@ export class AdaptiveGameFlowEngine {
       reason = 'domain_diversification';
       const completedDomains = new Set([...completedGameIds, completedGameId].map(g => GAME_DOMAIN_MAP[g] || 'memory'));
       const diverseGame = candidateGames.find(g => !completedDomains.has(GAME_DOMAIN_MAP[g]));
-      selectedGameId = diverseGame || candidateGames[0];
+      selectedGameId = diverseGame || candidateGames.find(g => g !== completedGameId) || candidateGames[0];
     }
 
     // Generate adjusted playlist strictly preserving the prescribed length
     const nextGameIndex = currentPlaylist.indexOf(completedGameId) + 1;
     const adjustedPlaylist = [...currentPlaylist];
-    if (nextGameIndex < adjustedPlaylist.length) {
+    if (nextGameIndex > 0 && nextGameIndex < adjustedPlaylist.length) {
       adjustedPlaylist[nextGameIndex] = selectedGameId;
+    } else {
+      const replaceIdx = adjustedPlaylist.findIndex(g => !playedSet.has(g));
+      if (replaceIdx !== -1) {
+        adjustedPlaylist[replaceIdx] = selectedGameId;
+      } else if (adjustedPlaylist.length > 0 && !adjustedPlaylist.includes(selectedGameId)) {
+        adjustedPlaylist[adjustedPlaylist.length - 1] = selectedGameId;
+      }
     }
 
     const clinicalRationale = this.generateClinicalRationale(reason, selectedGameId, completedGameId);

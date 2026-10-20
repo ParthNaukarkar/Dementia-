@@ -235,5 +235,5 @@ console.log('===========================================================');
 if (failed > 0) {
   process.exit(1);
 } else {
-  console.log(`🎉 ALL ${passed} TEST SUITE CHECKS PASSED FLAWLESSLY!\n`);
+  console.log(`Simulation benchmark: ${passed}/${passed + failed} checks passed.\n`);
 }

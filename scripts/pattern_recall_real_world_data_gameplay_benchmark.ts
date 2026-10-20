@@ -8,6 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 import { PatternRecallEngine } from '../src/games/pattern-recall/engine';
+import { createSeededRandom } from './seeded_rng';
 import {
   REAL_WORLD_PATTERN_RECALL_PERSONAS,
   PatternRecallSettingsSnapshot,
@@ -193,6 +194,7 @@ async function runRealWorldBenchmark() {
   const hintsList: number[] = [];
   const autonomies: number[] = [];
   let correctClassifications = 0;
+  const rng = createSeededRandom(0x42);
 
   oasisPatients.forEach(patient => {
     const pEngine = new PatternRecallEngine(0.0);
@@ -217,15 +219,15 @@ async function runRealWorldBenchmark() {
       // Peek replay usage
       let peeksUsed = 0;
       if (curDiff.peeksAllowed > 0) {
-        if (cdr >= 1.0 || mmse <= 18) peeksUsed = Math.random() < 0.85 ? Math.min(curDiff.peeksAllowed, 2) : 0;
-        else if (cdr === 0.5 || mmse <= 24) peeksUsed = Math.random() < 0.50 ? 1 : 0;
-        else peeksUsed = Math.random() < 0.15 ? 1 : 0;
+        if (cdr >= 1.0 || mmse <= 18) peeksUsed = rng() < 0.85 ? Math.min(curDiff.peeksAllowed, 2) : 0;
+        else if (cdr === 0.5 || mmse <= 24) peeksUsed = rng() < 0.50 ? 1 : 0;
+        else peeksUsed = rng() < 0.15 ? 1 : 0;
       }
 
       // Golden beacon hint usage
       const beaconUsed = curDiff.beaconAllowed && (
-        (isSevere && Math.random() < 0.70) ||
-        (isImpaired && Math.random() < 0.35)
+        (isSevere && rng() < 0.70) ||
+        (isImpaired && rng() < 0.35)
       );
       const beaconTiles = beaconUsed
         ? pEngine.getBeaconHintTiles(trialData, [], curDiff.beaconIlluminatesCount)
@@ -236,8 +238,8 @@ async function runRealWorldBenchmark() {
       if (isSevere || mmse <= 16) pSuccess = Math.min(pSuccess, 0.35);
       pSuccess = Math.max(0.15, Math.min(0.98, pSuccess));
 
-      const isCorrect = Math.random() < pSuccess;
-      const deliberationMs = Math.round(Math.max(2500, baseLatency + (Math.random() - 0.5) * baseVariance * 0.8));
+      const isCorrect = rng() < pSuccess;
+      const deliberationMs = Math.round(Math.max(2500, baseLatency + (rng() - 0.5) * baseVariance * 0.8));
 
       let playerSelection: number[] = [];
       let correctCount = 0;
@@ -247,7 +249,7 @@ async function runRealWorldBenchmark() {
         playerSelection = [...trialData.pattern];
         correctCount = trialData.patternLength;
       } else {
-        const kept = Math.max(1, trialData.patternLength - (Math.random() < 0.6 ? 1 : 2));
+        const kept = Math.max(1, trialData.patternLength - (rng() < 0.6 ? 1 : 2));
         correctCount = kept;
         falseAlarmCount = trialData.patternLength - kept;
         const totalCells = trialData.gridSize * trialData.gridSize;
@@ -257,7 +259,7 @@ async function runRealWorldBenchmark() {
         }
         playerSelection = [
           ...trialData.pattern.slice(0, kept),
-          ...offPattern.sort(() => Math.random() - 0.5).slice(0, falseAlarmCount)
+          ...offPattern.sort(() => rng() - 0.5).slice(0, falseAlarmCount)
         ].sort((a, b) => a - b);
       }
 
@@ -346,7 +348,7 @@ async function runRealWorldBenchmark() {
     console.error(`  ⚠️ ${failedTests} BENCHMARK FAILURES DETECTED!`);
     process.exit(1);
   } else {
-    console.log('  🎉 100% PASS RATE! PATTERN RECALL IS FULLY CLINICALLY VALIDATED ON REAL-WORLD DATA.\n');
+    console.log(`  Simulation benchmark: ${passedTests}/${totalTests} checks passed.\n`);
   }
 }
 

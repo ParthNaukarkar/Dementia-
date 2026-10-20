@@ -8,6 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 import { OddOneOutEngine } from '../src/games/odd-one-out/engine';
+import { createSeededRandom } from './seeded_rng';
 import {
   REAL_WORLD_ODD_ONE_OUT_PERSONAS,
   OddOneOutSettingsSnapshot,
@@ -185,6 +186,7 @@ async function runRealWorldBenchmark() {
   const cluesList: number[] = [];
   const autonomies: number[] = [];
   let correctClassifications = 0;
+  const rng = createSeededRandom(0x42);
 
   oasisPatients.forEach(patient => {
     const pEngine = new OddOneOutEngine(0.0);
@@ -209,15 +211,15 @@ async function runRealWorldBenchmark() {
       // Category rule clue reliance based on MMSE + CDR
       let ruleClueNeeded = curDiff.ruleClueAutoVisible;
       if (!ruleClueNeeded) {
-        if (cdr >= 1.0 || mmse <= 18) ruleClueNeeded = Math.random() < 0.85;
-        else if (cdr === 0.5 || mmse <= 24) ruleClueNeeded = Math.random() < 0.55;
-        else ruleClueNeeded = Math.random() < 0.15;
+        if (cdr >= 1.0 || mmse <= 18) ruleClueNeeded = rng() < 0.85;
+        else if (cdr === 0.5 || mmse <= 24) ruleClueNeeded = rng() < 0.55;
+        else ruleClueNeeded = rng() < 0.15;
       }
 
       // Spotlight hint reliance
       const spotlightUsed = curDiff.spotlightAllowed && (
-        (isSevere && Math.random() < 0.70) ||
-        (isImpaired && Math.random() < 0.35)
+        (isSevere && rng() < 0.70) ||
+        (isImpaired && rng() < 0.35)
       );
       const eliminated = spotlightUsed
         ? pEngine.getSpotlightEliminations(trialData, curDiff.spotlightEliminatesCount)
@@ -228,8 +230,8 @@ async function runRealWorldBenchmark() {
       if (isSevere || mmse <= 16) pSuccess = Math.min(pSuccess, 0.35);
       pSuccess = Math.max(0.15, Math.min(0.98, pSuccess));
 
-      const isCorrect = Math.random() < pSuccess;
-      const deliberationMs = Math.round(Math.max(2500, baseLatency + (Math.random() - 0.5) * baseVariance * 0.8));
+      const isCorrect = rng() < pSuccess;
+      const deliberationMs = Math.round(Math.max(2500, baseLatency + (rng() - 0.5) * baseVariance * 0.8));
 
       let selectedItemIndex = trialData.oddItemIndex;
       let selectedItemId = trialData.oddItem.id;
@@ -242,14 +244,14 @@ async function runRealWorldBenchmark() {
           }
         });
         if (remainingDistractors.length > 0) {
-          selectedItemIndex = remainingDistractors[Math.floor(Math.random() * remainingDistractors.length)];
+          selectedItemIndex = remainingDistractors[Math.floor(rng() * remainingDistractors.length)];
         } else {
           selectedItemIndex = (trialData.oddItemIndex + 1) % trialData.items.length;
         }
         selectedItemId = trialData.items[selectedItemIndex].id;
 
         // Model perseverative behavior
-        if (trials.length > 0 && Math.random() < (0.05 + cdr * 0.35)) {
+        if (trials.length > 0 && rng() < (0.05 + cdr * 0.35)) {
           selectedItemId = trials[trials.length - 1].selectedItemId;
         }
       }
@@ -337,7 +339,7 @@ async function runRealWorldBenchmark() {
     console.error(`  ⚠️ ${failedTests} BENCHMARK FAILURES DETECTED!`);
     process.exit(1);
   } else {
-    console.log('  🎉 100% PASS RATE! ODD ONE OUT IS FULLY CLINICALLY VALIDATED ON REAL-WORLD DATA.\n');
+    console.log(`  Simulation benchmark: ${passedTests}/${totalTests} checks passed.\n`);
   }
 }
 
