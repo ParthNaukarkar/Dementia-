@@ -233,9 +233,6 @@ export const PatternRecall: React.FC<PatternRecallProps> = ({
       setTrialStartTime(now);
       setGameState('recall');
 
-      // Voice prompt
-      patternRecallAudio.speakGuidance(t.recallPrompt, language);
-
       // Arm Auto-Assist timer
       if (assistTimerRef.current) clearTimeout(assistTimerRef.current);
       assistTimerRef.current = setTimeout(() => {

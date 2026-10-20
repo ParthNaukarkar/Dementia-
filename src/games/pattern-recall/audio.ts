@@ -1,6 +1,6 @@
 /**
  * SmritiNER - Game 9: Pattern Recall (Noxar Chonda / চানেকিৰ ছন্দ)
- * Web Audio API Acoustic Feedback & Accessible Web Speech Guidance
+ * Web Audio API Acoustic Feedback
  */
 
 import type { SupportedLanguage } from '../../types/prescription';
@@ -219,7 +219,7 @@ class PatternRecallAudio {
   }
 
   /**
-   * Accessible Web Speech API TTS voice guidance calibrated at 0.85 rate
+   * Speech guidance stub (permanently disabled)
    */
   public speakGuidance(_text: string, _language: SupportedLanguage) {
     // Spoken voice permanently disabled

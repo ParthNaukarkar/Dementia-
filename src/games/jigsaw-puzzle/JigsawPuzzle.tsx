@@ -279,12 +279,6 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       hi: '💡 गरिमा ऑटो-असिस्ट परीक्षण',
       en: '💡 Test Dignity Auto-Assist Glide',
     },
-    testVoicePrompt: {
-      as: '🔊 স্থানীয় মাতৰ সংকেত পৰীক্ষা',
-      bn: '🔊 স্থানীয় কণ্ঠস্বর ইঙ্গিত পরীক্ষা',
-      hi: '🔊 स्थानीय आवाज संकेत परीक्षण',
-      en: '🔊 Test Vernacular Voice Prompt',
-    },
     ghostGuideLabel: {
       as: 'সহায়িকা ছবি',
       bn: 'সহায়িকা ছবি',
@@ -1224,14 +1218,6 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>{t.testAutoAssist[language]}</span>
-              </button>
-
-              <button
-                onClick={() => jigsawAudio.speakGuidance('assist', language)}
-                className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5 transition-all active:scale-95"
-              >
-                <Volume2 className="w-3.5 h-3.5 text-amber-300" />
-                <span>{t.testVoicePrompt[language]}</span>
               </button>
             </div>
           </div>

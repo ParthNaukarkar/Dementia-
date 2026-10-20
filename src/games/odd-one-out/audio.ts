@@ -1,6 +1,6 @@
 /**
  * SmritiNER - Game 8: Odd One Out (Omilto Basoni)
- * Web Audio API Acoustic Feedback & Accessible Web Speech Guidance
+ * Web Audio API Acoustic Feedback
  */
 
 import type { SupportedLanguage } from '../../types/prescription';
@@ -185,7 +185,7 @@ class OddOneOutAudio {
   }
 
   /**
-   * Multilingual text-to-speech guidance for accessibility
+   * Speech guidance stub (permanently disabled)
    */
   public speakGuidance(_text: string, _language: SupportedLanguage) {
     // Spoken voice permanently disabled

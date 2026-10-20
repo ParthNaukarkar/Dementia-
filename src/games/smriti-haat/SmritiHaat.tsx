@@ -250,14 +250,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
     setDifficulty(engine.getDifficulty());
   };
 
-  // Trigger encouragement manually on button click
-  const handleTriggerEncouragement = () => {
-    setIsEncouragementActive(true);
-    vernacularVoice.playGentleChime('attention');
-    vernacularVoice.playNativeAudio('encouragement', language, t.encouragement);
-  };
-
-  // Automatically speak instructions when entering study phase
+  // Automatically signal when entering study phase
   useEffect(() => {
     if (phase === 'STUDY_PHASE') {
       vernacularVoice.playNativeAudio('study-intro', language, t.studyHeading);
@@ -492,15 +485,6 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
           >
             <Sliders className="w-3.5 h-3.5 text-amber-700" />
             <span>{language === 'hi' ? 'AI क्लिनिकल टेस्टबेड' : 'AI Testbed'}</span>
-          </button>
-
-          <button
-            onClick={handleTriggerEncouragement}
-            className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 font-black text-xs md:text-sm rounded-xl flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 transition-all"
-            title={language === 'hi' ? 'सहानुभूतिपूर्ण आवाज संकेत दें' : 'Trigger gentle voice prompt now'}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{language === 'hi' ? 'ध्वनि संकेत 🔊' : 'Voice Cue 🔊'}</span>
           </button>
 
           <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl text-xs md:text-sm font-black text-slate-700 shadow-2xs">

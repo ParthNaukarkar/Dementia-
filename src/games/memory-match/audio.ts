@@ -3,7 +3,7 @@ import type { SupportedLanguage } from '../../types/prescription';
 /**
  * Procedural Web Audio API sound synthesizer and vernacular speech engine
  * for Memory Match (CANTAB Paired Associates Learning).
- * 100% offline, zero external audio asset dependencies.
+ * Zero external audio asset dependencies.
  */
 class MemoryMatchAudio {
   private ctx: AudioContext | null = null;

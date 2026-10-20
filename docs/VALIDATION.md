@@ -2,13 +2,13 @@
 
 ## Important Clinical & Regulatory Notice
 
-**NeuroSaathi is an experimental cognitive screening support and memory-assistance research platform, NOT a certified diagnostic medical device.** It does not provide medical diagnoses, treatment decisions, or definitive staging of neurodegenerative disorders. Any clinical classification, latent ability estimate ($\theta$), or risk categorization produced by the on-device algorithms must be interpreted solely as algorithmic screening support and longitudinal monitoring signals under the supervision of qualified healthcare professionals.
+**NeuroSaathi is an experimental cognitive screening support and memory-assistance research platform, NOT a certified diagnostic medical device.** It does not provide medical diagnoses, treatment decisions, or definitive staging of neurodegenerative disorders. Any clinical classification, latent ability estimate ($\theta$), or risk categorization produced by the algorithmic screening models must be interpreted solely as screening support and longitudinal monitoring signals under the supervision of qualified healthcare professionals.
 
 ---
 
 ## 1. Machine Learning Model Training & Data Provenance
 
-The cognitive classification model (`src/engine/trained-cognitive-model.json`) utilized by the on-device `CognitiveClassifier` was trained using the scripts located in `scripts/train_cognitive_model.py` and `scripts/train_with_real_oasis.py`.
+The cognitive classification model (`src/engine/trained-cognitive-model.json`) utilized by the `CognitiveClassifier` was trained using the scripts located in `scripts/train_cognitive_model.py` and `scripts/train_with_real_oasis.py`.
 
 ### Nature of Training Data:
 1. **Real-World Covariates Only**: The real-world clinical data utilized comes from the Washington University Alzheimer’s Disease Research Center (ADRC) Open Access Series of Imaging Studies (OASIS-2) longitudinal dataset (`scripts/data/oasis_longitudinal_demographics.csv`). These real clinical records supply only:

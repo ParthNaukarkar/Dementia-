@@ -71,7 +71,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F4F0EA] text-[#38403A] border border-[#E5DFD5] text-xs font-semibold">
               <span className="w-2 h-2 rounded-full bg-[#28573E] animate-pulse" />
-              <span>{language === 'hi' ? 'सुरक्षित ऑन-डिवाइस सिस्टम' : 'Secure On-Device System'}</span>
+              <span>{language === 'hi' ? 'सुरक्षित सिस्टम' : 'Secure System'}</span>
             </div>
 
             {/* Language Selector (English, Hindi) */}
@@ -174,7 +174,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <div className="flex items-start gap-3 text-sm text-[#38403A]">
                   <CheckCircle2 className="w-5 h-5 text-[#28573E] shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-[#1F2421] font-bold">{language === 'hi' ? 'दैनिक 3-राउंड मस्तिष्क व्यायाम:' : 'Daily 3-Round Brain Workout:'}</strong> {language === 'hi' ? 'शांत ऑडियो संकेतों व बड़े अक्षरों के साथ' : 'with calming voice guidance and zero time pressure'}
+                    <strong className="text-[#1F2421] font-bold">{language === 'hi' ? 'दैनिक 3-राउंड मस्तिष्क व्यायाम:' : 'Daily 3-Round Brain Workout:'}</strong> {language === 'hi' ? 'शांत वातावरण व बिना किसी समय दबाव के' : 'with calm pacing and zero time pressure'}
                   </span>
                 </div>
                 <div className="flex items-start gap-3 text-sm text-[#38403A]">
@@ -366,7 +366,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </span>
           <span>•</span>
           <span className="font-semibold text-[#38403A]">
-            {language === 'hi' ? '100% ऑन-डिवाइस सुरक्षित डेटा' : '100% On-Device Private & Offline Capable'}
+            {language === 'hi' ? 'गोपनीय एवं सुरक्षित डेटा' : 'Private & Secure Patient Data'}
           </span>
           <span>•</span>
           <span className="text-[#28573E] font-bold">

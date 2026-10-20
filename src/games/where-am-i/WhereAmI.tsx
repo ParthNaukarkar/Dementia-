@@ -231,9 +231,9 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
     trialStartTimeRef.current = Date.now();
     setLiveAutonomy(100);
 
-    // Initial voice cue
-    const clueText = trial.targetLocation.clues[language]?.[0] || trial.targetLocation.clues.en[0];
-    whereAmIAudio.speakGuidance(clueText, language);
+    // Trial initialized
+
+
   }, [engine, language]);
 
 
@@ -259,8 +259,8 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
         setVisibleClueCount(prev => {
           const next = prev + 1;
           whereAmIAudio.playClueReveal();
-          const nextClueText = currentTrial.targetLocation.clues[language]?.[next - 1];
-          if (nextClueText) whereAmIAudio.speakGuidance(nextClueText, language);
+
+
           return next;
         });
       }, intervalMs);
@@ -276,8 +276,8 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
       const nextCount = visibleClueCount + 1;
       setVisibleClueCount(nextCount);
       whereAmIAudio.playClueReveal();
-      const nextClue = currentTrial.targetLocation.clues[language]?.[nextCount - 1];
-      if (nextClue) whereAmIAudio.speakGuidance(nextClue, language);
+
+
     }
   };
 

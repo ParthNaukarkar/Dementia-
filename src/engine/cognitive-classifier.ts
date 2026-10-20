@@ -1,7 +1,7 @@
 /**
- * SmritiNER - On-Device Edge Cognitive Classifier
+ * NeuroSaathi - Cognitive Classifier
  * Evaluates patient gameplay telemetry using pre-trained clinical model weights.
- * Executes offline in < 0.2ms with zero external dependencies.
+ * Executes in < 0.2ms with zero external dependencies.
  */
 
 import modelData from './trained-cognitive-model.json';

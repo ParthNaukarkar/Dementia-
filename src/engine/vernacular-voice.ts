@@ -1,7 +1,6 @@
 /**
- * SmritiNER - Vernacular Speech & Audio Engine
- * Bundled with 48 True Native Regional Audio Files (Assamese, Bengali, Hindi, English)
- * 100% Offline, Zero Robotic Accent Fallbacks
+ * NeuroSaathi - Acoustic Sound Effects & Audio Engine
+ * Organic chimes and feedback cues via Web Audio API
  */
 
 export type SupportedLanguage = 'en' | 'hi';
@@ -47,7 +46,7 @@ export class VernacularVoiceEngine {
 
   /**
    * Plays a warm, organic bamboo/flute chime using the Web Audio API.
-   * Runs 100% offline with zero external audio assets.
+   * Synthesized in real-time with zero external audio assets.
    */
   public playGentleChime(type: 'success' | 'tap' | 'attention') {
     try {

@@ -2,7 +2,7 @@ import type { SupportedLanguage } from '../../types/prescription';
 
 /**
  * SmritiNER - Where Am I? Audio Synthesizer
- * 100% Offline Mathematical Web Audio Synthesis and Multilingual Speech Guidance
+ * Web Audio Synthesis and Acoustic Feedback
  * Designed for gentle geriatric acoustics and tactile feedback.
  */
 export class WhereAmIAudioSynthesizer {
@@ -190,7 +190,7 @@ export class WhereAmIAudioSynthesizer {
   }
 
   /**
-   * Accessible Web Speech API Text-to-Speech Guidance
+   * Speech guidance stub (permanently disabled)
    */
   public speakGuidance(_text: string, _lang: SupportedLanguage): void {
     // Spoken voice permanently disabled

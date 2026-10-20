@@ -12,7 +12,7 @@
 
 ## 📌 Project Overview
 
-**NeuroSaathi** ("Neuro-Companion", also known as Smriti Setu / স্মৃতি সেতু) is an open-source, culturally attuned cognitive screening support and memory-assistance web platform designed specifically for older adults and individuals living with Mild Cognitive Impairment (MCI) or early-stage dementia across the North Eastern Region (NER) of India. Featuring 10 neuropsychologically inspired cognitive exercises rooted in Assamese, Bengali, and North Eastern folklore, geographical landmarks, and daily community traditions, NeuroSaathi combines on-device latent ability estimation (Bayesian 2PL Item Response Theory), real-time contextual bandit scaffolding (LinUCB), digital kinematic tremor filtering, and an accessible dual-portal architecture that fosters patient dignity while providing caregivers and clinicians with longitudinal cognitive monitoring telemetry.
+**NeuroSaathi** ("Neuro-Companion", also known as Smriti Setu / স্মৃতি সেতু) is an open-source, culturally attuned cognitive screening support and memory-assistance web platform designed specifically for older adults and individuals living with Mild Cognitive Impairment (MCI) or early-stage dementia across the North Eastern Region (NER) of India. Featuring 10 neuropsychologically inspired cognitive exercises rooted in Assamese, Bengali, and North Eastern folklore, geographical landmarks, and daily community traditions, NeuroSaathi combines latent ability estimation (Bayesian 2PL Item Response Theory), real-time contextual bandit scaffolding (LinUCB), digital kinematic tremor filtering, and an accessible dual-portal architecture that fosters patient dignity while providing caregivers and clinicians with longitudinal cognitive monitoring telemetry.
 
 > **Important Clinical & Regulatory Notice**: NeuroSaathi is an experimental cognitive screening support and longitudinal monitoring tool intended for research and supportive care. **It is NOT a certified diagnostic medical device** and does not provide clinical diagnoses or replace evaluation by qualified neuropsychologists or geriatricians. See [docs/VALIDATION.md](docs/VALIDATION.md) for full scientific and validation disclosures.
 
@@ -39,7 +39,7 @@ NeuroSaathi bridges this gap by embedding validated neuropsychological paradigms
 - **LinUCB Contextual Bandit Scaffolding**: Automatically tailors real-time in-game assistance and hint scaffolding based on trial difficulty, time-of-day fatigue, and user deliberation latencies.
 - **Kinematic Tremor Compensation**: Software-based Discrete Fourier Transform (DFT) spectral energy isolation separates intentional user taps from 4–6 Hz Parkinsonian resting tremors and 8–12 Hz physiological/essential tremors.
 - **Circadian & Sundowning Alert Manager**: Monitors gameplay time-of-day; detects evening cognitive dips (16:30–20:30 Sundowning window) and shifts games to calming, reminiscence-focused modes with ambient warm tones.
-- **Offline-First On-Device Architecture**: Core game logic, kinematic filtering, IRT ability estimation, and session aggregation run locally in the browser without requiring cloud infrastructure.
+- **Client-Side Core Architecture**: Core game logic, kinematic filtering, IRT ability estimation, and session aggregation run in the browser without requiring external server dependencies for core scoring.
 - **Optional Privacy-Preserving Cloud AI Reports**: On-demand generative clinical summaries using Bring-Your-Own-Key (BYOK) APIs (Gemini, OpenAI, Groq) stored strictly in ephemeral `sessionStorage` with automated patient de-identification.
 
 ---
@@ -51,7 +51,7 @@ flowchart TD
     subgraph Client_Browser ["Client-Side Browser Environment"]
         subgraph Patient_Portal ["Patient Portal (Port 5173)"]
             UI["High-Contrast WCAG AAA UI"]
-            Audio["Audio Narration & Prompts"]
+            Audio["Acoustic Chimes & Cues"]
             KF["Kinematic Tremor Filter (DFT 4-6Hz / 8-12Hz)"]
             Games["10 Neuropsychological Games"]
             UI --> KF --> Games
@@ -206,7 +206,7 @@ npm run test:audits
 
 ## 🔐 Optional Cloud AI Configuration (BYOK)
 
-NeuroSaathi operates 100% offline by default with local algorithmic scoring. For advanced narrative clinical synthesis, caregivers can optionally supply their own API credentials:
+NeuroSaathi operates with local client-side algorithmic scoring by default. For advanced narrative clinical synthesis, caregivers can optionally supply their own API credentials:
 
 - **Supported Providers**: Google Gemini (`gemini-2.5-flash`), OpenAI (`gpt-4o-mini`), and Groq (`llama-3.3-70b-versatile`).
 - **Zero Disk Persistence**: User-provided API keys are kept strictly in browser `sessionStorage`. They are never written to `localStorage`, never sent to any intermediary backend, and are automatically purged when the browser tab is closed.
@@ -241,7 +241,7 @@ NeuroSaathi operates 100% offline by default with local algorithmic scoring. For
 NeuroSaathi is an engineering prototype and research platform. Review the complete [docs/VALIDATION.md](docs/VALIDATION.md) for detailed methodology. Please take note of the following limitations:
 
 1. **Not a Diagnostic Medical Device**: NeuroSaathi does not diagnose Alzheimer's disease, vascular dementia, or any other medical condition. It is designed to assist caregivers and clinicians by gathering supplementary behavioural data.
-2. **Synthetic Telemetry Training Baseline**: The on-device random forest cognitive classifier was trained using synthetic gameplay telemetry features mapped against real-world demographic and clinical covariates from the Washington University OASIS-2 longitudinal dataset. Real OASIS-2 participants did not play these digital games.
+2. **Synthetic Telemetry Training Baseline**: The client-side random forest cognitive classifier was trained using synthetic gameplay telemetry features mapped against real-world demographic and clinical covariates from the Washington University OASIS-2 longitudinal dataset. Real OASIS-2 participants did not play these digital games.
 3. **Simulation Consistency Checks**: Audit benchmarks demonstrate internal algorithmic reliability and mathematical consistency across synthetic agents, but do not substitute for empirical clinical trials.
 4. **Local Prototype Storage**: In its current iteration, patient records are stored locally within the browser (`localStorage`). Multi-device cloud synchronization, encrypted remote backups, and FHIR interoperability require future enterprise backend deployment.
 5. **Next Steps**: Formal observational pilot studies under Institutional Review Board (IRB) / Ethics Committee approval with clinician oversight across clinical centers in North East India.
