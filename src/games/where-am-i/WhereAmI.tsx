@@ -7,20 +7,18 @@ import {
   Volume2, 
   VolumeX, 
   Sliders, 
-  RotateCcw, 
   CheckCircle2, 
   XCircle, 
   Activity, 
   Play, 
   Square, 
   UserCheck, 
-  Award, 
-  ShieldCheck, 
   ChevronRight, 
   Eye 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { SupportedLanguage } from '../../types/prescription';
+import { PatientGameCompletionView } from '../../components/games/PatientGameCompletionView';
 import { 
   WhereAmIEngine, 
   WHERE_AM_I_TIERS, 
@@ -528,16 +526,28 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
         
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-lg mb-8 text-left">
           <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200">
-            <span className="text-xs text-amber-700 font-bold block uppercase tracking-wider">Clinical Domain</span>
-            <span className="text-sm font-semibold text-slate-800">MoCA Place & CANTAB</span>
+            <span className="text-xs text-amber-700 font-bold block uppercase tracking-wider">
+              {language === 'hi' ? 'स्थान पहचान' : 'Orientation'}
+            </span>
+            <span className="text-sm font-semibold text-slate-800">
+              {language === 'hi' ? 'स्थान और परिदृश्य' : 'Places & Landmarks'}
+            </span>
           </div>
           <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
-            <span className="text-xs text-emerald-700 font-bold block uppercase tracking-wider">Tremor Guard</span>
-            <span className="text-sm font-semibold text-slate-800">400ms Debounce</span>
+            <span className="text-xs text-emerald-700 font-bold block uppercase tracking-wider">
+              {language === 'hi' ? 'सहज स्पर्श' : 'Gentle Touch'}
+            </span>
+            <span className="text-sm font-semibold text-slate-800">
+              {language === 'hi' ? 'आरामदायक अनुभव' : 'Comfortable Pace'}
+            </span>
           </div>
           <div className="p-3 bg-blue-50 rounded-2xl border border-blue-200 col-span-2 sm:col-span-1">
-            <span className="text-xs text-blue-700 font-bold block uppercase tracking-wider">Adaptive IRT</span>
-            <span className="text-sm font-semibold text-slate-800">9 Minimal Tiers</span>
+            <span className="text-xs text-blue-700 font-bold block uppercase tracking-wider">
+              {language === 'hi' ? 'आपकी गति' : 'Your Pace'}
+            </span>
+            <span className="text-sm font-semibold text-slate-800">
+              {language === 'hi' ? 'सरल और सहज' : 'Simple & Engaging'}
+            </span>
           </div>
         </div>
 
@@ -554,134 +564,32 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
             className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-4 px-6 rounded-2xl border border-slate-300 transition-all flex items-center justify-center gap-2"
           >
             <Sliders className="w-5 h-5 text-amber-600" />
-            <span>AI Testbed</span>
+            <span>{t.testbedTitle}</span>
           </button>
         </div>
       </div>
     );
   }
 
-  // ─── RENDER: COMPLETION VIEW ──────────────────────────────────────────
+  // ─── RENDER: COMPLETION VIEW (WARM REASSURING SENIOR VIEW) ───────────
   if (gameState === 'completed' && sessionSummary) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[65vh] p-6 max-w-3xl mx-auto w-full">
-        <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mb-6 shadow-md border-2 border-emerald-300">
-          <Award className="w-10 h-10 text-emerald-600 animate-pulse" />
-        </div>
-        
-        <h2 className="text-3xl font-extrabold text-slate-900 mb-1">
-          {sessionSummary.accuracyPercentage >= 80 ? 'অসাধাৰণ স্থান সংবেদন!' : 'অনুশীলন সম্পন্ন হ’ল!'}
-        </h2>
-        <p className="text-slate-600 text-lg mb-8">
-          {sessionSummary.accuracyPercentage}% স্থান সঠিকভাৱে নিৰ্ণয় কৰা হ’ল ({sessionSummary.correctTrials}/{sessionSummary.totalTrials})
-        </p>
-
-        {/* Clinical Phenotype Dashboard */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-8">
-          {/* MoCA Place Orientation Card */}
-          <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{t.mocaScore}</span>
-              <span className="text-xs font-semibold px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full">MoCA Place</span>
-            </div>
-            <div className="text-3xl font-extrabold text-amber-700 mb-2">
-              {sessionSummary.estimatedMoCAPlaceOrientationScore.toFixed(1)} <span className="text-lg font-normal text-slate-500">/ 6.0</span>
-            </div>
-            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-3">
-              <div 
-                className="bg-amber-600 h-full rounded-full transition-all duration-1000"
-                style={{ width: `${(sessionSummary.estimatedMoCAPlaceOrientationScore / 6.0) * 100}%` }}
-              />
-            </div>
-            <p className="text-xs text-slate-600">
-              {sessionSummary.topographicalOrientationStatus === 'intact_wayfinding'
-                ? 'অক্ষত স্থান অভিমুখীতা আৰু হিপ’কেম্পেল স্মৃতি। প্ৰথম সংকেততে প্ৰত্যক্ষ চিনাক্তকৰণ।'
-                : sessionSummary.topographicalOrientationStatus === 'mild_topographical_disorientation'
-                ? 'মৃদু স্থান বিভ্ৰম (MCI সূচক)। সহায়ক সংকেতৰ প্ৰয়োজন দেখা গৈছে।'
-                : 'লক্ষণীয় স্থানমুখী স্মৃতিভ্ৰংশ। সৰ্বাধিক সহায়িকাৰ প্ৰয়োজন।'}
-            </p>
-          </div>
-
-          {/* Autonomy & Clues Efficiency */}
-          <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">স্বায়ত্তশাসন আৰু সংকেত ব্যৱহাৰ</span>
-              <span className="text-xs font-semibold px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full">CANTAB Norm</span>
-            </div>
-            <div className="flex items-baseline gap-4 mb-2">
-              <div className="text-3xl font-extrabold text-blue-700">{sessionSummary.autonomyScore}%</div>
-              <div className="text-sm text-slate-600">গড় সংকেত: <span className="font-bold text-slate-800">{sessionSummary.meanCluesPerTrial}</span></div>
-            </div>
-            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-3">
-              <div 
-                className="bg-blue-600 h-full rounded-full transition-all duration-1000"
-                style={{ width: `${sessionSummary.autonomyScore}%` }}
-              />
-            </div>
-            <p className="text-xs text-slate-600">
-              লক্ষণীয়: {sessionSummary.semanticRetrievalEfficiency === 'rapid_direct'
-                ? 'দ্ৰুত আৰু পোনপটীয়া শব্দ সন্ধান। সংকেত নিৰ্ভৰশীলতা অতি কম।'
-                : 'সংকেত-নিৰ্ভৰশীল স্থান পুনৰুদ্ধাৰ। প্ৰগতিশীল সহায়িকাত অনুকূল সঁহাৰি।'}
-            </p>
-          </div>
-        </div>
-
-        {/* On-Device Edge Cognitive Classifier Results */}
-        {sessionSummary.oasisClinicalClassification && (
-          <div className="w-full p-5 bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl shadow-lg mb-8 text-left">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-amber-400" />
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-300">On-Device Edge ML Classifier</span>
-              </div>
-              <span className="text-xs px-2 py-0.5 bg-slate-700 text-slate-300 rounded-full">OASIS-2 Trained</span>
-            </div>
-            <div className="flex items-baseline justify-between mb-2">
-              <span className="text-xl font-bold text-white">
-                {sessionSummary.oasisClinicalClassification.clinicalTier === 'NORMAL' && 'স্বাভাৱিক সংজ্ঞান (Normal Aging)'}
-                {sessionSummary.oasisClinicalClassification.clinicalTier === 'MCI' && 'মৃদু সংজ্ঞান ক্ষয় (MCI Range)'}
-                {sessionSummary.oasisClinicalClassification.clinicalTier === 'HIGH_SUPPORT' && 'উচ্চ সহায় প্ৰয়োজনীয় (Dementia)'}
-              </span>
-              <span className="text-sm text-amber-300 font-semibold">
-                কনফিডেন্স: {Math.round(sessionSummary.oasisClinicalClassification.confidenceScore * 100)}%
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 mb-3">
-              আনুমানিক MoCA শ্ৰেণী: <span className="text-white font-bold">{sessionSummary.oasisClinicalClassification.estimatedMoCARange}</span> • 
-              লেটেন্সি: {sessionSummary.meanDeliberationMs}ms • মটৰ কঁপনি সংৰক্ষণ: {engine.getTremorFilteredCount()} ফিল্টাৰ
-            </p>
-            <div className="grid grid-cols-3 gap-2 text-center text-xs">
-              <div className="p-2 bg-slate-800/80 rounded-xl border border-slate-700">
-                <span className="text-slate-400 block text-[10px]">Normal</span>
-                <span className="font-bold text-white">{(sessionSummary.oasisClinicalClassification.probabilities['NORMAL'] * 100).toFixed(1)}%</span>
-              </div>
-              <div className="p-2 bg-slate-800/80 rounded-xl border border-slate-700">
-                <span className="text-slate-400 block text-[10px]">MCI</span>
-                <span className="font-bold text-white">{(sessionSummary.oasisClinicalClassification.probabilities['MCI'] * 100).toFixed(1)}%</span>
-              </div>
-              <div className="p-2 bg-slate-800/80 rounded-xl border border-slate-700">
-                <span className="text-slate-400 block text-[10px]">Support</span>
-                <span className="font-bold text-white">{(sessionSummary.oasisClinicalClassification.probabilities['HIGH_SUPPORT'] * 100).toFixed(1)}%</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex gap-4">
-          <button
-            onClick={handleStartGame}
-            className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 px-8 rounded-2xl shadow-lg transition-all flex items-center gap-2"
-          >
-            <RotateCcw className="w-5 h-5" /> পুনৰ আৰম্ভ কৰক
-          </button>
-          <button
-            onClick={onExit}
-            className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 px-8 rounded-2xl shadow-md transition-all"
-          >
-            {t.exit}
-          </button>
-        </div>
-      </div>
+      <PatientGameCompletionView
+        language={language}
+        activityTitle={language === 'hi' ? 'स्थान पहचान' : 'Where Am I?'}
+        stats={[
+          {
+            label: language === 'hi' ? 'पहचाने गए स्थान' : 'Places Identified',
+            value: `${sessionSummary.correctTrials} / ${sessionSummary.totalTrials}`,
+          },
+          {
+            label: language === 'hi' ? 'सटीकता' : 'Accuracy',
+            value: `${sessionSummary.accuracyPercentage}%`,
+          },
+        ]}
+        onRetry={handleStartGame}
+        onExit={onExit}
+      />
     );
   }
 
@@ -695,7 +603,9 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
             {t.trial} {currentTrialIndex} {t.of} {totalTrials}
           </span>
           <span className="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
-            স্তৰ {currentDifficulty.tierLevel} ({currentDifficulty.choicesCount} বিকল্প)
+            {language === 'hi' 
+              ? `टीयर ${currentDifficulty.tierLevel} (${currentDifficulty.choicesCount} विकल्प)`
+              : `Tier ${currentDifficulty.tierLevel} (${currentDifficulty.choicesCount} choices)`}
           </span>
           <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1.5 rounded-xl">
             {t.score}: {correctTrials}
@@ -705,7 +615,7 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
           </span>
           {tremorCount > 0 && (
             <span className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1.5 rounded-xl">
-              ফিল্টাৰ: {tremorCount}
+              {language === 'hi' ? 'फ़िल्टर: ' : 'Filter: '}{tremorCount}
             </span>
           )}
         </div>
@@ -720,7 +630,7 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
           <button
             onClick={() => setIsMuted(!isMuted)}
             className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
-            title={isMuted ? 'শব্দ খোলক' : 'শব্দ বন্ধ কৰক'}
+            title={isMuted ? (language === 'hi' ? 'ध्वनि चालू करें' : 'Unmute') : (language === 'hi' ? 'ध्वनि बंद करें' : 'Mute')}
           >
             {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5 text-amber-600" />}
           </button>
@@ -730,13 +640,13 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
             className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-colors border border-slate-200"
           >
             <Sliders className="w-3.5 h-3.5 text-amber-600" />
-            <span className="hidden sm:inline">AI Testbed</span>
+            <span className="hidden sm:inline">{t.testbedTitle}</span>
           </button>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-grow w-full">
+      <div className="flex flex-grow flex-col w-full">
         {/* Clues Card */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 mb-6 relative overflow-hidden">
           <div className="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
@@ -747,7 +657,7 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
               <div>
                 <h3 className="text-lg font-bold text-slate-900">{t.cluesTitle}</h3>
                 <span className="text-xs text-slate-500 font-medium">
-                  {visibleClueCount} / {currentTrial?.targetLocation.clues[language]?.length || 4} সংকেত মুকলি
+                  {visibleClueCount} / {currentTrial?.targetLocation.clues[language]?.length || 4} {language === 'hi' ? 'सुराग खुले' : 'clues revealed'}
                 </span>
               </div>
             </div>
@@ -762,7 +672,7 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
                     ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                     : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-amber-200 active:scale-95'
                 }`}
-                title="ভুল বিকল্প আঁতৰাই স্থান নিশ্চিত কৰক"
+                title={language === 'hi' ? 'गलत विकल्प हटाकर स्थान सुनिश्चित करें' : 'Eliminate wrong choices to guide location'}
               >
                 <Compass className={`w-4 h-4 ${compassHintUsed ? '' : 'animate-spin'}`} style={{ animationDuration: '6s' }} />
                 <span>{compassHintUsed ? t.compassUsed : t.compassHint}</span>
@@ -814,7 +724,8 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
             </div>
             {currentTrial && (
               <div className="text-sm font-semibold text-slate-700">
-                ঐতিহাসিক স্থান: <span className="text-amber-800 font-bold">{currentTrial.targetLocation.name[language] || currentTrial.targetLocation.name.en}</span> ({currentTrial.targetLocation.state})
+                {language === 'hi' ? 'ऐतिहासिक स्थान: ' : 'Landmark: '}
+                <span className="text-amber-800 font-bold">{currentTrial.targetLocation.name[language] || currentTrial.targetLocation.name.en}</span> ({currentTrial.targetLocation.state})
               </div>
             )}
             {lastAdaptiveReasoning[language] && (
@@ -929,14 +840,20 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
               {/* Real-time Gauges */}
               <div className="grid grid-cols-2 gap-3 mb-6">
                 <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200">
-                  <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">Latent Theta (θ)</span>
+                  <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">
+                    {language === 'hi' ? 'अन्तर्निहित क्षमता (θ)' : 'Latent Theta (θ)'}
+                  </span>
                   <span className="text-2xl font-black text-amber-900">
                     {engine.getTheta() >= 0 ? '+' : ''}{engine.getTheta().toFixed(2)}
                   </span>
                 </div>
                 <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
-                  <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Tremor Suppressed</span>
-                  <span className="text-2xl font-black text-emerald-900">{engine.getTremorFilteredCount()} taps</span>
+                  <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
+                    {language === 'hi' ? 'कंपन फ़िल्टर' : 'Tremor Suppressed'}
+                  </span>
+                  <span className="text-2xl font-black text-emerald-900">
+                    {engine.getTremorFilteredCount()} {language === 'hi' ? 'टैप्स' : 'taps'}
+                  </span>
                 </div>
               </div>
 
@@ -944,14 +861,14 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                    Active Minimal Tier (1-9)
+                    {language === 'hi' ? 'सक्रिय न्यूनतम टियर (1-9)' : 'Active Minimal Tier (1-9)'}
                   </label>
                   {manualTierOverride && (
                     <button
                       onClick={() => setManualTierOverride(null)}
                       className="text-[11px] font-bold text-amber-600 hover:underline"
                     >
-                      Reset Auto-Adaptive
+                      {language === 'hi' ? 'ऑटो-अनुकूली रीसेट करें' : 'Reset Auto-Adaptive'}
                     </button>
                   )}
                 </div>
@@ -971,7 +888,7 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                         }`}
                       >
-                        T{tier.tierLevel}: {tier.choicesCount} Ch
+                        T{tier.tierLevel}: {tier.choicesCount} {language === 'hi' ? 'विकल्प' : 'Ch'}
                       </button>
                     );
                   })}
@@ -1045,7 +962,7 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
                     }`}
                   >
                     {isAutoSimulating ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                    <span>{isAutoSimulating ? 'Stop' : t.autoSimulate}</span>
+                    <span>{isAutoSimulating ? (language === 'hi' ? 'रोकें' : 'Stop') : t.autoSimulate}</span>
                   </button>
                 </div>
               </div>
@@ -1056,7 +973,7 @@ export const WhereAmI: React.FC<WhereAmIProps> = ({
                 onClick={() => setIsTestbedOpen(false)}
                 className="w-full py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors"
               >
-                Close Drawer
+                {language === 'hi' ? 'दराज बंद करें' : 'Close Drawer'}
               </button>
             </div>
           </div>

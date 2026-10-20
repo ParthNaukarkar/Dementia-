@@ -206,22 +206,12 @@ class MemoryMatchAudio {
   /**
    * Speak item name vernacularly
    */
-  public speakItemName(text: string, language: SupportedLanguage) {
-    if (this.isMuted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.85;
-      utterance.pitch = 1.0;
-
-      const langMap: Record<SupportedLanguage, string> = {
-        hi: 'hi-IN',
-        en: 'en-IN',
-      };
-      utterance.lang = langMap[language] || 'en-US';
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      // Ignore speech error
+  public speakItemName(_text: string, _language: SupportedLanguage) {
+    // Spoken voice permanently disabled
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
     }
   }
 
@@ -229,33 +219,14 @@ class MemoryMatchAudio {
    * Spoken guidance prompts
    */
   public speakGuidance(
-    phase: 'intro' | 'preview' | 'assist' | 'complete',
-    language: SupportedLanguage
+    _phase: 'intro' | 'preview' | 'assist' | 'complete',
+    _language: SupportedLanguage
   ) {
-    if (this.isMuted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-    const prompts: Record<string, Record<SupportedLanguage, string>> = {
-      intro: {
-        hi: 'कार्डों को याद रखें और सही जोड़ी मिलाएं।',
-        en: 'Remember the pictures and match the pairs.',
-      },
-      preview: {
-        hi: 'चित्रों को ध्यान से देख लीजिए। तैयार होने पर खेलें।',
-        en: 'Study the pictures closely. You will match them shortly.',
-      },
-      assist: {
-        hi: 'आराम से करिए। इन दोनों कार्डों पर ध्यान दें।',
-        en: 'Take your time. Notice these highlighted cards.',
-      },
-      complete: {
-        hi: 'बहुत बढ़िया! सभी जोड़ियां पूरी हुईं।',
-        en: 'Wonderful! All pairs matched accurately.',
-      },
-    };
-
-    const text = prompts[phase]?.[language] || prompts[phase]?.en;
-    if (text) {
-      this.speakItemName(text, language);
+    // Spoken voice permanently disabled
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
     }
   }
 }

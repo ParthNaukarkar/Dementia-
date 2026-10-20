@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { SupportedLanguage } from '../../types/prescription';
+import { PatientGameCompletionView } from '../../components/games/PatientGameCompletionView';
 import type {
   BrainStoryDifficulty,
   BrainStoryGeneratedTrial,
@@ -650,20 +651,34 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full mb-8 max-w-xl">
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-center">
-            <span className="text-xs text-amber-700 font-semibold uppercase tracking-wider block">ক্লিনিকেল মানদণ্ড</span>
+            <span className="text-xs text-amber-700 font-semibold uppercase tracking-wider block">
+              {language === 'hi' ? 'नैदानिक मानक' : 'Clinical Standard'}
+            </span>
             <span className="text-lg font-bold text-slate-800">WMS-IV Logical</span>
           </div>
           <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3 text-center">
-            <span className="text-xs text-rose-700 font-semibold uppercase tracking-wider block">মনোমিতিক স্তৰ</span>
-            <span className="text-lg font-bold text-slate-800">Tiers 1 to 9</span>
+            <span className="text-xs text-rose-700 font-semibold uppercase tracking-wider block">
+              {language === 'hi' ? 'साइकोमेट्रिक स्तर' : 'Psychometric Tier'}
+            </span>
+            <span className="text-lg font-bold text-slate-800">
+              {language === 'hi' ? 'टीयर १ से ९' : 'Tiers 1 to 9'}
+            </span>
           </div>
           <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-center">
-            <span className="text-xs text-emerald-700 font-semibold uppercase tracking-wider block">কম্পন ফিল্টাৰ</span>
-            <span className="text-lg font-bold text-slate-800">400ms Guard</span>
+            <span className="text-xs text-emerald-700 font-semibold uppercase tracking-wider block">
+              {language === 'hi' ? 'कंपन फ़िल्टर' : 'Tremor Filter'}
+            </span>
+            <span className="text-lg font-bold text-slate-800">
+              {language === 'hi' ? '४००ms सुरक्षा' : '400ms Guard'}
+            </span>
           </div>
           <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-3 text-center">
-            <span className="text-xs text-indigo-700 font-semibold uppercase tracking-wider block">শ্ৰব্য আখ্যান</span>
-            <span className="text-lg font-bold text-slate-800">Voice Narrator</span>
+            <span className="text-xs text-indigo-700 font-semibold uppercase tracking-wider block">
+              {language === 'hi' ? 'ऑडियो वर्णन' : 'Audio Narration'}
+            </span>
+            <span className="text-lg font-bold text-slate-800">
+              {language === 'hi' ? 'ध्वनि वाचक' : 'Voice Narrator'}
+            </span>
           </div>
         </div>
 
@@ -688,108 +703,29 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
     );
   }
 
-  // --- RENDER COMPLETED ---
+  // --- RENDER COMPLETED (WARM REASSURING PATIENT VIEW) ---
   if (gameState === 'completed') {
     const summary = engine.compileSessionSummary(trialsTelemetry);
 
     return (
-      <div className="flex flex-col items-center justify-center min-h-[65vh] p-6 text-center max-w-3xl mx-auto">
-        <div className="w-24 h-24 bg-emerald-100 rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-emerald-200">
-          <Sparkles className="w-12 h-12 text-emerald-600" />
-        </div>
-        <h2 className="text-3xl font-bold text-slate-800 mb-2">{t.completed}</h2>
-        <p className="text-lg text-slate-600 mb-8">{t.scoreMsg(summary.correctQuestions, summary.totalQuestions)}</p>
-
-        {/* Clinical Summary Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full mb-8 text-left">
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-indigo-600 mb-1">
-              <Award className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">{t.thetaGauge}</span>
-            </div>
-            <span className="text-2xl font-bold text-slate-800">{summary.finalTheta.toFixed(2)}</span>
-            <span className="text-xs text-slate-500 block">Bayesian 2PL Latent</span>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-amber-600 mb-1">
-              <BookOpen className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">{t.wmsMemoryScore}</span>
-            </div>
-            <span className="text-2xl font-bold text-slate-800">{summary.wmsLogicalMemoryScaledScore}/19</span>
-            <span className="text-xs text-slate-500 block">WMS Scaled Score</span>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-emerald-600 mb-1">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">{t.mocaLanguage}</span>
-            </div>
-            <span className="text-2xl font-bold text-slate-800">{summary.estimatedMoCALanguageScore}/5.0</span>
-            <span className="text-xs text-slate-500 block">MoCA Subscore</span>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-rose-600 mb-1">
-              <ShieldAlert className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">{t.tremorFiltered}</span>
-            </div>
-            <span className="text-2xl font-bold text-slate-800">{summary.tremorTapsFilteredTotal}</span>
-            <span className="text-xs text-slate-500 block">400ms Debounce</span>
-          </div>
-        </div>
-
-        {/* Clinical Classification & Autonomy Badge */}
-        <div className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-8 text-left">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-amber-700" />
-              <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider">{t.staging}</h4>
-            </div>
-            <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full">
-              {summary.oasisClinicalClassification?.clinicalTier || 'NORMAL'}
-            </span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-600">
-            <div>
-              <span className="font-semibold text-slate-700 block">আখ্যান স্মৃতি (Phenotype):</span>
-              {summary.narrativeRetentionStatus}
-            </div>
-            <div>
-              <span className="font-semibold text-slate-700 block">বোধগম্যতা (Comprehension):</span>
-              {summary.storyComprehensionProfile}
-            </div>
-            <div>
-              <span className="font-semibold text-slate-700 block">আত্মনিৰ্ভৰশীলতা (Autonomy):</span>
-              {summary.autonomyScore}% (পুনৰাবৃত্তি: {summary.totalReplaysUsed}, সংকেত: {summary.totalCluesUsed})
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <button
-            onClick={onExit}
-            className="bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all"
-          >
-            {t.exit}
-          </button>
-          <button
-            onClick={handleExportCsv}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-6 rounded-xl transition-all shadow-sm flex items-center gap-2"
-          >
-            {t.exportCsv}
-          </button>
-          <button
-            onClick={() => setIsTestbedOpen(true)}
-            className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-3 px-6 rounded-xl transition-all border border-slate-300 flex items-center gap-2"
-          >
-            <Sliders className="w-4 h-4 text-amber-700" />
-            {t.aiTestbed}
-          </button>
-        </div>
-
-        {renderTestbedDrawer()}
-      </div>
+      <PatientGameCompletionView
+        language={language}
+        activityTitle={language === 'hi' ? 'कहानी स्मरण' : 'Story Recall'}
+        stats={[
+          {
+            label: language === 'hi' ? 'प्रश्नों के सही उत्तर' : 'Story Questions',
+            value: `${summary.correctQuestions} / ${summary.totalQuestions}`,
+          },
+          {
+            label: language === 'hi' ? 'सटीकता' : 'Accuracy',
+            value: `${summary.accuracyPercentage}%`,
+          },
+        ]}
+        onRetry={() => {
+          setGameState('intro');
+        }}
+        onExit={onExit}
+      />
     );
   }
 
@@ -816,7 +752,7 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
           {autoAssistTriggered && (
             <div className="hidden sm:flex items-center gap-1 text-[10px] text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300">
               <Sparkles className="w-3 h-3 text-amber-600" />
-              <span>Scaffolding</span>
+              <span>{language === 'hi' ? 'स्केफोल्डिंग' : 'Scaffolding'}</span>
             </div>
           )}
           {tremorCount > 0 && (
@@ -1074,36 +1010,44 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
             {/* Caregiver Presets */}
             <div className="mb-6">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">
-                সহায়ক প্ৰিচেট (Scaffolding Presets)
+                {language === 'hi' ? 'सहायक प्रीसेट (स्केफोल्डिंग)' : 'Scaffolding Presets'}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => applyAssistancePreset('autonomy')}
                   className="p-2.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-xl text-xs font-medium text-slate-700 text-left"
                 >
-                  <span className="font-bold block text-indigo-600">Full Autonomy</span>
-                  Tier 8 (5 Sentences, No Replays)
+                  <span className="font-bold block text-indigo-600">
+                    {language === 'hi' ? 'पूर्ण स्वायत्तता' : 'Full Autonomy'}
+                  </span>
+                  {language === 'hi' ? 'टीयर ८ (५ वाक्य, कोई रीप्ले नहीं)' : 'Tier 8 (5 Sentences, No Replays)'}
                 </button>
                 <button
                   onClick={() => applyAssistancePreset('support')}
                   className="p-2.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-xl text-xs font-medium text-slate-700 text-left"
                 >
-                  <span className="font-bold block text-emerald-600">Gentle Support</span>
-                  Tier 5 (3 Sentences, 1 Replay)
+                  <span className="font-bold block text-emerald-600">
+                    {language === 'hi' ? 'हल्का सहयोग' : 'Gentle Support'}
+                  </span>
+                  {language === 'hi' ? 'टीयर ५ (३ वाक्य, १ रीप्ले)' : 'Tier 5 (3 Sentences, 1 Replay)'}
                 </button>
                 <button
                   onClick={() => applyAssistancePreset('scaffolding')}
                   className="p-2.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-xl text-xs font-medium text-slate-700 text-left"
                 >
-                  <span className="font-bold block text-amber-600">High Scaffolding</span>
-                  Tier 3 (2 Sentences, Persistent Text)
+                  <span className="font-bold block text-amber-600">
+                    {language === 'hi' ? 'उच्च स्केफोल्डिंग' : 'High Scaffolding'}
+                  </span>
+                  {language === 'hi' ? 'टीयर ३ (२ वाक्य, स्थायी पाठ)' : 'Tier 3 (2 Sentences, Persistent Text)'}
                 </button>
                 <button
                   onClick={() => applyAssistancePreset('floor')}
                   className="p-2.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-xl text-xs font-medium text-slate-700 text-left"
                 >
-                  <span className="font-bold block text-rose-600">Palliative Floor</span>
-                  Tier 1 (1 Sentence, 2 Replays)
+                  <span className="font-bold block text-rose-600">
+                    {language === 'hi' ? 'उपशामक न्यूनतम' : 'Palliative Floor'}
+                  </span>
+                  {language === 'hi' ? 'टीयर १ (१ वाक्य, २ रीप्ले)' : 'Tier 1 (1 Sentence, 2 Replays)'}
                 </button>
               </div>
             </div>
@@ -1112,9 +1056,11 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  মনোমিতিক স্তৰ বাছনি (1 to 9)
+                  {language === 'hi' ? 'साइकोमेट्रिक स्तर चयन (१ से ९)' : 'Psychometric Tier Selection (1 to 9)'}
                 </label>
-                <span className="text-xs font-bold text-amber-800">Tier {currentDifficulty.tierLevel}</span>
+                <span className="text-xs font-bold text-amber-800">
+                  {language === 'hi' ? `टीयर ${currentDifficulty.tierLevel}` : `Tier ${currentDifficulty.tierLevel}`}
+                </span>
               </div>
               <input
                 type="range"
@@ -1159,7 +1105,9 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
               </select>
 
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 text-xs text-slate-600">
-                <span className="font-semibold block text-slate-700 mb-1">ক্লিনিকেল পৰ্যবেক্ষণ:</span>
+                <span className="font-semibold block text-slate-700 mb-1">
+                  {language === 'hi' ? 'नैदानिक अवलोकन:' : 'Clinical Observation:'}
+                </span>
                 {selectedPersona.clinicalNotes[language]}
               </div>
 
@@ -1169,7 +1117,7 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
                 className="w-full bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white font-semibold py-2.5 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2"
               >
                 <Activity className="w-4 h-4" />
-                <span>{isSimulating ? 'অনুকৰণ চলি আছে...' : t.runSimulation}</span>
+                <span>{isSimulating ? (language === 'hi' ? 'सिमुलेशन जारी है...' : 'Simulating...') : t.runSimulation}</span>
               </button>
             </div>
 
@@ -1197,7 +1145,7 @@ export const BrainStory: React.FC<BrainStoryProps> = ({
               onClick={() => setIsTestbedOpen(false)}
               className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-5 rounded-xl text-xs transition-colors"
             >
-              বন্ধ কৰক
+              {language === 'hi' ? 'दराज बंद करें' : 'Close Drawer'}
             </button>
           </div>
         </div>

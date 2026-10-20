@@ -1,6 +1,6 @@
 /**
  * SmritiNER - Game 9: Pattern Recall (Noxar Chonda / চানেকিৰ ছন্দ)
- * Assamese Handloom Weaving Motif Themes (তাঁতশালৰ চানেকি) & Spatial Topologies
+ * Pan-Indian Heritage Rangoli, Mandalas & Textile Motifs
  * Supporting Multi-Lingual Localizations: Assamese, Bengali, Hindi, English.
  */
 
@@ -21,19 +21,19 @@ export interface MotifTheme {
 
 export const MOTIF_THEMES: MotifTheme[] = [
   {
-    id: 'gamosa_phool',
-    symbol: '🌸',
+    id: 'kamal_rangoli',
+    symbol: '🪷',
     name: {
-      as: 'গামোচাৰ ফুল',
-      bn: 'গামোছার ফুল',
-      hi: 'गमोसा का फूल',
-      en: 'Gamosa Floral Weave',
+      as: 'পদ্ম ৰঙ্গোলী চানেকি',
+      bn: 'পদ্ম রঙ্গোলি নকশা',
+      hi: 'कमल रंगोली पैटर्न',
+      en: 'Sacred Lotus Rangoli',
     },
     description: {
-      as: 'অসমৰ পৰম্পৰাগত ৰঙা ফুলৰ হস্ততাঁত চানেকি',
-      bn: 'আসামের ঐতিহ্যবাহী লাল ফুলের তাঁত নকশা',
-      hi: 'असम का पारंपरिक लाल फूलों वाला हथकरघा पैटर्न',
-      en: 'Traditional Assamese red floral border embroidery',
+      as: 'ভাৰতীয় ঐতিহ্যৰ পৱিত্ৰ পদুম আৰু মজিয়াৰ শুভ আল্পনা',
+      bn: 'পবিত্র পদ্ম ফুল ও গৃহদ্বারের শুভ রঙ্গোলি আলপনা',
+      hi: 'पवित्र कमल पुष्प और भारतीय घरों की पारंपरिक रंगोली',
+      en: 'Sacred lotus floral mandala decorating traditional Indian courtyards',
     },
     colorTheme: {
       base: 'bg-rose-50 border-rose-200 text-rose-700',
@@ -43,19 +43,19 @@ export const MOTIF_THEMES: MotifTheme[] = [
     },
   },
   {
-    id: 'jaapi_tara',
-    symbol: '⭐',
+    id: 'diya_jyoti',
+    symbol: '🪔',
     name: {
-      as: 'জাপিৰ তৰা',
-      bn: 'জাপির তারা',
-      hi: 'जापी का सितारा',
-      en: 'Jaapi Starburst Weave',
+      as: 'পৱিত্ৰ চাকিৰ জ্যোতি',
+      bn: 'শুভ প্রদীপের শিখা',
+      hi: 'पावन दीप ज्योति',
+      en: 'Golden Diya Flame',
     },
     description: {
-      as: 'বাঁহ আৰু বেতৰ ফুলাম জাপিৰ কেন্দ্ৰীয় তৰা চানেকি',
-      bn: 'বাঁশ ও বেতের নকশাদার জাপির কেন্দ্রীয় তারা নকশা',
-      hi: 'बांस और बेंत की सजी हुई जापी का तारा पैटर्न',
-      en: 'Conical sun-hat geometric bamboo starburst pattern',
+      as: 'প্ৰাৰ্থনা আৰু দীপোৎসৱৰ আলোকোজ্জ্বল মাঙ্গলিক চানেকি',
+      bn: 'প্রার্থনা ও উৎসবের আলোকিত মাঙ্গলিক নকশা',
+      hi: 'दीपोत्सव और संध्या वंदना का शुभ ज्योतिमय पैटर्न',
+      en: 'Warm radiant earthen lamp motif symbolizing auspicious light',
     },
     colorTheme: {
       base: 'bg-amber-50 border-amber-200 text-amber-700',
@@ -65,19 +65,19 @@ export const MOTIF_THEMES: MotifTheme[] = [
     },
   },
   {
-    id: 'xorai_alankar',
-    symbol: '🏆',
+    id: 'mangal_kalash',
+    symbol: '🏺',
     name: {
-      as: 'শৰাইৰ অলংকাৰ',
-      bn: 'শরাই অলংকার',
-      hi: 'शराई अलंकरण',
-      en: 'Xorai Royal Insignia',
+      as: 'মংগল কলহ চানেকি',
+      bn: 'মঙ্গল কলস নকশা',
+      hi: 'मंगल कलश पैटर्न',
+      en: 'Auspicious Mangal Kalash',
     },
     description: {
-      as: 'কাঁহ-পিতলৰ ঐতিহাসিক শৰাইৰ শিল্পকলা',
-      bn: 'কাঁসা-পিতলের ঐতিহাসিক শরাইয়ের শিল্পকলা',
-      hi: 'कांस्य-पीतल की ऐतिहासिक शराई का शाही प्रतीक',
-      en: 'Historic brass bell-metal offering tray royal emblem',
+      as: 'শুভ অনুষ্ঠানৰ আমপাত আৰু নাৰিকলেৰে সজোৱা পৱিত্ৰ কলহ',
+      bn: 'আমপাতা ও নারকেল শোভিত পবিত্র মঙ্গল কলস',
+      hi: 'आम के पत्तों और नारियल से सुसज्जित पावन मंगल कलश',
+      en: 'Auspicious holy urn with mango leaves and coconut symbolizing prosperity',
     },
     colorTheme: {
       base: 'bg-yellow-50 border-yellow-200 text-yellow-700',
@@ -87,19 +87,19 @@ export const MOTIF_THEMES: MotifTheme[] = [
     },
   },
   {
-    id: 'chahpaat_koli',
-    symbol: '🍃',
+    id: 'mayur_pankh',
+    symbol: '🦚',
     name: {
-      as: 'চাহপাত আৰু কলি',
-      bn: 'চা পাতা ও কুঁড়ি',
-      hi: 'चाय की पत्ती और कली',
-      en: 'Tea Leaf & Bud',
+      as: 'ময়ূৰৰ পাখি চানেকি',
+      bn: 'ময়ূর পালক নকশা',
+      hi: 'मयूर पंख पैटर्न',
+      en: 'Royal Peacock Plume',
     },
     description: {
-      as: 'অসমৰ সেউজ চাহ বাগিচাৰ দুটি পাত আৰু এটি কলি',
-      bn: 'আসামের সবুজ চা বাগানের দুটি পাতা ও একটি কুঁড়ি',
-      hi: 'असम के हरे चाय बागानों की दो पत्तियां और एक कली',
-      en: 'Lush Assam tea garden signature two-leaves-and-a-bud',
+      as: 'ভগৱান শ্ৰীকৃষ্ণৰ বাঁহী আৰু ৰাষ্ট্ৰীয় পক্ষীৰ ৰঙীণ পাখি',
+      bn: 'শ্রীকৃষ্ণের মোহন বাঁশি ও জাতীয় পাখির সুদৃশ্য ময়ূরকণ্ঠী নকশা',
+      hi: 'श्रीकृष्ण की बांसुरी और राष्ट्रीय पक्षी के मुकुट का मनोहर पंख',
+      en: 'Lustrous peacock feather motif celebrating nature and divine classical melody',
     },
     colorTheme: {
       base: 'bg-emerald-50 border-emerald-200 text-emerald-700',
@@ -109,19 +109,19 @@ export const MOTIF_THEMES: MotifTheme[] = [
     },
   },
   {
-    id: 'muga_buta',
+    id: 'banarasi_buta',
     symbol: '✨',
     name: {
-      as: 'মুগা কাপোৰৰ বুটা',
-      bn: 'মুগা কাপড়ের বুটা',
-      hi: 'मूगा रेशम की बूटी',
-      en: 'Golden Muga Silk Buta',
+      as: 'বনাৰসী জৰীৰ বুটা',
+      bn: 'বেনারসি জরি বুটি',
+      hi: 'बनारसी ज़री बूटी',
+      en: 'Banarasi Zari Buta',
     },
     description: {
-      as: 'সোণালী মুগা সূতাৰে তোলা জিলিকা বুটা চানেকি',
-      bn: 'সোনালী মুগা সুতোয় বোনা চকচকে বুটা নকশা',
-      hi: 'सुनहरे मूगा रेशम से बुना हुआ चमकदार बूटी पैटर्न',
-      en: 'Gleaming golden silk diamond-rhombus weave',
+      as: 'হস্ততাঁত বস্ত্ৰৰ সোণালী আৰু ৰূপালী জৰীৰে বোৱা ঐতিহ্যবাহী বুটা',
+      bn: 'ঐতিহ্যবাহী তাঁত ও রেশমে বোনা উজ্জ্বল সোনালী জরি বুটি',
+      hi: 'हथकरघा रेशम पर शुद्ध सोने-चांदी के तारों से बुनी गई पारंपरिक बूटी',
+      en: 'Traditional paisley and floral gold brocade motif of Indian handlooms',
     },
     colorTheme: {
       base: 'bg-indigo-50 border-indigo-200 text-indigo-700',

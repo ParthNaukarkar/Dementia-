@@ -102,15 +102,19 @@ Respond with strictly valid JSON:
   try {
     let raw = '{}';
     if (provider === 'gemini') {
-      const model = 'gemini-1.5-flash';
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
+      const model = 'gemini-3.5-flash';
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey.trim(),
+        },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           generationConfig: { responseMimeType: 'application/json' },
         }),
+        signal: AbortSignal.timeout(8000),
       });
       if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
       const data = await res.json();
@@ -235,16 +239,50 @@ export async function runOpenAILevelAudit(apiKey: string, sampleLimit: number = 
 
   // 2. Audit level changes with Live AI (Gemini / OpenAI)
   const provider = (apiKey.startsWith('AIzaSy') || cliProvider === 'gemini') ? 'gemini' : 'openai';
-  const sampleToTest = levelChanges.slice(0, sampleLimit);
+  
+  // Stratify sample across games, promotions, and scaffolding demotions
+  const promotes = levelChanges.filter(l => l.engineAction === 'PROMOTE');
+  const demotes = levelChanges.filter(l => l.engineAction === 'SCAFFOLD_DOWN');
+  const stratified: LevelChangeEvent[] = [];
+
+  for (const gameId of GAME_LIST) {
+    const pForGame = promotes.filter(p => p.gameId === gameId);
+    const dForGame = demotes.filter(d => d.gameId === gameId);
+    if (pForGame.length > 0 && stratified.length < sampleLimit) {
+      stratified.push(pForGame[Math.floor(Math.random() * pForGame.length)]);
+    }
+    if (dForGame.length > 0 && stratified.length < sampleLimit) {
+      stratified.push(dForGame[Math.floor(Math.random() * dForGame.length)]);
+    }
+  }
+
+  // Fill remaining slots alternating
+  let toggle = 0;
+  while (stratified.length < sampleLimit && (promotes.length > 0 || demotes.length > 0)) {
+    const pool = (toggle++ % 2 === 0) ? promotes : demotes;
+    if (pool.length > 0) {
+      const idx = Math.floor(Math.random() * pool.length);
+      stratified.push(pool.splice(idx, 1)[0]);
+    } else break;
+  }
+
+  const sampleToTest = stratified.slice(0, sampleLimit);
   const auditResults: OpenAIAuditResult[] = [];
   let agreedCount = 0;
+  let promoteAgreed = 0;
+  let promoteTotal = 0;
+  let demoteAgreed = 0;
+  let demoteTotal = 0;
 
-  console.log(`⏳ Disagreeing / Agreeing evaluations in progress with Live ${provider.toUpperCase()} (${provider === 'gemini' ? 'gemini-1.5-flash' : 'gpt-4o-mini'})...\n`);
+  console.log(`⏳ Disagreeing / Agreeing evaluations in progress with Live ${provider.toUpperCase()} (${provider === 'gemini' ? 'gemini-3.5-flash' : 'gpt-4o-mini'})...\n`);
 
   for (let i = 0; i < sampleToTest.length; i++) {
     const event = sampleToTest[i];
-    process.stdout.write(`   [${i + 1}/${sampleToTest.length}] Auditing ${event.gameTitle} (${event.engineAction} to Tier ${event.newTier} for ${event.diagnosisStage})... `);
+    process.stdout.write(`   [${String(i + 1).padStart(2, ' ')}/${sampleToTest.length}] ${event.gameTitle.padEnd(16)} | ${event.engineAction.padEnd(13)} (Tier ${event.oldTier}➔${event.newTier}) | ${event.diagnosisStage}... `);
     
+    if (event.engineAction === 'PROMOTE') promoteTotal++;
+    else demoteTotal++;
+
     const startMs = Date.now();
     const audit = await callAIVerification(event, apiKey, provider);
     const duration = Date.now() - startMs;
@@ -252,24 +290,34 @@ export async function runOpenAILevelAudit(apiKey: string, sampleLimit: number = 
 
     if (audit.agreed) {
       agreedCount++;
+      if (event.engineAction === 'PROMOTE') promoteAgreed++;
+      else demoteAgreed++;
       console.log(`✅ AGREED (${duration}ms)`);
+      if (audit.clinicalReflection && audit.clinicalReflection.length > 5 && !audit.clinicalReflection.includes('API Error')) {
+        console.log(`      Teacher: "${audit.clinicalReflection}"`);
+      }
     } else {
       console.log(`⚠️ DISCREPANCY: ${provider.toUpperCase()} preferred ${audit.openAIAction} (Tier ${audit.openAITier}) (${duration}ms)`);
-      console.log(`      Teacher Note: "${audit.clinicalReflection}"`);
+      console.log(`      Teacher: "${audit.clinicalReflection}"`);
     }
 
-    // Small delay to prevent rate-limit bursts
-    await new Promise(r => setTimeout(r, 150));
+    // Small delay between requests to keep API smooth
+    await new Promise(r => setTimeout(r, 200));
   }
 
   // 3. Final Summary Report
   const agreementRate = ((agreedCount / sampleToTest.length) * 100).toFixed(1);
+  const promoteRate = promoteTotal > 0 ? ((promoteAgreed / promoteTotal) * 100).toFixed(1) : '0';
+  const demoteRate = demoteTotal > 0 ? ((demoteAgreed / demoteTotal) * 100).toFixed(1) : '0';
+
   console.log('\n' + '='.repeat(80));
   console.log(`📊 LIVE ${provider.toUpperCase()} AUDIT RESULTS SUMMARY`);
   console.log('='.repeat(80));
   console.log(`• Total Level Changes Audited by ${provider.toUpperCase()}: ${sampleToTest.length}`);
-  console.log(`• ${provider.toUpperCase()} Endorsed (Agreed): ${agreedCount} / ${sampleToTest.length} (${agreementRate}%)`);
-  console.log(`• Clinical Discrepancies / Refinements: ${sampleToTest.length - agreedCount}`);
+  console.log(`• Overall Agreement Rate: ${agreedCount} / ${sampleToTest.length} (${agreementRate}%)`);
+  console.log(`  - Promotion Endorsements: ${promoteAgreed} / ${promoteTotal} (${promoteRate}%)`);
+  console.log(`  - Scaffolding Demotion Endorsements: ${demoteAgreed} / ${demoteTotal} (${demoteRate}%)`);
+  console.log(`• Clinical Discrepancies / Boundary Refinements: ${sampleToTest.length - agreedCount}`);
   console.log('='.repeat(80));
 }
 

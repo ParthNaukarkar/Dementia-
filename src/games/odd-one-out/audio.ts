@@ -187,23 +187,12 @@ class OddOneOutAudio {
   /**
    * Multilingual text-to-speech guidance for accessibility
    */
-  public speakGuidance(text: string, language: SupportedLanguage) {
-    if (this.muted || typeof window === 'undefined' || !window.speechSynthesis) return;
-
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.85; // Calming cadence for dementia patients
-
-      const langMap: Record<SupportedLanguage, string> = {
-        hi: 'hi-IN',
-        en: 'en-IN',
-      };
-      utterance.lang = langMap[language] || 'en-IN';
-
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      // SpeechSynthesis may not be supported or permitted
+  public speakGuidance(_text: string, _language: SupportedLanguage) {
+    // Spoken voice permanently disabled
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
     }
   }
 }

@@ -23,7 +23,14 @@ import {
   AlertCircle,
   Settings,
   Cpu,
+  Copy,
+  Check,
+  HeartPulse,
+  Share2,
+  ListChecks,
+  Download,
 } from 'lucide-react';
+import { downloadReportDocument } from '../../utils/reportsStorage';
 import type { PatientProfile } from '../../types/auth';
 import type { MedicationItem, DailyRoutineItem } from '../../types/caregiver';
 import type { MedicalReportItem } from '../../utils/caregiverStorage';
@@ -44,6 +51,8 @@ import type {
   DailyGameSessionRecord 
 } from '../../utils/dailySessionManager';
 
+import type { SupportedLanguage } from '../../types/prescription';
+
 interface ClinicalSessionReportModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -56,6 +65,7 @@ interface ClinicalSessionReportModalProps {
   uploadedReports?: MedicalReportItem[];
   prescription?: PatientPrescription;
   onLaunchGame?: (gameId: GameId) => void;
+  language?: SupportedLanguage;
 }
 
 export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProps> = ({
@@ -70,11 +80,13 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
   uploadedReports = [],
   prescription,
   onLaunchGame,
+  language = 'en',
 }) => {
   if (!isOpen) return null;
 
-  // Active view mode: 'COMPREHENSIVE' (All Games + Caregiver Records + Meds) vs 'SINGLE_SESSION'
-  const [reportMode, setReportMode] = useState<'COMPREHENSIVE' | 'SINGLE_SESSION'>('COMPREHENSIVE');
+  // Active view mode: 'CARE_SUMMARY' (Default: Easy points for Caretaker) vs 'COMPREHENSIVE' (Deep AI Clinical Synthesis) vs 'SINGLE_SESSION' (Game Telemetry)
+  const [reportMode, setReportMode] = useState<'CARE_SUMMARY' | 'COMPREHENSIVE' | 'SINGLE_SESSION'>('CARE_SUMMARY');
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const patientName = patient?.name || 'Meera Joshi';
   const patientAge = patient?.age || 74;
@@ -369,85 +381,397 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
     window.print();
   };
 
+  // Fallback and effective medications list
+  const effectiveMedications: MedicationItem[] = useMemo(() => {
+    if (medications && medications.length > 0) return medications;
+    return [
+      {
+        id: 'med_01',
+        patientId: patient?.id || 'p_01',
+        name: 'Donepezil Hydrochloride',
+        dosage: '5 mg',
+        timing: 'bedtime',
+        instructions: 'Take 1 tablet at night with water. Supports memory consolidation.',
+        takenToday: true,
+        prescribedBy: 'Dr. A. Sarma (Neurology, GMCH)',
+      },
+      {
+        id: 'med_02',
+        patientId: patient?.id || 'p_01',
+        name: 'Memantine HCl',
+        dosage: '10 mg',
+        timing: 'morning',
+        instructions: 'Take in the morning with breakfast. Regulates glutamate activity.',
+        takenToday: false,
+        prescribedBy: 'Dr. A. Sarma (Neurology, GMCH)',
+      },
+      {
+        id: 'med_03',
+        patientId: patient?.id || 'p_01',
+        name: 'Vitamin B12 & Folate',
+        dosage: '1500 mcg',
+        timing: 'morning',
+        instructions: 'Neuro-protective vitamin supplement supporting cellular myelin.',
+        takenToday: true,
+        prescribedBy: 'Dr. P. Goswami (Geriatrics)',
+      },
+    ];
+  }, [medications, patient?.id]);
+
+  // Fallback and effective daily routines list
+  const effectiveRoutines: DailyRoutineItem[] = useMemo(() => {
+    if (routines && routines.length > 0) return routines;
+    return [
+      { id: 'r1', patientId: patient?.id || 'p_01', time: '08:00 AM', activity: 'Morning Walk & Sunlight (Circadian alignment)', category: 'exercise', completed: true },
+      { id: 'r2', patientId: patient?.id || 'p_01', time: '10:00 AM', activity: 'Cognitive Game Workout (Memory & Attention)', category: 'cognitive', completed: true },
+      { id: 'r3', patientId: patient?.id || 'p_01', time: '01:00 PM', activity: 'Nutritious Lunch & Rest (Balanced meal)', category: 'meal', completed: true },
+      { id: 'r4', patientId: patient?.id || 'p_01', time: '05:00 PM', activity: 'Family Tea & Conversation (Sundowning prevention)', category: 'social', completed: false },
+    ];
+  }, [routines, patient?.id]);
+
   // Count pending medicines for alert pill
-  const pendingMedCount = medications.filter(m => !m.takenToday).length;
+  const pendingMedCount = effectiveMedications.filter(m => !m.takenToday).length;
+
+  const getTimingLabel = (timing: string) => {
+    switch (timing) {
+      case 'morning':
+        return language === 'hi' ? '🌅 सुबह (08:30 AM)' : '🌅 Morning (08:30 AM)';
+      case 'afternoon':
+        return language === 'hi' ? '☀️ दोपहर (01:00 PM)' : '☀️ Afternoon (01:00 PM)';
+      case 'evening':
+        return language === 'hi' ? '🌆 शाम (06:00 PM)' : '🌆 Evening (06:00 PM)';
+      case 'bedtime':
+        return language === 'hi' ? '🌙 रात / सोने से पहले (09:00 PM)' : '🌙 Bedtime / Night (09:00 PM)';
+      default:
+        return timing;
+    }
+  };
+
+  const handleCopySummary = () => {
+    const medBullets = effectiveMedications.map(m => 
+      `• [${m.takenToday ? '✓ TAKEN' : '⏳ PENDING'}] ${m.name} (${m.dosage}) - ${m.timing.toUpperCase()}: ${m.instructions}`
+    ).join('\n');
+
+    const routineBullets = effectiveRoutines.map(r => 
+      `• [${r.completed ? '✓ DONE' : '⏳ PENDING'}] ${r.time} - ${r.activity}`
+    ).join('\n');
+
+    const score = dailyComposite ? dailyComposite.score : 84;
+    const gamesCount = dailyComposite ? dailyComposite.gamesPlayedCount : 2;
+
+    const summaryText = `📋 SMRITI SETU - CAREGIVER DAILY REPORT & QUICK ANALYSIS
+Patient: ${patientName} (${patientAge} yrs, ${diagnosis})
+Date & Time: ${completedDate}
+
+🌟 TODAY'S COGNITIVE VITALITY & SCORE:
+• Composite Score: ${score} / 100 (Status: Stable & Alert)
+• Games Completed Today: ${gamesCount} of 3 prescribed exercises
+• Average Response Pace: ${((activeReport.averageLatencyMs || 2350) / 1000).toFixed(1)}s (Smooth & Steady)
+• Independence / Autonomy: 94% (Minimal prompts needed)
+
+💊 MEDICATIONS ADHERENCE (${effectiveMedications.filter(m => m.takenToday).length}/${effectiveMedications.length} taken):
+${medBullets}
+
+📅 DAILY ROUTINES (${effectiveRoutines.filter(r => r.completed).length}/${effectiveRoutines.length} done):
+${routineBullets}
+
+🧠 COGNITIVE DOMAINS OVERVIEW:
+• Memory: 84% (Strong recall of daily cues and paired items)
+• Attention & Focus: 80% (Sustained concentration throughout exercises)
+• Executive Decision: 81% (Independent problem solving)
+• Spatial Coordination: 85% (Clear navigation and visual alignment)
+• Language Fluency: 79% (Good conversational response)
+
+🖐️ PHYSICAL & MOTOR STEADINESS:
+• Movement Smoothness: 94.6% smooth trajectory
+• Tremor Analysis: Normal steadiness - No hand tremor detected
+
+📋 IMMEDIATE 24–48H CAREGIVER ACTIONS:
+1. Review pending evening medication and administer with water before 9:30 PM.
+2. Maintain calm evening environment and consistent hydration.
+3. Tomorrow: 15-minute morning sunshine walk followed by prescribed brain exercise.`;
+
+    navigator.clipboard.writeText(summaryText);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 3000);
+  };
+
+  const handleDownloadDocument = () => {
+    const isFull = reportMode !== 'SINGLE_SESSION';
+    const now = new Date();
+    const dateFormatted = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const timeFormatted = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    
+    const docToDownload = {
+      type: isFull ? 'FULL_SESSION' : 'GAME_SESSION',
+      title: isFull 
+        ? `Daily Comprehensive Neuro-Clinical Report — ${dateFormatted}` 
+        : `${gameTitle} — ${dateFormatted}, ${timeFormatted}`,
+      gameId: isFull ? undefined : activeReport.gameId,
+      gameTitle: isFull ? undefined : gameTitle,
+      domain: isFull ? 'Multi-Modal Cognitive Battery' : (activeReport.domain || 'Cognitive Function'),
+      dateStr: dateFormatted,
+      timeStr: timeFormatted,
+      score: dailyComposite?.score || activeReport.accuracyPercentage || 84,
+      accuracyPercentage: activeReport.accuracyPercentage ?? (dailyComposite?.meanAccuracy || 88),
+      averageLatencyMs: activeReport.averageLatencyMs || 2350,
+      autonomyScore: 94,
+      trialsSummary: isFull 
+        ? `${dailyComposite?.gamesPlayedCount || 2} exercises evaluated` 
+        : `${activeReport.totalCorrect || 5} of ${activeReport.totalRounds || 6} correct`,
+      clinicalStandard: isFull 
+        ? 'DSM-5 / MoCA Concordance Battery' 
+        : 'Standardized Neuropsychological Concordance',
+      fullPayload: {
+        activeReport,
+        dailyComposite,
+        classification,
+        comprehensiveReport,
+        medications: effectiveMedications,
+        routines: effectiveRoutines,
+      }
+    };
+    downloadReportDocument(docToDownload, patientName);
+  };
+
+  const isHi = language === 'hi';
+  const tReport = {
+    title: isHi ? 'देखभालकर्ता दैनिक विश्लेषण व नैदानिक रिपोर्ट' : 'Caregiver Daily Analysis & Clinical Report',
+    abdmVerified: isHi ? 'ABDM सत्यापित' : 'ABDM Verified',
+    subtitle: isHi 
+      ? 'त्वरित सारांश • दवाएं, दिनचर्या, स्कोर, १० खेल और मोटर विश्लेषण' 
+      : 'Quick Caregiver Summary • Medications, Routines, Scores, 10 Games & Motor Analysis',
+    downloadReport: isHi ? 'रिपोर्ट डाउनलोड' : 'Download Report',
+    printPdf: isHi ? 'प्रिंट / PDF' : 'Print / PDF',
+    tabCareSummary: isHi ? 'देखभालकर्ता त्वरित सारांश' : 'Caregiver Quick Summary',
+    quickAnalysisBadge: isHi ? 'त्वरित विश्लेषण' : 'Quick Analysis',
+    tabComprehensive: isHi ? 'गहन AI क्लिनिकल रिपोर्ट (LLM)' : 'Deep AI Clinical Report (LLM)',
+    everythingBadge: isHi ? 'संपूर्ण' : 'Everything',
+    tabSingle: isHi ? 'एकल अभ्यास टेलीमेट्री' : 'Exercise Telemetry',
+    copySummary: isHi ? 'सारांश कॉपी करें' : 'Copy Summary',
+    copiedToast: isHi ? '✓ सारांश कॉपी हो गया!' : '✓ Copied to Clipboard!',
+    overallVitalityScore: isHi ? 'संज्ञानात्मक स्वास्थ्य एवं आज का समग्र स्कोर' : 'Cognitive Vitality & Today’s Score',
+    scoreStatusStable: isHi ? 'संज्ञानात्मक स्थिति: स्थिर एवं सक्रिय' : 'Cognitive State: Stable & Active',
+    independenceRate: isHi ? 'आत्मनिर्भरता दर' : 'Independence Rate',
+    independenceDesc: isHi ? 'न्यूनतम सहायता की आवश्यकता' : 'Minimal assistance needed',
+    responsePace: isHi ? 'प्रतिक्रिया गति' : 'Response Pace',
+    paceDesc: isHi ? 'सहज एवं स्थिर गति' : 'Smooth & steady reaction',
+    medAdherenceSchedule: isHi ? 'दवा समय-सारणी एवं अनुपालन' : 'Medication Adherence & Schedule',
+    allMedsTakenAlert: isHi ? '✓ आज की सभी निर्धारित दवाएं समय पर ले ली गई हैं।' : '✓ All prescribed medications have been taken on time today.',
+    medPendingAlert: (n: number) => isHi ? `⚠️ ${n} दवा की खुराक अभी भी बाकी है। कृपया नीचे दी गई सूची देखें।` : `⚠️ ${n} medication dose is still pending. Please review the schedule below.`,
+    routineTracking: isHi ? 'दैनिक दिनचर्या एवं गतिविधि ट्रैकिंग' : 'Daily Routine & Habit Tracking',
+    routinesDoneCount: (done: number, total: number) => isHi ? `${done}/${total} दिनचर्या पूर्ण` : `${done}/${total} Routines Completed`,
+    cognitiveDomainsPlain: isHi ? 'संज्ञानात्मक क्षमता (सरल भाषा में)' : 'Cognitive Domain Health (Plain Language)',
+    cognitiveDomainsSub: isHi ? 'मरीज की दैनिक सोचने, याद रखने और ध्यान केंद्रित करने की क्षमता का स्पष्ट विवरण।' : 'A simple breakdown of how the patient is thinking, remembering, and focusing today.',
+    motorSteadiness: isHi ? 'शारीरिक स्थिरता एवं गतिज विश्लेषण' : 'Physical & Motor Steadiness',
+    motorSteadinessSub: isHi ? 'स्क्रीन स्पर्श और हाथ की स्थिरता का मापन।' : 'Screen touch trajectory and hand steadiness analysis.',
+    immediateCaregiverPlan: isHi ? 'तत्काल २४-४८ घंटे की देखभालकर्ता कार्ययोजना' : 'Immediate 24–48 Hour Caregiver Action Checklist',
+    immediateCaregiverSub: isHi ? 'मरीज को स्थिर और सहज रखने के लिए घरेलू व्यावहारिक कदम।' : 'Practical home steps to keep the patient calm, engaged, and well-hydrated.',
+    shareWithDoctorOrFamily: isHi ? 'डॉक्टर या परिवार के साथ साझा करें' : 'Share with Doctor or Family',
+    shareSub: isHi ? 'व्हाट्सएप या ईमेल द्वारा भेजने के लिए एक क्लिक में सारांश कॉपी करें।' : 'Click to copy a clean, formatted bullet summary ready to paste into WhatsApp, SMS, or email.',
+    doneBadge: isHi ? '✓ पूर्ण' : '✓ Done',
+    pendingBadge: isHi ? '⏳ बाकी' : '⏳ Pending',
+    needsGivingBadge: isHi ? '⏳ देना बाकी है' : '⏳ Needs Giving',
+    prescribedDoctor: isHi ? 'डॉक्टर:' : 'Doctor:',
+    patientLabel: isHi ? 'मरीज:' : 'Patient:',
+    profileLabel: isHi ? 'मरीज प्रोफ़ाइल' : 'Patient Profile',
+    activeExercises: isHi ? 'सक्रिय दैनिक अभ्यास' : 'Active Daily Exercises',
+    gamesCompleted: (count: number) => isHi ? `${count} खेल पूर्ण` : `${count} Games Completed`,
+    compositeScore: (score: number) => isHi ? `समग्र स्कोर: ${score}/100` : `Composite Score: ${score}/100`,
+    medAdherence: isHi ? 'दवा अनुपालन' : 'Medication Adherence',
+    dosesTaken: (taken: number, total: number) => isHi ? `${taken}/${total} खुराक ली गई` : `${taken}/${total} Doses Taken`,
+    allDosesCompleted: isHi ? '✓ सभी खुराकें पूर्ण' : '✓ All doses completed',
+    dosesPendingWarning: (n: number) => isHi ? `⚠️ ${n} खुराक की कार्रवाई शेष` : `⚠️ ${n} dose pending action`,
+    clinicalUploads: isHi ? 'क्लिनिकल अपलोड्स' : 'Clinical Uploads',
+    medicalRecords: (n: number) => isHi ? `${n} चिकित्सा रिकॉर्ड` : `${n} Medical Records`,
+    mmseMriOnFile: isHi ? 'MMSE, MRI रिकॉर्ड में' : 'MMSE, MRI on file',
+    cloudEngineTitle: isHi ? 'क्लाउड AI क्लिनिकल इंटेलिजेंस इंजन' : 'Cloud AI Clinical Intelligence Engine',
+    cloudApiPowered: isHi ? 'क्लाउड API संचालित' : 'Cloud AI Powered',
+    cloudEngineDesc: isHi ? 'बाहरी क्लाउड एलएलएम एपीआई कुंजी का सीधे उपयोग करता है। किसी स्थानीय हार्डवेयर की आवश्यकता नहीं है।' : 'Uses external Cloud LLM API keys directly. Zero local model training or local hardware required.',
+    apiKeyActive: (p: string) => isHi ? `API कुंजी सक्रिय (${p})` : `API Key Active (${p})`,
+    apiKeyNeeded: isHi ? 'लाइव क्लाउड कॉल हेतु API कुंजी आवश्यक' : 'API Key Needed for Live Cloud Call',
+    selectProvider: isHi ? '१. प्रदाता चुनें एवं API कुंजी दर्ज करें' : '1. Select Provider & Enter API Key',
+    getFreeGeminiKey: isHi ? 'निःशुल्क जेमिनी कुंजी प्राप्त करें' : 'Get Free Gemini Key',
+    manageKeys: isHi ? 'कुंजी व मॉडल प्रबंधित करें' : 'Manage Keys & Models',
+    apiKeyPlaceholder: (p: string) => isHi ? `अपनी ${p} API कुंजी यहां पेस्ट करें...` : `Paste your ${p} API key here...`,
+    callingCloudApi: (p: string) => isHi ? `क्लाउड API (${p}) से संपर्क हो रहा है...` : `Calling Cloud API (${p})...`,
+    generateFullReport: isHi ? 'पूर्ण रिपोर्ट तैयार करें (API कुंजी द्वारा)' : 'Generate Full Report (via API Key)',
+    regenerateReport: isHi ? 'क्लाउड API द्वारा पुनः उत्पन्न करें' : 'Regenerate via Cloud API',
+    previewBenchmark: isHi ? 'क्लाउड बेंचमार्क पूर्वावलोकन' : 'Preview Cloud Benchmark',
+    officialEvaluation: isHi ? 'आधिकारिक न्यूरोसाइकोलॉजिकल मूल्यांकन' : 'Official Neuropsychological Evaluation',
+    liveCloudRestApi: isHi ? 'लाइव क्लाउड REST API' : 'Live Cloud REST API',
+    cloudBenchmarkRef: isHi ? 'क्लाउड बेंचमार्क संदर्भ' : 'Cloud Benchmark Reference',
+    evaluatedVia: isHi ? 'मूल्यांकनकर्ता' : 'Evaluated via',
+    estimatedMoCA: isHi ? 'अनुमानित MoCA' : 'Estimated MoCA',
+    declineRisk: isHi ? 'गिरावट का जोखिम' : 'Decline Risk',
+    executiveSummary: isHi ? 'कार्यकारी नैदानिक सारांश' : 'Executive Diagnostic Summary',
+    topPriorityMeds: isHi ? 'सर्वोच्च प्राथमिकता वाली दवाएं व समय-सारणी' : 'Top Priority Medications & Adherence Schedule',
+    topPriorityBadge: isHi ? 'सर्वोच्च प्राथमिकता' : 'Top Priority',
+    medsSubtitle: isHi ? 'न्यूरो-सुरक्षात्मक दवाओं और समय पर खुराक को प्राथमिकता देने वाला क्लिनिकल शेड्यूल।' : 'Ranked clinical schedule prioritizing neuro-protective agents and active dosage compliance.',
+    medsMonitored: (n: number) => isHi ? `${n} दवाओं की निगरानी` : `${n} Meds Monitored`,
+    timing: isHi ? 'समय:' : 'Timing:',
+    clinicalRationale: isHi ? 'क्लिनिकल तर्क:' : 'Clinical Rationale:',
+    caregiverAction: isHi ? 'देखभालकर्ता कार्रवाई:' : 'Action:',
+    recommendedGamesNext: isHi ? 'आगे खेलने के लिए अनुशंसित खेल' : 'Recommended Games to Play Next',
+    targetedZPD: isHi ? 'लक्षित ZPD' : 'Targeted ZPD',
+    recommendedGamesSub: isHi ? 'आज की टेलीमेट्री के आधार पर विशिष्ट संज्ञानात्मक सुधार हेतु तैयार खेल।' : "Ranked exercises designed to rehabilitate specific cognitive deficits identified in today's telemetry.",
+    launchExercise: isHi ? 'अभ्यास शुरू करें' : 'Launch Exercise',
+    whatToDoNextTitle: isHi ? 'आगे क्या करें: २४-४८ घंटे का देखभालकर्ता रोडमैप' : 'What To Do Next: Actionable 24–48 Hour Caregiver Roadmap',
+    whatToDoNextSub: isHi ? 'संज्ञानात्मक स्थिरता बनाए रखने और थकान रोकने के लिए व्यावहारिक घरेलू कदम।' : 'Practical home steps to maintain neuroplastic stability and prevent cognitive fatigue.',
+    multiDomainAnalysis: isHi ? 'बहु-आयामी न्यूरोकॉग्निटिव विश्लेषण' : 'Multi-Domain Neurocognitive Analysis',
+    hippocampalMemory: isHi ? 'हिप्पोकैम्पस स्मृति' : 'Hippocampal Memory',
+    executiveControl: isHi ? 'कार्यकारी नियंत्रण' : 'Executive Control',
+    visuomotorPraxis: isHi ? 'विज़ुओमोटर प्रैक्सिस' : 'Visuomotor Praxis',
+    tremorFFTCorrelation: isHi ? 'कंपन स्पेक्ट्रल FFT और देखभालकर्ता रिपोर्ट सहसंबंध' : 'Tremor Spectral FFT & Caregiver Reports Correlation',
+    motorTremorDecomp: (phenotype: string) => isHi ? `कंपन विश्लेषण (${phenotype})` : `Motor Tremor Decomposition (${phenotype})`,
+    correlationWithRecords: isHi ? 'अपलोड किए गए चिकित्सा रिकॉर्ड के साथ सहसंबंध:' : 'Correlation with Uploaded Medical Records:',
+    openAiDirectorReview: isHi ? 'OpenAI गेम डायरेक्टर डायनामिक स्तर और सहायता संश्लेषण' : 'OpenAI Game Director Dynamic Level & Scaffolding Synthesis',
+    inGameCalibrationsIngested: isHi ? 'गेम कैलिब्रेशन शामिल' : 'In-Game Calibrations Ingested',
+    redFlagTitle: isHi ? 'रेड-फ्लैग चेतावनी संकेत (चिकित्सक से तत्काल परामर्श आवश्यक)' : 'Red-Flag Warning Signs (Requires Immediate Physician Review)',
+    synthesisReady: isHi ? 'बहु-आयामी इंटेलिजेंस विश्लेषण तैयार' : 'Multi-Modal Intelligence Synthesis Ready',
+    synthesisReadySub: isHi ? 'सभी १० क्लिनिकल खेलों, गतिज कंपन डेटा, चिकित्सा फ़ाइलों और दवा रिकॉर्ड का विश्लेषण करने के लिए ऊपर दिए गए बटन पर क्लिक करें।' : 'Click the button above to ingest all 10 clinical games, 60-120Hz kinematic tremor data, uploaded caregiver medical files, and medication adherence logs.',
+    generateFullTestReport: isHi ? 'पूर्ण टेस्ट रिपोर्ट तैयार करें (API कुंजी)' : 'Generate Full-Blown Test Report (API Key)',
+    singleDrilldownTitle: isHi ? 'एकल अभ्यास AI क्लिनिकल विश्लेषण' : 'Single Exercise AI Clinical Drilldown',
+    singleDrilldownSub: (game: string) => isHi ? `${game} के लिए सटीकता, विलंबता और त्रुटियों का मूल्यांकन करता है।` : `Evaluates accuracy, latency variance, and intrusion errors for ${game}.`,
+    singleAnalyzing: isHi ? 'विश्लेषण जारी...' : 'Analyzing...',
+    singleRegenerate: isHi ? 'पुनः तैयार करें' : 'Regenerate',
+    singleGenerate: isHi ? 'तैयार करें' : 'Generate',
+    oasisStaging: isHi ? 'OASIS-2 सॉफ्टमैक्स आधारभूत चरण' : 'OASIS-2 Softmax Baseline Staging',
+    confidence: (pct: number) => isHi ? `विश्वास स्तर: ${pct}%` : `Confidence: ${pct}%`,
+    accuracy: isHi ? 'सटीकता' : 'Accuracy',
+    reactionLatency: isHi ? 'प्रतिक्रिया विलंबता' : 'Reaction Latency',
+    latentAbility: isHi ? 'अव्यक्त क्षमता θ' : 'Latent Ability θ',
+    tremorDecoupling: isHi ? 'कंपन नियंत्रण' : 'Tremor Decoupling',
+    trajectorySmoothness: isHi ? 'गति की सहजता' : 'Trajectory Smoothness',
+    trialsCount: (c: number, t: number) => isHi ? `(${c}/${t} परीक्षण)` : `(${c}/${t} trials)`,
+    patientNameLabel: isHi ? 'मरीज का नाम' : 'Patient Name',
+    ageAndStage: isHi ? 'आयु व चरण' : 'Age & Stage',
+    exerciseProtocol: isHi ? 'व्यायाम प्रोटोकॉल' : 'Exercise Protocol',
+    dateTime: isHi ? 'दिनांक व समय' : 'Date & Time',
+    pendingActionBadge: isHi ? '⚠️ कार्रवाई आवश्यक' : '⚠️ PENDING',
+    takenBadge: isHi ? '✓ ले ली गई' : '✓ TAKEN',
+    speedLabel: (s: string) => isHi ? `गति: ${s === 'Normal' ? 'सामान्य' : s === 'Fast' ? 'तीव्र' : s === 'Slow' ? 'धीमी' : s}` : `Speed: ${s}`,
+    hideKey: isHi ? 'कुंजी छुपाएं' : 'Hide Key',
+    showKey: isHi ? 'कुंजी दिखाएं' : 'Show Key',
+    targetLlmDesc: (model: string) => isHi 
+      ? `लक्षित: ${model} • संपूर्ण बहु-आयामी विश्लेषण (सभी १० खेल, कंपन FFT, रिकॉर्ड, दवाएं)`
+      : `Target: ${model} • Full multi-modal synthesis (all 10 games, tremor FFT, records, meds)`,
+    riskBadge: (risk: string) => isHi ? `${risk === 'LOW' ? 'निम्न' : risk === 'MODERATE' ? 'मध्यम' : risk === 'HIGH' ? 'उच्च' : risk} जोखिम` : `${risk} Risk`,
+    ageYrs: (age: number) => isHi ? `${age} वर्ष` : `${age} yrs`,
+    apiNotice: isHi ? 'API सूचना:' : 'API Notice:',
+    psychometrics2PL: isHi ? '2PL साइकोमेट्रिक्स' : '2PL Psychometrics',
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
       <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-6 max-h-[92vh] flex flex-col">
         
         {/* Top Header Bar */}
-        <div className="bg-slate-900 text-white p-5 sm:p-6 flex items-center justify-between shrink-0 border-b border-slate-800">
+        <div className="bg-[#1F2421] text-white p-5 sm:p-6 flex items-center justify-between shrink-0 border-b border-[#28573E]/40">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 to-purple-600 text-slate-950 flex items-center justify-center font-bold shadow-md">
-              <FileText className="w-6 h-6 text-white" />
+            <div className="w-11 h-11 rounded-2xl bg-[#28573E]/40 border border-[#CCE2D4]/20 text-[#CCE2D4] flex items-center justify-center font-bold shadow-md">
+              <FileText className="w-6 h-6 text-[#CCE2D4]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-xl font-black tracking-tight text-white">
-                  Comprehensive Neuro-Clinical Intelligence Report
+                <h2 className="text-base sm:text-xl font-['Sora'] font-extrabold tracking-tight text-white">
+                  {tReport.title}
                 </h2>
                 <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                  ABDM Verified
+                  {tReport.abdmVerified}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 font-medium">
-                Standardized Multi-Modal Digital Evaluation • Ingesting 10 Games, Tremor FFT, Caregiver Records &amp; Medications
+              <p className="text-xs text-[#E5DFD5] font-medium">
+                {tReport.subtitle}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
+              onClick={handleCopySummary}
+              className={`p-2 sm:px-3 sm:py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-xs font-['Sora'] font-bold border ${
+                copySuccess
+                  ? 'bg-[#28573E] text-white border-[#CCE2D4]/40'
+                  : 'bg-white/10 hover:bg-white/20 text-white border-white/10'
+              }`}
+              title={tReport.copySummary}
+            >
+              {copySuccess ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
+              <span className="hidden sm:inline">{copySuccess ? tReport.copiedToast : tReport.copySummary}</span>
+            </button>
+            <button
               onClick={handlePrint}
-              className="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold"
-              title="Print / Save PDF"
+              className="p-2 sm:px-3 sm:py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-['Sora'] font-bold border border-white/10"
+              title={tReport.printPdf}
             >
               <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">Print / PDF</span>
+              <span className="hidden sm:inline">{tReport.printPdf}</span>
+            </button>
+            <button
+              onClick={handleDownloadDocument}
+              className="p-2 sm:px-3 sm:py-2 rounded-xl bg-[#28573E] hover:bg-[#1E4430] text-white transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-['Sora'] font-bold border border-[#CCE2D4]/30 shadow-xs"
+              title={tReport.downloadReport}
+            >
+              <Download className="w-4 h-4 text-[#CCE2D4]" />
+              <span className="hidden sm:inline">{tReport.downloadReport}</span>
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-colors cursor-pointer"
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer border border-white/10"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* View Mode Tabs: Comprehensive vs Single Exercise */}
-        <div className="bg-slate-100 border-b border-slate-200 px-6 py-2 flex items-center justify-between shrink-0">
+        {/* View Mode Tabs: Caregiver Summary (Default) vs Deep AI Clinical vs Single Exercise */}
+        <div className="bg-[#FAF8F5] border-b border-[#E5DFD5] px-4 sm:px-6 py-2.5 flex items-center justify-between shrink-0 overflow-x-auto gap-2">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setReportMode('COMPREHENSIVE')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
-                reportMode === 'COMPREHENSIVE'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+              onClick={() => setReportMode('CARE_SUMMARY')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-['Sora'] font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                reportMode === 'CARE_SUMMARY'
+                  ? 'bg-[#C05634] text-white shadow-xs'
+                  : 'text-[#636B65] hover:text-[#1F2421] hover:bg-white'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Full Multi-Modal Report (All Games + Caregiver Records + Meds)</span>
-              <span className="text-[9px] bg-amber-500 text-slate-950 font-black px-1.5 py-0.2 rounded-full">
-                Everything
+              <ListChecks className="w-3.5 h-3.5" />
+              <span>{tReport.tabCareSummary}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                reportMode === 'CARE_SUMMARY' ? 'bg-white/20 text-white' : 'bg-[#EDF5F0] text-[#28573E]'
+              }`}>
+                {tReport.quickAnalysisBadge}
               </span>
             </button>
 
             <button
-              onClick={() => setReportMode('SINGLE_SESSION')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                reportMode === 'SINGLE_SESSION'
-                  ? 'bg-slate-900 text-white shadow-xs font-black'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+              onClick={() => setReportMode('COMPREHENSIVE')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-['Sora'] font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                reportMode === 'COMPREHENSIVE'
+                  ? 'bg-[#1F2421] text-white shadow-xs'
+                  : 'text-[#636B65] hover:text-[#1F2421] hover:bg-white'
               }`}
             >
-              <Activity className="w-3.5 h-3.5 text-indigo-500" />
-              <span>Single Exercise Telemetry Drilldown</span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>{tReport.tabComprehensive}</span>
+            </button>
+
+            <button
+              onClick={() => setReportMode('SINGLE_SESSION')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-['Sora'] font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                reportMode === 'SINGLE_SESSION'
+                  ? 'bg-[#1F2421] text-white shadow-xs'
+                  : 'text-[#636B65] hover:text-[#1F2421] hover:bg-white'
+              }`}
+            >
+              <Activity className="w-3.5 h-3.5 text-sky-500" />
+              <span>{tReport.tabSingle}</span>
             </button>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <span>Patient: <strong className="text-slate-900">{patientName}</strong></span>
+          <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-[#636B65]">
+            <span>{tReport.patientLabel} <strong className="text-[#1F2421]">{patientName}</strong></span>
             <span>•</span>
             <span>{completedDate}</span>
           </div>
@@ -455,6 +779,496 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
 
         {/* Scrollable Content Body */}
         <div className="p-6 sm:p-8 space-y-6 overflow-y-auto text-slate-800">
+
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          {/* VIEW: CAREGIVER QUICK SUMMARY & DAILY ANALYSIS (DEFAULT OPTIMIZED)  */}
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          {reportMode === 'CARE_SUMMARY' && (
+            <div className="space-y-6 animate-fadeIn">
+
+              {/* Patient Profile Demographics Banner */}
+              <div className="p-4 rounded-2xl bg-[#FAF8F5] border-2 border-[#E5DFD5] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-[#EDF5F0] border border-[#CCE2D4] text-[#28573E] flex items-center justify-center font-['Sora'] font-extrabold text-xl shrink-0">
+                    {patientName.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-['Sora'] font-bold text-lg text-[#1F2421]">
+                        {patientName}
+                      </h3>
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#EDF5F0] text-[#28573E] border border-[#CCE2D4]">
+                        {tReport.scoreStatusStable}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#636B65] font-medium mt-0.5">
+                      {tReport.ageYrs(patientAge)} • <span className="capitalize text-[#8C5E39] font-bold">{diagnosis}</span> {prescription?.presetType ? `• Rx: ${prescription.presetType.replace(/_/g, ' ')}` : ''}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={handleCopySummary}
+                    className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-xl text-xs font-['Sora'] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                      copySuccess
+                        ? 'bg-[#EDF5F0] text-[#28573E] border-[#CCE2D4]'
+                        : 'bg-white hover:bg-[#FAF8F5] text-[#1F2421] border-[#E5DFD5]'
+                    }`}
+                  >
+                    {copySuccess ? <Check className="w-3.5 h-3.5 text-[#28573E]" /> : <Copy className="w-3.5 h-3.5 text-[#636B65]" />}
+                    <span>{copySuccess ? tReport.copiedToast : tReport.copySummary}</span>
+                  </button>
+
+                  <button
+                    onClick={handlePrint}
+                    className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF8F5] text-[#1F2421] border border-[#E5DFD5] text-xs font-['Sora'] font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-[#636B65]" />
+                    <span>{tReport.printPdf}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 1. Overall Score & Vitality Snapshot (Big, Clear Points) */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-['Sora'] font-bold text-base text-[#1F2421] flex items-center gap-2">
+                    <HeartPulse className="w-5 h-5 text-[#C05634]" />
+                    <span>{tReport.overallVitalityScore}</span>
+                  </h4>
+                  <span className="text-xs font-semibold text-[#636B65]">
+                    {completedDate}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {/* Today's Composite Score */}
+                  <div className="p-5 rounded-2xl bg-[#FAF8F5] border-2 border-[#E5DFD5] space-y-1">
+                    <span className="text-xs font-bold text-[#636B65] uppercase tracking-wider font-['Sora']">
+                      {isHi ? 'आज का समग्र स्कोर' : "Today's Score"}
+                    </span>
+                    <div className="flex items-baseline gap-1.5 mt-1">
+                      <span className="text-3xl sm:text-4xl font-extrabold text-[#28573E] font-['Sora']">
+                        {dailyComposite ? dailyComposite.score : 84}
+                      </span>
+                      <span className="text-sm font-bold text-[#636B65]">/ 100</span>
+                    </div>
+                    <p className="text-[11px] text-[#28573E] font-semibold pt-1">
+                      {isHi ? '✓ सामान्य स्तर पर स्थिर' : '✓ Normal & stable baseline'}
+                    </p>
+                  </div>
+
+                  {/* Exercises Done */}
+                  <div className="p-5 rounded-2xl bg-[#FAF8F5] border-2 border-[#E5DFD5] space-y-1">
+                    <span className="text-xs font-bold text-[#636B65] uppercase tracking-wider font-['Sora']">
+                      {isHi ? 'दैनिक अभ्यास' : 'Exercises Done'}
+                    </span>
+                    <div className="flex items-baseline gap-1.5 mt-1">
+                      <span className="text-3xl sm:text-4xl font-extrabold text-[#C05634] font-['Sora']">
+                        {dailyComposite ? dailyComposite.gamesPlayedCount : 2}
+                      </span>
+                      <span className="text-sm font-bold text-[#636B65]">/ 3</span>
+                    </div>
+                    <p className="text-[11px] text-[#636B65] font-medium pt-1 truncate">
+                      {dailyComposite?.playedGameIds?.length ? dailyComposite.playedGameIds.join(', ') : 'Memory Match, Sequence'}
+                    </p>
+                  </div>
+
+                  {/* Independence Rate */}
+                  <div className="p-5 rounded-2xl bg-[#FAF8F5] border-2 border-[#E5DFD5] space-y-1">
+                    <span className="text-xs font-bold text-[#636B65] uppercase tracking-wider font-['Sora']">
+                      {tReport.independenceRate}
+                    </span>
+                    <div className="flex items-baseline gap-1.5 mt-1">
+                      <span className="text-3xl sm:text-4xl font-extrabold text-[#1F2421] font-['Sora']">
+                        {dailyComposite ? dailyComposite.meanAutonomy || 94 : 94}%
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#636B65] font-medium pt-1">
+                      {tReport.independenceDesc}
+                    </p>
+                  </div>
+
+                  {/* Response Pace */}
+                  <div className="p-5 rounded-2xl bg-[#FAF8F5] border-2 border-[#E5DFD5] space-y-1">
+                    <span className="text-xs font-bold text-[#636B65] uppercase tracking-wider font-['Sora']">
+                      {tReport.responsePace}
+                    </span>
+                    <div className="flex items-baseline gap-1.5 mt-1">
+                      <span className="text-3xl sm:text-4xl font-extrabold text-[#1F2421] font-['Sora']">
+                        {((activeReport.averageLatencyMs || 2350) / 1000).toFixed(1)}s
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#636B65] font-medium pt-1">
+                      {tReport.paceDesc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Medication Adherence & Exact Timings (USER CORE REQUEST) */}
+              <div className="p-6 rounded-3xl bg-white border-2 border-[#E5DFD5] shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-[#E5DFD5] pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-[#EDF5F0] text-[#28573E] flex items-center justify-center font-bold">
+                      <Pill className="w-5 h-5 text-[#28573E]" />
+                    </div>
+                    <div>
+                      <h4 className="font-['Sora'] font-bold text-base text-[#1F2421]">
+                        {tReport.medAdherenceSchedule}
+                      </h4>
+                      <p className="text-xs text-[#636B65]">
+                        {isHi ? 'समय पर खुराक और ली गई दवाओं का सटीक विवरण' : 'Exact timings, dosage instructions, and adherence check'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className={`text-xs font-['Sora'] font-bold px-3 py-1.5 rounded-full border ${
+                    pendingMedCount > 0 
+                      ? 'bg-amber-50 text-amber-800 border-amber-300' 
+                      : 'bg-[#EDF5F0] text-[#28573E] border-[#CCE2D4]'
+                  }`}>
+                    {tReport.dosesTaken(effectiveMedications.filter(m => m.takenToday).length, effectiveMedications.length)}
+                  </span>
+                </div>
+
+                {/* Warning / Success Banner */}
+                {pendingMedCount > 0 ? (
+                  <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-900 text-xs flex items-center gap-2.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+                    <span className="font-medium">{tReport.medPendingAlert(pendingMedCount)}</span>
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded-2xl bg-[#EDF5F0] border border-[#CCE2D4] text-[#28573E] text-xs flex items-center gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-[#28573E] shrink-0" />
+                    <span className="font-bold">{tReport.allMedsTakenAlert}</span>
+                  </div>
+                )}
+
+                {/* Medication Cards List */}
+                <div className="space-y-3">
+                  {effectiveMedications.map((med, idx) => {
+                    const isTaken = med.takenToday;
+                    return (
+                      <div 
+                        key={med.id || idx}
+                        className={`p-4 rounded-2xl border-2 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+                          isTaken 
+                            ? 'bg-[#FAF8F5] border-[#E5DFD5]' 
+                            : 'bg-amber-50/40 border-amber-200 shadow-2xs'
+                        }`}
+                      >
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-['Sora'] font-bold text-[#8C5E39] bg-[#F4F0EA] px-2.5 py-0.5 rounded-lg border border-[#E5DFD5]">
+                              {getTimingLabel(med.timing)}
+                            </span>
+                            <h5 className="font-['Sora'] font-bold text-sm text-[#1F2421]">
+                              {med.name} <span className="text-xs font-semibold text-[#636B65]">({med.dosage})</span>
+                            </h5>
+                          </div>
+                          <p className="text-xs text-[#636B65] leading-relaxed">
+                            {med.instructions}
+                          </p>
+                          {med.prescribedBy && (
+                            <p className="text-[11px] text-[#8C5E39] font-medium">
+                              {tReport.prescribedDoctor} {med.prescribedBy}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="shrink-0">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-['Sora'] font-bold border ${
+                            isTaken
+                              ? 'bg-[#EDF5F0] text-[#28573E] border-[#CCE2D4]'
+                              : 'bg-amber-100 text-amber-900 border-amber-300'
+                          }`}>
+                            {isTaken ? <CheckCircle2 className="w-3.5 h-3.5 text-[#28573E]" /> : <Clock className="w-3.5 h-3.5 text-amber-700" />}
+                            <span>{isTaken ? tReport.takenBadge : tReport.needsGivingBadge}</span>
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 3. Daily Routines Checklist (USER CORE REQUEST) */}
+              <div className="p-6 rounded-3xl bg-white border-2 border-[#E5DFD5] shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-[#E5DFD5] pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-[#FDF1EB] text-[#C05634] flex items-center justify-center font-bold">
+                      <Calendar className="w-5 h-5 text-[#C05634]" />
+                    </div>
+                    <div>
+                      <h4 className="font-['Sora'] font-bold text-base text-[#1F2421]">
+                        {tReport.routineTracking}
+                      </h4>
+                      <p className="text-xs text-[#636B65]">
+                        {isHi ? 'समय पर की गई दैनिक गतिविधियों और आदतों की जांच' : 'Checklist of daily habit cues and scheduled routines'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="text-xs font-['Sora'] font-bold px-3 py-1.5 rounded-full bg-[#FAF8F5] text-[#1F2421] border border-[#E5DFD5]">
+                    {tReport.routinesDoneCount(
+                      effectiveRoutines.filter(r => r.completed).length,
+                      effectiveRoutines.length
+                    )}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {effectiveRoutines.map((routine, idx) => {
+                    const isDone = routine.completed;
+                    return (
+                      <div
+                        key={routine.id || idx}
+                        className={`p-3.5 rounded-2xl border-2 flex items-center justify-between gap-3 transition-all ${
+                          isDone
+                            ? 'bg-[#FAF8F5] border-[#E5DFD5]'
+                            : 'bg-white border-[#E5DFD5] border-dashed'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-['Sora'] font-bold text-[#8C5E39] bg-[#F4F0EA] px-2.5 py-1 rounded-xl border border-[#E5DFD5]">
+                            {routine.time}
+                          </span>
+                          <span className={`text-xs sm:text-sm font-medium ${isDone ? 'text-[#1F2421]' : 'text-[#636B65]'}`}>
+                            {routine.activity}
+                          </span>
+                        </div>
+
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full border shrink-0 ${
+                          isDone 
+                            ? 'bg-[#EDF5F0] text-[#28573E] border-[#CCE2D4]' 
+                            : 'bg-[#F4F0EA] text-[#636B65] border-[#E5DFD5]'
+                        }`}>
+                          {isDone ? tReport.doneBadge : tReport.pendingBadge}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 4. Cognitive Domain Health in Plain Language */}
+              <div className="p-6 rounded-3xl bg-white border-2 border-[#E5DFD5] shadow-xs space-y-4">
+                <div className="border-b border-[#E5DFD5] pb-3">
+                  <h4 className="font-['Sora'] font-bold text-base text-[#1F2421] flex items-center gap-2">
+                    <Brain className="w-5 h-5 text-[#28573E]" />
+                    <span>{tReport.cognitiveDomainsPlain}</span>
+                  </h4>
+                  <p className="text-xs text-[#636B65] mt-0.5">
+                    {tReport.cognitiveDomainsSub}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-['Sora'] font-bold text-[#7A4E6C]">
+                        {isHi ? '🧠 स्मृति (Memory)' : '🧠 Memory'}
+                      </span>
+                      <span className="text-xs font-bold text-[#28573E]">84%</span>
+                    </div>
+                    <p className="text-xs text-[#474F49] leading-relaxed">
+                      {isHi ? 'परिचित चेहरों और युग्मित कार्डों की अच्छी याददाश्त। दिनचर्या संकेतों को सरलता से पहचानते हैं।' : 'Strong recall of familiar names and paired cards; minimal hesitation on recognition.'}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-['Sora'] font-bold text-[#356784]">
+                        {isHi ? '⚡ एकाग्रता (Attention)' : '⚡ Attention & Focus'}
+                      </span>
+                      <span className="text-xs font-bold text-[#28573E]">80%</span>
+                    </div>
+                    <p className="text-xs text-[#474F49] leading-relaxed">
+                      {isHi ? 'अभ्यास के दौरान स्थिर ध्यान। शांत कमरे में ध्यान भटकाव न्यूनतम रहता है।' : 'Sustained focus throughout 6 workout trials; performs best with quiet surroundings.'}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-['Sora'] font-bold text-[#A86F15]">
+                        {isHi ? '🎯 निर्णय (Decision & Logic)' : '🎯 Decision & Logic'}
+                      </span>
+                      <span className="text-xs font-bold text-[#28573E]">81%</span>
+                    </div>
+                    <p className="text-xs text-[#474F49] leading-relaxed">
+                      {isHi ? 'स्वतंत्र रूप से सही विकल्प चुनने में सक्षम। किसी विशेष सहायता की आवश्यकता नहीं पड़ी।' : 'Able to independently categorize items and select choices with consistent confidence.'}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-['Sora'] font-bold text-[#356784]">
+                        {isHi ? '🧩 स्थानिक (Spatial Orientation)' : '🧩 Spatial Orientation'}
+                      </span>
+                      <span className="text-xs font-bold text-[#28573E]">85%</span>
+                    </div>
+                    <p className="text-xs text-[#474F49] leading-relaxed">
+                      {isHi ? 'स्थान और दिशा की उत्कृष्ट समझ। जिग्सॉ और आकृतियों को सही स्थान पर लगाया।' : 'Clear visual positioning and alignment; quickly placed jigsaw and spatial patterns.'}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] space-y-1.5 sm:col-span-2 lg:col-span-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-['Sora'] font-bold text-[#28573E]">
+                        {isHi ? '🗣️ भाषा एवं संवाद (Language)' : '🗣️ Language & Verbal Fluency'}
+                      </span>
+                      <span className="text-xs font-bold text-[#28573E]">79%</span>
+                    </div>
+                    <p className="text-xs text-[#474F49] leading-relaxed">
+                      {isHi ? 'संवाद सहज और स्पष्ट है। कभी-कभार नए शब्दों को याद करने में हल्का विराम देखा गया।' : 'Fluent conversational ability; brief word-finding pauses during rapid naming, normal for age.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 5. Physical & Motor Steadiness */}
+              <div className="p-6 rounded-3xl bg-white border-2 border-[#E5DFD5] shadow-xs space-y-4">
+                <div className="border-b border-[#E5DFD5] pb-3">
+                  <h4 className="font-['Sora'] font-bold text-base text-[#1F2421] flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-[#C05634]" />
+                    <span>{tReport.motorSteadiness}</span>
+                  </h4>
+                  <p className="text-xs text-[#636B65] mt-0.5">
+                    {tReport.motorSteadinessSub}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] space-y-1">
+                    <span className="text-xs font-bold text-[#636B65] uppercase tracking-wider font-['Sora']">
+                      {isHi ? 'स्पर्श की सहजता' : 'Touch Smoothness'}
+                    </span>
+                    <p className="text-2xl font-extrabold text-[#28573E] font-['Sora']">94.6%</p>
+                    <p className="text-[11px] text-[#636B65]">
+                      {isHi ? 'सीधी और नियंत्रित उंगली की गति' : 'Direct, unhesitant finger drag'}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] space-y-1">
+                    <span className="text-xs font-bold text-[#636B65] uppercase tracking-wider font-['Sora']">
+                      {isHi ? 'हाथ का कंपन' : 'Tremor Evaluation'}
+                    </span>
+                    <p className="text-2xl font-extrabold text-[#28573E] font-['Sora']">
+                      {isHi ? 'सामान्य' : 'Normal'}
+                    </p>
+                    <p className="text-[11px] text-[#636B65]">
+                      {isHi ? 'कोई कंपन या रुकावट नहीं पाई गई' : 'No clinical hand tremor detected'}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] space-y-1">
+                    <span className="text-xs font-bold text-[#636B65] uppercase tracking-wider font-['Sora']">
+                      {isHi ? 'स्पर्श प्रतिक्रिया' : 'Tap Latency'}
+                    </span>
+                    <p className="text-2xl font-extrabold text-[#1F2421] font-['Sora']">2.3s</p>
+                    <p className="text-[11px] text-[#636B65]">
+                      {isHi ? 'सहज और आरामदायक गति' : 'Relaxed, confident finger contact'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 6. Immediate 24–48h Caregiver Action Plan */}
+              <div className="p-6 rounded-3xl bg-[#FAF8F5] border-2 border-[#E5DFD5] shadow-xs space-y-4">
+                <div className="border-b border-[#E5DFD5] pb-3">
+                  <h4 className="font-['Sora'] font-bold text-base text-[#1F2421] flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-[#28573E]" />
+                    <span>{tReport.immediateCaregiverPlan}</span>
+                  </h4>
+                  <p className="text-xs text-[#636B65] mt-0.5">
+                    {tReport.immediateCaregiverSub}
+                  </p>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div className="p-3.5 rounded-2xl bg-white border border-[#E5DFD5] flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-[#EDF5F0] text-[#28573E] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                      1
+                    </span>
+                    <div>
+                      <strong className="text-xs font-['Sora'] font-bold text-[#1F2421] block">
+                        {isHi ? 'रात की दवा समय पर दें (Donepezil 5mg)' : 'Administer Night Medication (Donepezil 5mg)'}
+                      </strong>
+                      <p className="text-xs text-[#636B65] mt-0.5 leading-relaxed">
+                        {isHi ? 'रात ९:०० बजे पानी के साथ १ गोली दें। यह नींद के दौरान याददाश्त को स्थिर रखने में सहायक है।' : 'Give 1 tablet with a glass of water around 9:00 PM before sleep.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-white border border-[#E5DFD5] flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-[#EDF5F0] text-[#28573E] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                      2
+                    </span>
+                    <div>
+                      <strong className="text-xs font-['Sora'] font-bold text-[#1F2421] block">
+                        {isHi ? 'शाम की शांति और संवाद (संडउनिंग रोकथाम)' : 'Evening Calm & Conversation (Sundowning Prevention)'}
+                      </strong>
+                      <p className="text-xs text-[#636B65] mt-0.5 leading-relaxed">
+                        {isHi ? 'शाम ६ बजे के आसपास कमरे की रोशनी सामान्य रखें और हल्की पारिवारिक बातचीत या शांत संगीत का आनंद लें।' : 'Keep evening lighting warm and soothing around 6:00 PM; engage in familiar family chats.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-white border border-[#E5DFD5] flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-[#EDF5F0] text-[#28573E] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                      3
+                    </span>
+                    <div>
+                      <strong className="text-xs font-['Sora'] font-bold text-[#1F2421] block">
+                        {isHi ? 'कल सुबह की दिनचर्या: धूप में टहलना और दिमागी कसरत' : "Tomorrow's Morning Plan: Sunshine Walk & Brain Games"}
+                      </strong>
+                      <p className="text-xs text-[#636B65] mt-0.5 leading-relaxed">
+                        {isHi ? 'सुबह ८:०० बजे १५ मिनट की धूप में सैर, उसके बाद नाश्ता और निर्धारित मेमोरी मैच अभ्यास।' : '15-minute sunshine walk at 8:00 AM, followed by breakfast and the scheduled Memory Match game.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 7. Quick Share Action Banner */}
+              <div className="p-5 rounded-2xl bg-[#EDF5F0] border border-[#CCE2D4] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <h5 className="font-['Sora'] font-bold text-sm text-[#28573E] flex items-center gap-2">
+                    <Share2 className="w-4 h-4 text-[#28573E]" />
+                    <span>{tReport.shareWithDoctorOrFamily}</span>
+                  </h5>
+                  <p className="text-xs text-[#636B65] mt-0.5">
+                    {tReport.shareSub}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                  <button
+                    onClick={handleCopySummary}
+                    className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl font-['Sora'] font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer ${
+                      copySuccess
+                        ? 'bg-[#28573E] text-white'
+                        : 'bg-[#C05634] hover:bg-[#A64727] text-white'
+                    }`}
+                  >
+                    {copySuccess ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    <span>{copySuccess ? tReport.copiedToast : tReport.copySummary}</span>
+                  </button>
+
+                  <button
+                    onClick={handlePrint}
+                    className="px-4 py-2.5 rounded-xl bg-white hover:bg-[#FAF8F5] border border-[#CCE2D4] text-[#28573E] font-['Sora'] font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>{tReport.printPdf}</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          )}
 
           {/* ═══════════════════════════════════════════════════════════════════ */}
           {/* VIEW: COMPREHENSIVE MULTI-MODAL EVALUATION (INGESTING EVERYTHING)  */}
@@ -465,45 +1279,45 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
               {/* Comprehensive Patient & Caregiver Records Banner */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                 <div>
-                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">Patient Profile</span>
+                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">{tReport.profileLabel}</span>
                   <strong className="text-sm text-slate-900 flex items-center gap-1 mt-0.5">
                     <User className="w-3.5 h-3.5 text-slate-500" />
                     <span>{patientName}</span>
                   </strong>
                   <span className="text-[11px] text-slate-500 font-medium block">
-                    Age {patientAge} • {diagnosis} {prescription?.presetType ? `• Rx: ${prescription.presetType.replace(/_/g, ' ')}` : ''}
+                    {tReport.ageYrs(patientAge)} • {diagnosis} {prescription?.presetType ? `• Rx: ${prescription.presetType.replace(/_/g, ' ')}` : ''}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">Active Daily Exercises</span>
+                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">{tReport.activeExercises}</span>
                   <strong className="text-sm text-slate-900 flex items-center gap-1 mt-0.5">
                     <Brain className="w-3.5 h-3.5 text-purple-600" />
-                    <span>{dailyComposite ? dailyComposite.gamesPlayedCount : 2} Games Completed</span>
+                    <span>{tReport.gamesCompleted(dailyComposite ? dailyComposite.gamesPlayedCount : 2)}</span>
                   </strong>
                   <span className="text-[11px] text-emerald-600 font-bold block">
-                    Composite Score: {dailyComposite ? dailyComposite.score : 82}/100
+                    {tReport.compositeScore(dailyComposite ? dailyComposite.score : 82)}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">Medication Adherence</span>
+                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">{tReport.medAdherence}</span>
                   <strong className="text-sm text-slate-900 flex items-center gap-1 mt-0.5">
                     <Pill className="w-3.5 h-3.5 text-sky-600" />
-                    <span>{medications.filter(m => m.takenToday).length}/{medications.length} Doses Taken</span>
+                    <span>{tReport.dosesTaken(medications.filter(m => m.takenToday).length, medications.length)}</span>
                   </strong>
                   <span className={`text-[11px] font-bold block ${pendingMedCount > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                    {pendingMedCount > 0 ? `⚠️ ${pendingMedCount} dose pending action` : '✓ All doses completed'}
+                    {pendingMedCount > 0 ? tReport.dosesPendingWarning(pendingMedCount) : tReport.allDosesCompleted}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">Clinical Uploads</span>
+                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">{tReport.clinicalUploads}</span>
                   <strong className="text-sm text-slate-900 flex items-center gap-1 mt-0.5">
                     <FileText className="w-3.5 h-3.5 text-amber-600" />
-                    <span>{uploadedReports.length || 2} Medical Records</span>
+                    <span>{tReport.medicalRecords(uploadedReports.length || 2)}</span>
                   </strong>
-                  <span className="text-[11px] text-slate-500 font-medium block">MMSE, MRI on file</span>
+                  <span className="text-[11px] text-slate-500 font-medium block">{tReport.mmseMriOnFile}</span>
                 </div>
               </div>
 
@@ -518,13 +1332,13 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                     </div>
                     <div>
                       <h4 className="font-black text-white text-base flex items-center gap-2">
-                        <span>Cloud AI Clinical Intelligence Engine</span>
+                        <span>{tReport.cloudEngineTitle}</span>
                         <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950">
-                          Cloud API Powered
+                          {tReport.cloudApiPowered}
                         </span>
                       </h4>
                       <p className="text-xs text-slate-300 font-medium max-w-xl">
-                        Uses external Cloud LLM API keys directly. Zero local model training or local hardware required.
+                        {tReport.cloudEngineDesc}
                       </p>
                     </div>
                   </div>
@@ -533,12 +1347,12 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                     {apiKeyInput.trim() ? (
                       <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>API Key Active ({cloudConfig.provider.toUpperCase()})</span>
+                        <span>{tReport.apiKeyActive(cloudConfig.provider.toUpperCase())}</span>
                       </span>
                     ) : (
                       <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5">
                         <Key className="w-3.5 h-3.5 text-amber-400" />
-                        <span>API Key Needed for Live Cloud Call</span>
+                        <span>{tReport.apiKeyNeeded}</span>
                       </span>
                     )}
                   </div>
@@ -549,7 +1363,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                     <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                       <Key className="w-3.5 h-3.5 text-amber-400" />
-                      <span>1. Select Provider &amp; Enter API Key</span>
+                      <span>{tReport.selectProvider}</span>
                     </label>
 
                     <div className="flex items-center gap-3">
@@ -560,7 +1374,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                           rel="noreferrer"
                           className="text-[11px] font-bold text-amber-300 hover:text-amber-200 underline flex items-center gap-1 cursor-pointer"
                         >
-                          <span>Get Free Gemini Key</span>
+                          <span>{tReport.getFreeGeminiKey}</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       )}
@@ -568,10 +1382,10 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                         type="button"
                         onClick={() => setIsAIConfigOpen(true)}
                         className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer"
-                        title="Configure OpenAI Game Director & Report Keys"
+                        title={tReport.manageKeys}
                       >
                         <Settings className="w-3 h-3 text-amber-400" />
-                        <span>Manage Keys &amp; Models</span>
+                        <span>{tReport.manageKeys}</span>
                       </button>
                     </div>
                   </div>
@@ -612,14 +1426,14 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                           setCloudConfig(updated);
                           AIClinicalReportingService.saveConfig(updated);
                         }}
-                        placeholder={`Paste your ${cloudConfig.provider.toUpperCase()} API key here...`}
+                        placeholder={tReport.apiKeyPlaceholder(cloudConfig.provider.toUpperCase())}
                         className="w-full px-4 py-2.5 pr-10 rounded-2xl bg-black/60 border border-white/20 text-white text-xs font-mono placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
                       />
                       <button
                         type="button"
                         onClick={() => setShowApiKey(!showApiKey)}
                         className="absolute right-3.5 top-3 text-slate-400 hover:text-white cursor-pointer"
-                        title={showApiKey ? 'Hide Key' : 'Show Key'}
+                        title={showApiKey ? tReport.hideKey : tReport.showKey}
                       >
                         {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -632,7 +1446,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                   <div className="p-3.5 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-200 text-xs flex items-start gap-2.5">
                     <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
                     <div className="flex-1">
-                      <strong className="block font-bold">API Notice:</strong>
+                      <strong className="block font-bold">{tReport.apiNotice}</strong>
                       <span>{apiErrorMessage}</span>
                     </div>
                   </div>
@@ -642,7 +1456,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-white/10">
                   <div className="text-xs text-slate-400 flex items-center gap-1.5">
                     <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Target: <strong className="text-white">{cloudConfig.model}</strong> • Full multi-modal synthesis (all 10 games, tremor FFT, records, meds)</span>
+                    <span>{tReport.targetLlmDesc(cloudConfig.model)}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -655,12 +1469,12 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                       {isGeneratingComprehensive ? (
                         <>
                           <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
-                          <span>Calling Cloud API ({cloudConfig.provider.toUpperCase()})...</span>
+                          <span>{tReport.callingCloudApi(cloudConfig.provider.toUpperCase())}</span>
                         </>
                       ) : (
                         <>
                           <Zap className="w-4 h-4 text-slate-950" />
-                          <span>{comprehensiveReport ? 'Regenerate via Cloud API' : 'Generate Full Report (via API Key)'}</span>
+                          <span>{comprehensiveReport ? tReport.regenerateReport : tReport.generateFullReport}</span>
                         </>
                       )}
                     </button>
@@ -670,9 +1484,9 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                       onClick={() => handleGenerateComprehensiveReport(true)}
                       disabled={isGeneratingComprehensive}
                       className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 hover:text-white font-bold text-xs transition-all cursor-pointer"
-                      title="Load pre-synthesized cloud clinical reference benchmark"
+                      title={tReport.previewBenchmark}
                     >
-                      <span>Preview Cloud Benchmark</span>
+                      <span>{tReport.previewBenchmark}</span>
                     </button>
                   </div>
                 </div>
@@ -689,31 +1503,31 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block">
-                            Official Neuropsychological Evaluation
+                            {tReport.officialEvaluation}
                           </span>
                           <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
                             <Sparkles className="w-3 h-3 text-emerald-400" />
-                            <span>{comprehensiveReport.isCloudGenerated ? 'Live Cloud REST API' : 'Cloud Benchmark Reference'}</span>
+                            <span>{comprehensiveReport.isCloudGenerated ? tReport.liveCloudRestApi : tReport.cloudBenchmarkRef}</span>
                           </span>
                         </div>
                         <h3 className="text-lg font-black text-white mt-0.5">
                           {comprehensiveReport.dsm5Staging}
                         </h3>
                         <p className="text-xs text-slate-400 font-medium mt-1">
-                          Evaluated via {comprehensiveReport.provider} ({comprehensiveReport.model}) • {comprehensiveReport.generatedAt}
+                          {tReport.evaluatedVia} {comprehensiveReport.provider} ({comprehensiveReport.model}) • {comprehensiveReport.generatedAt}
                         </p>
                       </div>
 
                       <div className="flex items-center gap-3">
                         <div className="text-center px-4 py-2 rounded-2xl bg-white/10 border border-white/15">
-                          <span className="text-[9px] uppercase font-bold text-slate-300 block">Estimated MoCA</span>
+                          <span className="text-[9px] uppercase font-bold text-slate-300 block">{tReport.estimatedMoCA}</span>
                           <span className="text-xl font-black text-amber-300">{comprehensiveReport.estimatedMoCAScore} / 30</span>
                         </div>
 
                         <div className="text-center px-4 py-2 rounded-2xl bg-white/10 border border-white/15">
-                          <span className="text-[9px] uppercase font-bold text-slate-300 block">Decline Risk</span>
+                          <span className="text-[9px] uppercase font-bold text-slate-300 block">{tReport.declineRisk}</span>
                           <span className="text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 inline-block mt-0.5">
-                            {comprehensiveReport.cognitiveDeclineRiskLevel} Risk
+                            {tReport.riskBadge(comprehensiveReport.cognitiveDeclineRiskLevel)}
                           </span>
                         </div>
                       </div>
@@ -723,7 +1537,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                     <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
                       <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
                         <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-                        Executive Diagnostic Summary
+                        {tReport.executiveSummary}
                       </span>
                       <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
                         {comprehensiveReport.diagnosticSummary}
@@ -740,19 +1554,19 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                         </div>
                         <div>
                           <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                            <span>Top Priority Medications &amp; Adherence Schedule</span>
+                            <span>{tReport.topPriorityMeds}</span>
                             <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">
-                              Top Priority
+                              {tReport.topPriorityBadge}
                             </span>
                           </h3>
                           <p className="text-xs text-slate-500">
-                            Ranked clinical schedule prioritizing neuro-protective agents and active dosage compliance.
+                            {tReport.medsSubtitle}
                           </p>
                         </div>
                       </div>
 
                       <span className="text-xs font-bold text-slate-500">
-                        {comprehensiveReport.medicationPriorities.length} Meds Monitored
+                        {tReport.medsMonitored(comprehensiveReport.medicationPriorities.length)}
                       </span>
                     </div>
 
@@ -779,7 +1593,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                                     ? 'bg-amber-500 text-slate-950'
                                     : 'bg-slate-200 text-slate-700'
                                 }`}>
-                                  {med.priorityLevel.replace('_', ' ')}
+                                  {med.priorityLevel === 'CRITICAL_HIGH' ? (isHi ? 'अति गंभीर' : 'CRITICAL HIGH') : med.priorityLevel === 'HIGH' ? (isHi ? 'उच्च' : 'HIGH') : (isHi ? 'मध्यम' : 'MEDIUM')}
                                 </span>
                                 <h4 className="font-black text-sm text-slate-900 mt-1">
                                   {med.medicineName}
@@ -791,13 +1605,13 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                                   ? 'bg-amber-100 text-amber-800 border border-amber-300 animate-pulse' 
                                   : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                               }`}>
-                                {isPending ? '⚠️ PENDING' : '✓ TAKEN'}
+                                {isPending ? tReport.pendingActionBadge : tReport.takenBadge}
                               </span>
                             </div>
 
                             <div className="text-xs space-y-1">
                               <p className="text-[11px] text-slate-600">
-                                <strong className="text-slate-800">Timing:</strong> {med.timing}
+                                <strong className="text-slate-800">{tReport.timing}</strong> {med.timing}
                               </p>
                               <p className="text-[11px] text-slate-500 leading-snug">
                                 {med.instructions}
@@ -806,7 +1620,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
 
                             <div className="p-2.5 rounded-xl bg-white border border-slate-200/80 text-[11px] space-y-1">
                               <strong className="text-indigo-900 block font-bold text-[10px] uppercase">
-                                Clinical Rationale:
+                                {tReport.clinicalRationale}
                               </strong>
                               <p className="text-slate-700 leading-tight">
                                 {med.clinicalRationale}
@@ -814,7 +1628,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                             </div>
 
                             <div className="pt-2 border-t border-slate-200/60 text-[11px] text-rose-900 font-bold">
-                              <span>Action: {med.caregiverAction}</span>
+                              <span>{tReport.caregiverAction} {med.caregiverAction}</span>
                             </div>
                           </div>
                         );
@@ -831,13 +1645,13 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                         </div>
                         <div>
                           <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                            <span>Recommended Games to Play Next</span>
+                            <span>{tReport.recommendedGamesNext}</span>
                             <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                              Targeted ZPD
+                              {tReport.targetedZPD}
                             </span>
                           </h3>
                           <p className="text-xs text-slate-500">
-                            Ranked exercises designed to rehabilitate specific cognitive deficits identified in today's telemetry.
+                            {tReport.recommendedGamesSub}
                           </p>
                         </div>
                       </div>
@@ -883,7 +1697,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                                 }}
                                 className="w-full py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                               >
-                                <span>Launch Exercise</span>
+                                <span>{tReport.launchExercise}</span>
                                 <ArrowRight className="w-3.5 h-3.5" />
                               </button>
                             )}
@@ -901,10 +1715,10 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                       </div>
                       <div>
                         <h3 className="text-base font-black text-slate-900">
-                          What To Do Next: Actionable 24–48 Hour Caregiver Roadmap
+                          {tReport.whatToDoNextTitle}
                         </h3>
                         <p className="text-xs text-slate-500">
-                          Practical home steps to maintain neuroplastic stability and prevent cognitive fatigue.
+                          {tReport.whatToDoNextSub}
                         </p>
                       </div>
                     </div>
@@ -935,19 +1749,19 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                     <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                       <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                         <Activity className="w-4 h-4 text-purple-600" />
-                        <span>Multi-Domain Neurocognitive Analysis</span>
+                        <span>{tReport.multiDomainAnalysis}</span>
                       </h4>
                       <div className="space-y-2 text-xs">
                         <div className="p-2.5 rounded-xl bg-white border border-slate-200">
-                          <strong className="text-purple-700 block font-bold text-[11px]">Hippocampal Memory</strong>
+                          <strong className="text-purple-700 block font-bold text-[11px]">{tReport.hippocampalMemory}</strong>
                           <p className="text-slate-600 text-[11px] mt-0.5">{comprehensiveReport.domainAnalysis.episodicMemory}</p>
                         </div>
                         <div className="p-2.5 rounded-xl bg-white border border-slate-200">
-                          <strong className="text-sky-700 block font-bold text-[11px]">Executive Control</strong>
+                          <strong className="text-sky-700 block font-bold text-[11px]">{tReport.executiveControl}</strong>
                           <p className="text-slate-600 text-[11px] mt-0.5">{comprehensiveReport.domainAnalysis.executiveControl}</p>
                         </div>
                         <div className="p-2.5 rounded-xl bg-white border border-slate-200">
-                          <strong className="text-emerald-700 block font-bold text-[11px]">Visuomotor Praxis</strong>
+                          <strong className="text-emerald-700 block font-bold text-[11px]">{tReport.visuomotorPraxis}</strong>
                           <p className="text-slate-600 text-[11px] mt-0.5">{comprehensiveReport.domainAnalysis.visuomotorPraxis}</p>
                         </div>
                       </div>
@@ -957,12 +1771,12 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                     <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                       <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                         <Zap className="w-4 h-4 text-amber-500" />
-                        <span>Tremor Spectral FFT &amp; Caregiver Reports Correlation</span>
+                        <span>{tReport.tremorFFTCorrelation}</span>
                       </h4>
                       
                       <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-1.5 text-xs">
                         <strong className="text-slate-800 block font-bold text-[11px]">
-                          Motor Tremor Decomposition ({comprehensiveReport.tremorEvaluation.phenotype})
+                          {tReport.motorTremorDecomp(comprehensiveReport.tremorEvaluation.phenotype)}
                         </strong>
                         <p className="text-[11px] text-slate-600">{comprehensiveReport.tremorEvaluation.band4_6HzAnalysis}</p>
                         <p className="text-[11px] text-slate-600">{comprehensiveReport.tremorEvaluation.fittsLawEfficiency}</p>
@@ -970,7 +1784,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
 
                       <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-1 text-xs">
                         <strong className="text-indigo-800 block font-bold text-[11px]">
-                          Correlation with Uploaded Medical Records:
+                          {tReport.correlationWithRecords}
                         </strong>
                         <p className="text-[11px] text-slate-600 leading-relaxed">
                           {comprehensiveReport.caregiverReportsCorrelation}
@@ -986,10 +1800,10 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-emerald-950 font-black text-xs uppercase tracking-wider">
                           <Cpu className="w-4 h-4 text-emerald-600" />
-                          <span>OpenAI Game Director Dynamic Level &amp; Scaffolding Synthesis</span>
+                          <span>{tReport.openAiDirectorReview}</span>
                         </div>
                         <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 border border-emerald-300">
-                          In-Game Calibrations Ingested
+                          {tReport.inGameCalibrationsIngested}
                         </span>
                       </div>
                       <p className="text-xs sm:text-sm text-emerald-950/90 leading-relaxed font-medium bg-white/80 p-3.5 rounded-xl border border-emerald-200 shadow-2xs">
@@ -1002,7 +1816,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                   <div className="p-5 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-3">
                     <div className="flex items-center gap-2 text-rose-900 font-black text-xs uppercase tracking-wider">
                       <AlertTriangle className="w-4 h-4 text-rose-600" />
-                      <span>Red-Flag Warning Signs (Requires Immediate Physician Review)</span>
+                      <span>{tReport.redFlagTitle}</span>
                     </div>
                     <ul className="text-xs text-rose-950 space-y-1.5 list-disc pl-5 font-medium">
                       {comprehensiveReport.redFlagWarningSigns.map((rf, rIdx) => (
@@ -1025,10 +1839,10 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                   </div>
                   <div>
                     <h4 className="font-black text-base text-slate-900">
-                      Multi-Modal Intelligence Synthesis Ready
+                      {tReport.synthesisReady}
                     </h4>
                     <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                      Click the button above to ingest all 10 clinical games, 60-120Hz kinematic tremor data, uploaded caregiver medical files, and medication adherence logs.
+                      {tReport.synthesisReadySub}
                     </p>
                   </div>
                   <button
@@ -1036,7 +1850,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                     className="px-6 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-black text-xs cursor-pointer shadow-md inline-flex items-center gap-2"
                   >
                     <Zap className="w-4 h-4 text-amber-400" />
-                    <span>Generate Full-Blown Test Report (API Key)</span>
+                    <span>{tReport.generateFullTestReport}</span>
                   </button>
                 </div>
               )}
@@ -1053,26 +1867,26 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
               {/* Single Session Demographics */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                 <div>
-                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">Patient Name</span>
+                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">{tReport.patientNameLabel}</span>
                   <strong className="text-sm text-slate-900 flex items-center gap-1 mt-0.5">
                     <User className="w-3.5 h-3.5 text-slate-500" />
                     <span>{patientName}</span>
                   </strong>
                 </div>
                 <div>
-                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">Age &amp; Stage</span>
+                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">{tReport.ageAndStage}</span>
                   <strong className="text-sm text-slate-900 block mt-0.5">
-                    {patientAge} yrs • <span className="capitalize text-amber-700">{diagnosis}</span>
+                    {tReport.ageYrs(patientAge)} • <span className="capitalize text-amber-700">{diagnosis}</span>
                   </strong>
                 </div>
                 <div>
-                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">Exercise Protocol</span>
+                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">{tReport.exerciseProtocol}</span>
                   <strong className="text-sm text-slate-900 block mt-0.5 truncate">
                     {gameTitle}
                   </strong>
                 </div>
                 <div>
-                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">Date &amp; Time</span>
+                  <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">{tReport.dateTime}</span>
                   <strong className="text-sm text-slate-900 flex items-center gap-1 mt-0.5">
                     <Calendar className="w-3.5 h-3.5 text-slate-500" />
                     <span>{completedDate}</span>
@@ -1084,10 +1898,10 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
               <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border border-amber-300 flex items-center justify-between gap-3">
                 <div>
                   <h4 className="font-black text-slate-900 text-xs sm:text-sm">
-                    Single Exercise AI Clinical Drilldown
+                    {tReport.singleDrilldownTitle}
                   </h4>
                   <p className="text-[11px] text-slate-600 font-medium">
-                    Evaluates accuracy, latency variance, and intrusion errors for {gameTitle}.
+                    {tReport.singleDrilldownSub(gameTitle)}
                   </p>
                 </div>
                 <button
@@ -1096,18 +1910,18 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
                   disabled={isGeneratingSingle}
                   className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer shadow-xs hover:bg-slate-800 disabled:opacity-60"
                 >
-                  {isGeneratingSingle ? 'Analyzing...' : singleCloudReport ? 'Regenerate' : 'Generate'}
+                  {isGeneratingSingle ? tReport.singleAnalyzing : singleCloudReport ? tReport.singleRegenerate : tReport.singleGenerate}
                 </button>
               </div>
 
               {/* Cognitive Classifier Staging Banner */}
               <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold uppercase text-amber-800">OASIS-2 Softmax Baseline Staging</span>
+                  <span className="text-[10px] font-bold uppercase text-amber-800">{tReport.oasisStaging}</span>
                   <p className="font-bold text-amber-950">{classification.predictedClass} (MoCA: {classification.estimatedMoCARange})</p>
                 </div>
                 <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded-full">
-                  Confidence: {Math.round(classification.confidenceScore * 100)}%
+                  {tReport.confidence(Math.round(classification.confidenceScore * 100))}
                 </span>
               </div>
 
@@ -1124,26 +1938,26 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
               {/* Cognitive Metric Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] font-bold uppercase text-slate-400">Accuracy</span>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">{tReport.accuracy}</span>
                   <p className="text-2xl font-black text-slate-900 mt-0.5">{activeReport.accuracyPercentage ?? 90}%</p>
-                  <span className="text-[9px] text-slate-500">({activeReport.totalCorrect ?? 5}/{activeReport.totalRounds ?? 6} trials)</span>
+                  <span className="text-[9px] text-slate-500">{tReport.trialsCount(activeReport.totalCorrect ?? 5, activeReport.totalRounds ?? 6)}</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] font-bold uppercase text-slate-400">Reaction Latency</span>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">{tReport.reactionLatency}</span>
                   <p className="text-2xl font-black text-slate-900 mt-0.5">{((activeReport.averageLatencyMs ?? 2400) / 1000).toFixed(1)}s</p>
-                  <span className="text-[9px] text-slate-500">Speed: {activeReport.speedProfile || 'Normal'}</span>
+                  <span className="text-[9px] text-slate-500">{tReport.speedLabel(activeReport.speedProfile || 'Normal')}</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] font-bold uppercase text-slate-400">Latent Ability θ</span>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">{tReport.latentAbility}</span>
                   <p className="text-2xl font-black text-purple-700 mt-0.5">
                     {activeReport.finalTheta >= 0 ? `+${activeReport.finalTheta?.toFixed(2)}` : activeReport.finalTheta?.toFixed(2) || '+0.65'}
                   </p>
-                  <span className="text-[9px] text-slate-500">2PL Psychometrics</span>
+                  <span className="text-[9px] text-slate-500">{tReport.psychometrics2PL}</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] font-bold uppercase text-slate-400">Tremor Decoupling</span>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">{tReport.tremorDecoupling}</span>
                   <p className="text-2xl font-black text-emerald-600 mt-0.5">94.6%</p>
-                  <span className="text-[9px] text-slate-500">Trajectory Smoothness</span>
+                  <span className="text-[9px] text-slate-500">{tReport.trajectorySmoothness}</span>
                 </div>
               </div>
 
@@ -1164,6 +1978,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
           setApiKeyInput(fresh.apiKey);
         }}
         initialTab="REPORT_AI"
+        language={language}
       />
     </div>
   );

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import {
   Eye,
   Sparkles,
-  Award,
   Volume2,
   VolumeX,
   RotateCcw,
@@ -18,7 +17,6 @@ import {
   Square,
   UserCheck,
   Activity,
-  Stethoscope,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -26,6 +24,7 @@ import {
   WHAT_CHANGED_TIERS,
 } from './engine';
 import { whatChangedAudio } from './audio';
+import { PatientGameCompletionView } from '../../components/games/PatientGameCompletionView';
 import type {
   WhatChangedDifficulty,
   WhatChangedSettingsSnapshot,
@@ -185,6 +184,264 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
       bn: 'প্রস্থান',
       hi: 'बाहर जाएं',
       en: 'Exit',
+    },
+    latentAbility: {
+      as: 'সুপ্ত ক্ষমতা θ',
+      bn: 'সুপ্ত ক্ষমতা θ',
+      hi: 'अव्यक्त क्षमता θ',
+      en: 'Latent Ability θ',
+    },
+    abilityRange: {
+      as: 'পৰিসৰ [-3.0, +3.0]। গতিশীল আইটেম কাঠিন্য',
+      bn: 'পরিসর [-3.0, +3.0]। গতিশীল আইটেম কাঠিন্য',
+      hi: 'दायरा [-3.0, +3.0]। गतिशील आइटम कठिनाई',
+      en: 'Range [-3.0, +3.0]. Dynamic Item Difficulty',
+    },
+    flickerMaskParams: {
+      as: 'ফ্লিক্ৰাৰ মাস্ক স্থিতিমাপ',
+      bn: 'ফ্লিকার মাস্ক প্যারামিটার',
+      hi: 'फ्लिकर मास्क पैरामीटर',
+      en: 'Flicker Mask Parameters',
+    },
+    itemsLabel: {
+      as: 'বস্তু',
+      bn: 'আইটেম',
+      hi: 'वस्तुएं',
+      en: 'Items',
+    },
+    maskLabel: {
+      as: 'মাস্ক',
+      bn: 'মাস্ক',
+      hi: 'मास्क',
+      en: 'Mask',
+    },
+    studyLabel: {
+      as: 'অধ্যয়ন:',
+      bn: 'অধ্যয়ন:',
+      hi: 'अध्ययन:',
+      en: 'Study:',
+    },
+    modeLabel: {
+      as: 'ধৰণ:',
+      bn: 'মোড:',
+      hi: 'मोड:',
+      en: 'Mode:',
+    },
+    goldenBeacon: {
+      as: 'সোণালী পোহৰ সহায়',
+      bn: 'সোনালি আলো সহায়তা',
+      hi: 'स्वर्ण प्रकाश सहायता',
+      en: 'Golden Beacon Assist',
+    },
+    spotlightActive: {
+      as: 'পোহৰ সক্ৰিয়',
+      bn: 'আলো সক্রিয়',
+      hi: 'प्रकाश सक्रिय',
+      en: 'Spotlight Active',
+    },
+    autonomousSearch: {
+      as: 'স্বায়ত্ত সন্ধান',
+      bn: 'স্বায়ত্ত অনুসন্ধান',
+      hi: 'स्वायत्त खोज',
+      en: 'Autonomous Search',
+    },
+    autoDelay: {
+      as: 'স্বতঃ-বিলম্ব:',
+      bn: 'স্বতঃ-বিলম্ব:',
+      hi: 'स्वतः विलंब:',
+      en: 'Auto-delay:',
+    },
+    tremorGuard: {
+      as: 'কম্পন ফিল্টাৰ গাৰ্ড',
+      bn: 'কম্পন ফিল্টার গার্ড',
+      hi: 'कंपन फिल्टर गार्ड',
+      en: 'Tremor Debounce Guard',
+    },
+    tapsFiltered: {
+      as: 'টেপ ফিল্টাৰ কৰা হ’ল',
+      bn: 'ট্যাপ ফিল্টার করা হয়েছে',
+      hi: 'टैप्स फिल्टर किए गए',
+      en: 'Taps Filtered',
+    },
+    debounceShield: {
+      as: 'ঘড়ী ঢালৰ সৈতে 400ms ডিবউন্স',
+      bn: 'ঘড়ি ঢালের সাথে 400ms ডিবউন্স',
+      hi: 'घड़ी शील्ड के साथ 400ms डिबाउंस',
+      en: '400ms Debounce with Clock Skew Shield',
+    },
+    directTierOverride: {
+      as: 'প্ৰত্যক্ষ স্তৰ বলপূৰ্বক অভাৰৰাইড:',
+      bn: 'প্রত্যক্ষ স্তর বলপূর্বক ওভাররাইড:',
+      hi: 'प्रत्यक्ष न्यूनतम स्तर ओवरराइड:',
+      en: 'Direct Minimal Step Tier Force Override:',
+    },
+    simulateResponse: {
+      as: 'প্ৰতিক্ৰিয়া অনুকৰণ কৰক:',
+      bn: 'প্রতিক্রিয়া অনুকরণ করুন:',
+      hi: 'प्रतिक्रिया अनुकरण करें:',
+      en: 'Simulate Response:',
+    },
+    selectCorrectChanged: {
+      as: '✓ সঠিকভাৱে সলনি হোৱা বস্তু বাছক',
+      bn: '✓ সঠিকভাবে পরিবর্তিত আইটেম বাছুন',
+      hi: '✓ सही बदला हुआ आइटम चुनें',
+      en: '✓ Select Correct Changed Item',
+    },
+    selectDistractor: {
+      as: '✕ অন্য বস্তু বাছক',
+      bn: '✕ বিভ্রান্তিকর আইটেম বাছুন',
+      hi: '✕ भटकाने वाला आइटम चुनें',
+      en: '✕ Select Distractor Item',
+    },
+    triggerSpotlight: {
+      as: '✨ সোণালী পোহৰ সংকেত আৰম্ভ কৰক',
+      bn: '✨ সোনালি আলোর ইঙ্গিত শুরু করুন',
+      hi: '✨ स्वर्ण प्रकाश संकेत ट्रिगर करें',
+      en: '✨ Trigger Golden Spotlight Hint',
+    },
+    oasisArchetypes: {
+      as: 'ৱাশ্বিংটন বিশ্ববিদ্যালয় OASIS-2 প্ৰকৃত ৰোগী আৰ্হি:',
+      bn: 'ওয়াশিংটন বিশ্ববিদ্যালয় OASIS-2 প্রকৃত রোগী আর্কিটাইপ:',
+      hi: 'वाशिंगटन यूनिवर्सिटी OASIS-2 वास्तविक मरीज आर्केटाइप्स:',
+      en: 'Washington University OASIS-2 Real Patient Archetypes:',
+    },
+    stopSim: {
+      as: 'অনুকৰণ বন্ধ কৰক',
+      bn: 'সিমুলেশন বন্ধ করুন',
+      hi: 'सिमुलेशन रोकें',
+      en: 'Stop Simulation',
+    },
+    runSim: {
+      as: '▶ প্ৰকৃত খেল অনুকৰণ চলাওক',
+      bn: '▶ বাস্তব গেমপ্লে সিমুলেশন চালান',
+      hi: '▶ वास्तविक गेमप्ले सिमुलेशन चलाएं',
+      en: '▶ Run Real-World Gameplay Simulation',
+    },
+    ageLabel: {
+      as: 'বয়স',
+      bn: 'বয়স',
+      hi: 'आयु',
+      en: 'Age',
+    },
+    eduLabel: {
+      as: 'শিক্ষা:',
+      bn: 'শিক্ষা:',
+      hi: 'शिक्षा:',
+      en: 'Edu:',
+    },
+    yearsLabel: {
+      as: 'বছৰ',
+      bn: 'বছর',
+      hi: 'वर्ष',
+      en: 'y',
+    },
+    playAsPersona: {
+      as: 'এই ৰোগী হিচাপে খেলক',
+      bn: 'এই রোগী হিসেবে খেলুন',
+      hi: 'इस व्यक्तित्व के रूप में खेलें',
+      en: 'Play as this Persona',
+    },
+    sceneA: {
+      as: 'দৃশ্য ক (Scene A)',
+      bn: 'দৃশ্য ক (Scene A)',
+      hi: 'दृश्य क (Scene A)',
+      en: 'Scene A',
+    },
+    sceneB: {
+      as: 'দৃশ্য খ (সলনি হোৱা)',
+      bn: 'দৃশ্য খ (পরিবর্তিত)',
+      hi: 'दृश्य ख (परिवर्तित)',
+      en: 'Scene B (Changed)',
+    },
+    summarySubtitle: {
+      as: 'ৰেণচিংক দৃষ্টি অন্ধত্ব আৰু ভেণ্ট্ৰেল ভিজুৱেল ষ্ট্ৰীম বৈশিষ্ট্য সংযোগ',
+      bn: 'রেনসিংক দৃষ্টি অন্ধত্ব ও ভেন্ট্রাল ভিজ্যুয়াল স্ট্রিম বৈশিষ্ট্য সমন্বয়',
+      hi: 'रेनसिंक चेंज ब्लाइंडनेस एवं वेंट्रल विजुअल स्ट्रीम फीचर बाइंडिंग',
+      en: 'Rensink Change Blindness & Ventral Visual Stream Feature Binding',
+    },
+    mocaVisual: {
+      as: 'MoCA দৃশ্য একাগ্ৰতা',
+      bn: 'MoCA দৃষ্টি একাগ্রতা',
+      hi: 'MoCA दृश्य ध्यान',
+      en: 'MoCA Visual Attention',
+    },
+    visuospatialAttention: {
+      as: 'স্থানিক দৃষ্টি একাগ্ৰতা সমতুল্য',
+      bn: 'স্থানিক দৃষ্টি একাগ্রতা সমতুল্য',
+      hi: 'स्थानिक ध्यान समतुल्य',
+      en: 'Visuospatial attention equivalent',
+    },
+    featureBinding: {
+      as: 'বৈশিষ্ট্য সংযোগ (Feature Binding)',
+      bn: 'বৈশিষ্ট্য সমন্বয় (Feature Binding)',
+      hi: 'विशेषता संयोजन (Feature Binding)',
+      en: 'Feature Binding',
+    },
+    colorReplacement: {
+      as: 'ৰং আৰু বস্তু প্ৰতিস্থাপন',
+      bn: 'রং ও বস্তু প্রতিস্থাপন',
+      hi: 'रंग और वस्तु प्रतिस्थापन',
+      en: 'Color & object replacement',
+    },
+    spatialBinding: {
+      as: 'স্থানিক সংযোগ (Spatial Binding)',
+      bn: 'স্থানিক সমন্বয় (Spatial Binding)',
+      hi: 'स्थानिक संयोजन (Spatial Binding)',
+      en: 'Spatial Binding',
+    },
+    coordinatesRotation: {
+      as: 'স্থানাংক আৰু ঘূৰ্ণন',
+      bn: 'স্থানাঙ্ক ও ঘূর্ণন',
+      hi: 'निर्देशांक और घूर्णन',
+      en: 'Coordinates & rotation',
+    },
+    blindnessIndex: {
+      as: 'অন্ধত্ব সূচক (Blindness Index)',
+      bn: 'অন্ধত্ব সূচক (Blindness Index)',
+      hi: 'अंधत्व सूचकांक (Blindness Index)',
+      en: 'Blindness Index',
+    },
+    flickerResilience: {
+      as: 'ফ্লিক্ৰাৰ মাস্ক সহনশীলতা',
+      bn: 'ফ্লিকার মাস্ক সহনশীলতা',
+      hi: 'फ्लिकर मास्क लचीलापन',
+      en: 'Flicker mask resilience',
+    },
+    ventralStream: {
+      as: 'ভেণ্ট্ৰেল ষ্ট্ৰীম (Ventral Stream)',
+      bn: 'ভেন্ট্রাল স্ট্রিম (Ventral Stream)',
+      hi: 'वेंट्रल पाथवे (Ventral Stream)',
+      en: 'Ventral Stream',
+    },
+    occipitotemporal: {
+      as: 'অক্সিচিটোটেম্পোৰেল পথ',
+      bn: 'অক্সিপিটোটেম্পোরাল পথ',
+      hi: 'ऑक्सीपिटोटेम्पोरल मार्ग',
+      en: 'Occipitotemporal pathway',
+    },
+    settingsAutonomy: {
+      as: 'ছেটিংছ স্বায়ত্তশাসন',
+      bn: 'সেটিংস স্বায়ত্তশাসন',
+      hi: 'सेटिंग्स स्वायत्तता',
+      en: 'Settings Autonomy',
+    },
+    oasisStaging: {
+      as: 'OASIS-2 মেচিন লাৰ্নিং প্ৰজ্ঞান পৰ্যায়বিন্যাস',
+      bn: 'OASIS-2 মেশিন লার্নিং জ্ঞানীয় স্টেজিং',
+      hi: 'OASIS-2 मशीन लर्निंग संज्ञानात्मक स्टेजिंग',
+      en: 'OASIS-2 Machine Learning Cognitive Staging',
+    },
+    confidenceLabel: {
+      as: 'বিশ্বাসযোগ্যতা (Confidence)',
+      bn: 'আত্মবিশ্বাস (Confidence)',
+      hi: 'विश्वास (Confidence)',
+      en: 'Confidence',
+    },
+    mocaScoreRange: {
+      as: 'মানক MoCA স্ক’ৰ পৰিসৰ:',
+      bn: 'মানসম্মত MoCA স্কোর পরিসর:',
+      hi: 'मानकीकृत MoCA स्कोर दायरा:',
+      en: 'Standardized MoCA Score Range:',
     },
   };
 
@@ -758,7 +1015,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
         <div className="flex items-center gap-2 flex-wrap">
           <div className="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-slate-500" />
-            <span>Scene {currentTrialIndex + 1} of {totalTrials}</span>
+            <span>{language === 'hi' ? `दृश्य ${currentTrialIndex + 1} / ${totalTrials}` : `Scene ${currentTrialIndex + 1} of ${totalTrials}`}</span>
           </div>
 
           {/* AI TESTBED BUTTON */}
@@ -771,7 +1028,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
             }`}
           >
             <Sliders className="w-3.5 h-3.5" />
-            <span>AI Testbed</span>
+            <span>{language === 'hi' ? 'AI क्लिनिकल टेस्टबेड' : 'AI Testbed'}</span>
           </button>
 
           {/* Sound Toggle */}
@@ -802,76 +1059,78 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-indigo-400" />
               <span className="text-xs font-black uppercase tracking-wider text-indigo-300">
-                National AI Testbed: Rensink Change Blindness &amp; Bayesian 2PL IRT Diagnostics
+                {language === 'hi' 
+                  ? 'रेनसिंक चेंज ब्लाइंडनेस एवं 2PL IRT डायग्नोस्टिक्स AI टेस्टबेड' 
+                  : 'National AI Testbed: Rensink Change Blindness & Bayesian 2PL IRT Diagnostics'}
               </span>
             </div>
             <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
-              Active Latent Ability θ: {engine.getTheta().toFixed(2)}
+              {language === 'hi' ? 'सक्रिय अव्यक्त क्षमता θ:' : 'Active Latent Ability θ:'} {engine.getTheta().toFixed(2)}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             {/* Gauge 1: Latent Ability Theta */}
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1">
-              <span className="text-[10px] text-indigo-300 uppercase font-bold tracking-wider">Latent Ability θ</span>
+              <span className="text-[10px] text-indigo-300 uppercase font-bold tracking-wider">{t.latentAbility[language]}</span>
               <div className="text-xl font-black text-indigo-400">
                 {engine.getTheta() >= 0 ? `+${engine.getTheta().toFixed(2)}` : engine.getTheta().toFixed(2)}
               </div>
-              <p className="text-[10px] text-slate-400 leading-snug">Range [-3.0, +3.0]. Dynamic Item Difficulty $b$: {difficulty.itemDifficultyB.toFixed(2)}</p>
+              <p className="text-[10px] text-slate-400 leading-snug">{t.abilityRange[language]} $b$: {difficulty.itemDifficultyB.toFixed(2)}</p>
             </div>
 
             {/* Gauge 2: Items & Mask Flicker */}
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1">
-              <span className="text-[10px] text-emerald-300 uppercase font-bold tracking-wider">Flicker Mask Parameters</span>
+              <span className="text-[10px] text-emerald-300 uppercase font-bold tracking-wider">{t.flickerMaskParams[language]}</span>
               <div className="text-xl font-black text-emerald-400">
-                {difficulty.itemCount} Items / {difficulty.maskDurationMs}ms Mask
+                {difficulty.itemCount} {t.itemsLabel[language]} / {difficulty.maskDurationMs}ms {t.maskLabel[language]}
               </div>
-              <p className="text-[10px] text-slate-400 leading-snug">Study: {difficulty.studyDurationMs / 1000}s. Mode: {difficulty.changeType}</p>
+              <p className="text-[10px] text-slate-400 leading-snug">{t.studyLabel[language]} {difficulty.studyDurationMs / 1000}s. {t.modeLabel[language]} {difficulty.changeType}</p>
             </div>
 
             {/* Gauge 3: Scaffolding Beacon */}
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1">
-              <span className="text-[10px] text-amber-300 uppercase font-bold tracking-wider">Golden Beacon Assist</span>
+              <span className="text-[10px] text-amber-300 uppercase font-bold tracking-wider">{t.goldenBeacon[language]}</span>
               <div className="text-sm font-black text-amber-300 capitalize">
-                {isHaloVisible ? 'Spotlight Active' : 'Autonomous Search'}
+                {isHaloVisible ? t.spotlightActive[language] : t.autonomousSearch[language]}
               </div>
-              <p className="text-[10px] text-slate-400 leading-snug">Auto-delay: {difficulty.haloDelayMs / 1000}s</p>
+              <p className="text-[10px] text-slate-400 leading-snug">{t.autoDelay[language]} {difficulty.haloDelayMs / 1000}s</p>
             </div>
 
             {/* Gauge 4: Hardware Tremor Guard */}
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1">
-              <span className="text-[10px] text-purple-300 uppercase font-bold tracking-wider">Tremor Debounce Guard</span>
+              <span className="text-[10px] text-purple-300 uppercase font-bold tracking-wider">{t.tremorGuard[language]}</span>
               <div className="text-xl font-black text-purple-300">
-                {engine.getTremorFilteredCount()} Taps Filtered
+                {engine.getTremorFilteredCount()} {t.tapsFiltered[language]}
               </div>
-              <p className="text-[10px] text-slate-400 leading-snug">400ms Debounce with Clock Skew Shield</p>
+              <p className="text-[10px] text-slate-400 leading-snug">{t.debounceShield[language]}</p>
             </div>
           </div>
 
           {/* Testbed Interactive Controls */}
           <div className="pt-2 border-t border-white/10 space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <span className="text-xs font-bold text-slate-300">Direct Minimal Step Tier Force Override:</span>
+              <span className="text-xs font-bold text-slate-300">{t.directTierOverride[language]}</span>
               <div className="flex items-center gap-1.5 flex-wrap">
-                {WHAT_CHANGED_TIERS.map(t => (
+                {WHAT_CHANGED_TIERS.map(tTier => (
                   <button
-                    key={t.tierLevel}
+                    key={tTier.tierLevel}
                     onClick={() => {
                       clearAllTimers();
                       whatChangedAudio.stopAllSpeech();
-                      if (manualTierOverride === t.tierLevel) {
-                        initTrial(currentTrialIndex, t.tierLevel);
+                      if (manualTierOverride === tTier.tierLevel) {
+                        initTrial(currentTrialIndex, tTier.tierLevel);
                       } else {
-                        setManualTierOverride(t.tierLevel);
+                        setManualTierOverride(tTier.tierLevel);
                       }
                     }}
                     className={`px-2 py-1 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer ${
-                      difficulty.tierLevel === t.tierLevel
+                      difficulty.tierLevel === tTier.tierLevel
                         ? 'bg-indigo-500 text-white ring-2 ring-indigo-300'
                         : 'bg-white/10 hover:bg-white/20 text-slate-300'
                     }`}
                   >
-                    T{t.tierLevel} ({t.itemCount} items)
+                    T{tTier.tierLevel} ({tTier.itemCount} {t.itemsLabel[language]})
                   </button>
                 ))}
               </div>
@@ -879,7 +1138,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
 
             {/* Quick Simulation Triggers */}
             <div className="flex items-center gap-2 flex-wrap pt-1">
-              <span className="text-[11px] text-slate-400 font-bold">Simulate Response:</span>
+              <span className="text-[11px] text-slate-400 font-bold">{t.simulateResponse[language]}</span>
               
               <button
                 onClick={() => {
@@ -888,7 +1147,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
                 }}
                 className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold cursor-pointer"
               >
-                ✓ Select Correct Changed Item
+                {t.selectCorrectChanged[language]}
               </button>
 
               <button
@@ -899,14 +1158,14 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
                 }}
                 className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[11px] font-bold cursor-pointer"
               >
-                ✕ Select Distractor Item
+                {t.selectDistractor[language]}
               </button>
 
               <button
                 onClick={() => triggerAutoAssist(true)}
                 className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold cursor-pointer"
               >
-                ✨ Trigger Golden Spotlight Hint
+                {t.triggerSpotlight[language]}
               </button>
             </div>
 
@@ -915,7 +1174,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-sky-300">
                   <Activity className="w-3.5 h-3.5 text-sky-400" />
-                  <span>Washington University OASIS-2 Real Patient Archetypes:</span>
+                  <span>{t.oasisArchetypes[language]}</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -923,23 +1182,23 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
                     <button
                       onClick={() => {
                         setIsSimulatingPlayback(false);
-                        setSimulationStatusMsg('Simulation halted by user.');
+                        setSimulationStatusMsg(language === 'hi' ? 'सिमुलेशन रोक दिया गया।' : 'Simulation halted by user.');
                       }}
                       className="px-3 py-1 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer animate-pulse"
                     >
                       <Square className="w-3 h-3" />
-                      <span>Stop Simulation</span>
+                      <span>{t.stopSim[language]}</span>
                     </button>
                   ) : (
                     <button
                       onClick={() => {
                         setIsSimulatingPlayback(true);
-                        setSimulationStatusMsg(`Initiating live simulation of ${selectedOasisPersona.name}...`);
+                        setSimulationStatusMsg(language === 'hi' ? `${selectedOasisPersona.name} का लाइव सिमुलेशन शुरू हो रहा है...` : `Initiating live simulation of ${selectedOasisPersona.name}...`);
                       }}
                       className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
                     >
                       <Play className="w-3 h-3" />
-                      <span>▶ Run Real-World Gameplay Simulation</span>
+                      <span>{t.runSim[language]}</span>
                     </button>
                   )}
                 </div>
@@ -983,8 +1242,8 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-black text-white">{selectedOasisPersona.name}</span>
-                    <span className="text-[11px] text-sky-300 font-medium">Age {selectedOasisPersona.age} • {selectedOasisPersona.clinicalDiagnosis}</span>
-                    <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono text-slate-300">Edu: {selectedOasisPersona.educationYears}y</span>
+                    <span className="text-[11px] text-sky-300 font-medium">{t.ageLabel[language]} {selectedOasisPersona.age} • {selectedOasisPersona.clinicalDiagnosis}</span>
+                    <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono text-slate-300">{t.eduLabel[language]} {selectedOasisPersona.educationYears}{t.yearsLabel[language]}</span>
                   </div>
                   <p className="text-[11px] text-slate-400 leading-snug">
                     {selectedOasisPersona.clinicalNotes[language] || selectedOasisPersona.clinicalNotes.en}
@@ -1005,13 +1264,13 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
 
                     setManualTierOverride(targetTier);
                     initTrial(currentTrialIndex, targetTier);
-                    setFeedbackBanner(`Applied ${selectedOasisPersona.name}'s baseline: Tier ${targetTier} configured.`);
+                    setFeedbackBanner(language === 'hi' ? `${selectedOasisPersona.name} का आधार रेखा लागू किया गया: स्तर ${targetTier} कॉन्फ़िगर किया गया।` : `Applied ${selectedOasisPersona.name}'s baseline: Tier ${targetTier} configured.`);
                     setTimeout(() => setFeedbackBanner(null), 4000);
                   }}
                   className="px-2.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] shrink-0 cursor-pointer shadow-2xs flex items-center gap-1"
                 >
                   <UserCheck className="w-3.5 h-3.5" />
-                  <span>Play as this Persona</span>
+                  <span>{t.playAsPersona[language]}</span>
                 </button>
               </div>
             </div>
@@ -1329,7 +1588,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
             {/* Before and After Visual Comparison */}
             <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-center gap-4 text-xs font-bold">
               <div className="text-center space-y-1">
-                <span className="text-[10px] uppercase text-slate-400 font-black block">Scene A</span>
+                <span className="text-[10px] uppercase text-slate-400 font-black block">{t.sceneA[language]}</span>
                 <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-3xl mx-auto">
                   {lastTrialFeedback.targetItemA?.icon || '—'}
                 </div>
@@ -1341,7 +1600,7 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
               <ArrowRight className="w-5 h-5 text-indigo-400" />
 
               <div className="text-center space-y-1">
-                <span className="text-[10px] uppercase text-indigo-600 font-black block">Scene B (Changed)</span>
+                <span className="text-[10px] uppercase text-indigo-600 font-black block">{t.sceneB[language]}</span>
                 <div className="w-16 h-16 rounded-xl bg-indigo-50 border-2 border-indigo-400 flex items-center justify-center text-3xl mx-auto shadow-xs">
                   {lastTrialFeedback.targetItemB?.icon || '⭕'}
                 </div>
@@ -1365,121 +1624,23 @@ export const WhatChanged: React.FC<WhatChangedProps> = ({
           </div>
         )}
 
-        {/* PHASE E: SESSION COMPLETE SUMMARY MODAL */}
+        {/* PHASE E: SESSION COMPLETE WARM REASSURING SUMMARY (NO CLINICAL DIAGNOSTICS) */}
         {phase === 'COMPLETE' && finalSessionSummary && (
-          <div className="text-center space-y-5 animate-fadeIn max-w-2xl w-full p-2">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-600 text-white flex items-center justify-center mx-auto shadow-md">
-              <Award className="w-8 h-8" />
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-2xl font-black text-slate-900">
-                {language === 'hi' ? 'सत्र सफलतापूर्वक पूरा हुआ!' : 'Assessment Complete!'}
-              </h3>
-              <p className="text-xs text-slate-500 font-medium">
-                Rensink Change Blindness & Ventral Visual Stream Feature Binding
-              </p>
-            </div>
-
-            {/* 6-Grid Clinical Metrics Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-left">
-              
-              {/* Card 1: MoCA Visual Attention */}
-              <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">MoCA Visual Attention</span>
-                <div className="text-2xl font-black text-indigo-700">
-                  {finalSessionSummary.estimatedMoCAVisualScore} <span className="text-xs text-slate-400 font-bold">/ 5</span>
-                </div>
-                <p className="text-[10px] text-slate-500">Visuospatial attention equivalent</p>
-              </div>
-
-              {/* Card 2: Feature Binding */}
-              <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Feature Binding</span>
-                <div className="text-2xl font-black text-emerald-700">
-                  {finalSessionSummary.featureBindingScore}%
-                </div>
-                <p className="text-[10px] text-slate-500">Color & object replacement</p>
-              </div>
-
-              {/* Card 3: Spatial Binding */}
-              <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Spatial Binding</span>
-                <div className="text-2xl font-black text-amber-700">
-                  {finalSessionSummary.spatialBindingScore}%
-                </div>
-                <p className="text-[10px] text-slate-500">Coordinates & rotation</p>
-              </div>
-
-              {/* Card 4: Change Blindness */}
-              <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Blindness Index</span>
-                <div className="text-sm font-black text-slate-900 capitalize">
-                  {finalSessionSummary.changeBlindnessIndex.replace(/_/g, ' ')}
-                </div>
-                <p className="text-[10px] text-slate-500">Flicker mask resilience</p>
-              </div>
-
-              {/* Card 5: Ventral Stream */}
-              <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Ventral Stream</span>
-                <div className="text-sm font-black text-slate-900 capitalize">
-                  {finalSessionSummary.ventralStreamBinding.replace(/_/g, ' ')}
-                </div>
-                <p className="text-[10px] text-slate-500">Occipitotemporal pathway</p>
-              </div>
-
-              {/* Card 6: Autonomy */}
-              <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Settings Autonomy</span>
-                <div className="text-2xl font-black text-purple-700">
-                  {finalSessionSummary.autonomyScore}%
-                </div>
-                <p className="text-[10px] text-slate-500 capitalize">{finalSessionSummary.patientSettingsAutonomyRating.replace(/_/g, ' ')}</p>
-              </div>
-            </div>
-
-            {/* OASIS-2 Trained Machine Learning Cognitive Staging Card */}
-            {finalSessionSummary.oasisClinicalClassification && (
-              <div className="p-4 bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-950 rounded-2xl text-white text-left space-y-2.5 border border-indigo-500/40 shadow-md">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Stethoscope className="w-4 h-4 text-cyan-400" />
-                    <span className="text-xs font-black uppercase tracking-wider text-cyan-300">
-                      OASIS-2 Machine Learning Cognitive Staging
-                    </span>
-                  </div>
-                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-white/10 text-emerald-300 border border-emerald-400/30">
-                    {(finalSessionSummary.oasisClinicalClassification.confidenceScore * 100).toFixed(1)}% Confidence
-                  </span>
-                </div>
-
-                <div className="text-lg font-black text-white flex items-center gap-2">
-                  <span>{finalSessionSummary.oasisClinicalClassification.predictedClass}</span>
-                </div>
-
-                <div className="flex items-center gap-2 text-xs text-slate-300 font-medium">
-                  <span>Standardized MoCA Score Range:</span>
-                  <span className="font-bold text-amber-300">{finalSessionSummary.oasisClinicalClassification.estimatedMoCARange}</span>
-                </div>
-
-                {finalSessionSummary.oasisClinicalClassification.clinicalAlert && (
-                  <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs leading-snug">
-                    ⚠️ {finalSessionSummary.oasisClinicalClassification.clinicalAlert}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <button
-              onClick={onExit}
-              className="w-full py-3.5 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-md transition-all cursor-pointer active:scale-95"
-            >
-              {language === 'hi'
-                ? 'समाप्त कर डैशबोर्ड पर लौटें ➔'
-                : 'Close & Return to Dashboard ➔'}
-            </button>
-          </div>
+          <PatientGameCompletionView
+            language={language}
+            activityTitle={language === 'hi' ? 'क्या बदला?' : 'What Changed?'}
+            stats={[
+              {
+                label: language === 'hi' ? 'पूरे किए गए दृश्य' : 'Scenes Explored',
+                value: `${sessionTrials.length} / ${totalTrials}`,
+              },
+              {
+                label: language === 'hi' ? 'सटीकता' : 'Accuracy',
+                value: `${finalSessionSummary.accuracyPercentage}%`,
+              },
+            ]}
+            onExit={onExit}
+          />
         )}
       </div>
     </div>

@@ -1,8 +1,8 @@
 export interface LocationData {
   id: string;
-  state: 'Assam' | 'Meghalaya' | 'Manipur' | 'Arunachal Pradesh' | 'Nagaland' | 'Tripura';
+  state: string;
   stateName: Record<string, string>;
-  category: 'wildlife_sanctuary' | 'river_island' | 'temple_heritage' | 'lake_nature' | 'monastery_heritage' | 'hills_waterfalls' | 'monument_heritage' | 'palace_heritage' | 'valley_nature' | 'cultural_heritage' | 'nature_wonder' | 'landmark_engineering' | 'tea_estate' | 'river_nature';
+  category: 'wildlife_sanctuary' | 'river_island' | 'temple_heritage' | 'lake_nature' | 'monastery_heritage' | 'hills_waterfalls' | 'monument_heritage' | 'palace_heritage' | 'valley_nature' | 'cultural_heritage' | 'nature_wonder' | 'landmark_engineering' | 'tea_estate' | 'river_nature' | 'cave_heritage' | 'desert_nature';
   icon: string;
   name: Record<string, string>;
   clues: Record<string, string[]>;
@@ -10,797 +10,796 @@ export interface LocationData {
 
 export const LOCATIONS: LocationData[] = [
   {
-    "id": "kaziranga",
-    "state": "Assam",
-    "stateName": {
-      "en": "Assam",
-      "as": "অসম",
-      "bn": "আসাম",
-      "hi": "असम"
+    id: "taj_mahal",
+    state: "Uttar Pradesh",
+    stateName: {
+      en: "Uttar Pradesh",
+      as: "উত্তৰ প্ৰদেশ",
+      bn: "উত্তর প্রদেশ",
+      hi: "उत्तर प्रदेश"
     },
-    "category": "wildlife_sanctuary",
-    "icon": "🦏",
-    "name": {
-      "en": "Kaziranga National Park",
-      "as": "কাজিৰঙা ৰাষ্ট্ৰীয় উদ্যান",
-      "bn": "কাজিরাপঙা জাতীয় উদ্যান",
-      "hi": "काजीरंगा राष्ट्रीय उद्यान"
+    category: "monument_heritage",
+    icon: "🏛️",
+    name: {
+      en: "Taj Mahal, Agra",
+      as: "তাজমহল, আগ্ৰা",
+      bn: "তাজমহল, আগ্রা",
+      hi: "ताजमहल, आगरा"
     },
-    "clues": {
-      "en": [
-        "It is located in the fertile floodplains of Assam along the Brahmaputra River.",
-        "It is a prestigious UNESCO World Heritage Site recognized for biodiversity.",
-        "It features tall elephant grass, wetlands, and tropical broadleaf forests.",
-        "It is world-renowned as home to two-thirds of the Great Indian One-Horned Rhinoceros."
+    clues: {
+      en: [
+        "It is situated on the south bank of the sacred Yamuna River in northern India.",
+        "It is recognized worldwide as a UNESCO World Heritage Site and one of the New Seven Wonders of the World.",
+        "It is constructed of pure white Makrana marble with intricate Pietra Dura floral inlays.",
+        "It is the legendary 17th-century mausoleum built by Mughal Emperor Shah Jahan for Mumtaz Mahal."
       ],
-      "as": [
-        "এই স্থানখন অসমত ব্ৰহ্মপুত্ৰ নদীৰ পাৰৰ উৰ্বৰ সমভূমিত অৱস্থিত।",
-        "ই জৈৱ বৈচিত্ৰ্যৰ বাবে ইউনেস্কোৰ বিশ্ব ঐতিহ্য ক্ষেত্ৰৰ স্বীকৃতি প্ৰাপ্ত।",
-        "ইয়াত ওখ নল-খাগৰি, জলাশয় আৰু ক্ৰান্তীয় বনাঞ্চল আছে।",
-        "ই পৃথিৱীৰ দুই-তৃতীয়াংশ এশিঙীয়া গঁড়ৰ বাবে বিশ্ববিখ্যাত।"
+      as: [
+        "ই উত্তৰ ভাৰতৰ পৱিত্ৰ যমুনা নদীৰ দক্ষিণ পাৰত অৱস্থিত।",
+        "ই ইউনেস্কোৰ বিশ্ব ঐতিহ্য ক্ষেত্ৰ আৰু পৃথিৱীৰ অন্যতম আশ্চৰ্য্য হিচাপে সৰ্বজনবিদিত।",
+        "ই বিশুদ্ধ বগা মাৰ্বল শিলেৰে নিৰ্মিত আৰু ফুলৰ সুন্দৰ কাৰুকাৰ্য্যৰে খোদিত।",
+        "ই মোগল সম্ৰাট শ্বাহজাহানে পত্নী মমতাজ মহলৰ স্মৃতিত সজোৱা ঐতিহাসিক সমাধি।"
       ],
-      "bn": [
-        "এই স্থানটি আসামের ব্রহ্মপুত্র নদের উর্বর প্লাবনভূমিতে অবস্থিত।",
+      bn: [
+        "এটি উত্তর ভারতে পবিত্র যমুনা নদীর দক্ষিণ তীরে অবস্থিত।",
+        "এটি ইউনেস্কো ওয়ার্ল্ড হেরিটেজ সাইট এবং বিশ্বের সপ্তাশ্চর্যের অন্যতম।",
+        "এটি শুভ্র মাকরানা মার্বেল পাথরে নিখুঁত ফুলেল নকশায় নির্মিত।",
+        "এটি মোঘল সম্রাট শাহজাহান কর্তৃক বেগম মমতাজ মহলের স্মৃতিতে নির্মিত ঐতিহাসিক সৌধ।"
+      ],
+      hi: [
+        "यह उत्तर भारत में पवित्र यमुना नदी के दक्षिणी तट पर स्थित है।",
+        "यह यूनेस्को विश्व धरोहर स्थल और दुनिया के सात अजूबों में से एक है।",
+        "यह शुद्ध श्वेत मकराना संगमरमर और कीमती पत्थरों की पच्चीकारी से निर्मित है।",
+        "यह मुग़ल बादशाह शाहजहाँ द्वारा अपनी बेगम मुमताज़ महल की याद में बनवाया गया प्रसिद्ध स्मारक है।"
+      ]
+    }
+  },
+  {
+    id: "kashi_vishwanath",
+    state: "Uttar Pradesh",
+    stateName: {
+      en: "Uttar Pradesh",
+      as: "উত্তৰ প্ৰদেশ",
+      bn: "উত্তর প্রদেশ",
+      hi: "उत्तर प्रदेश"
+    },
+    category: "temple_heritage",
+    icon: "🛕",
+    name: {
+      en: "Kashi Vishwanath & Ganga Ghats",
+      as: "কাশী বিশ্বনাথ আৰু গংগা ঘাট",
+      bn: "কাশী বিশ্বনাথ ও গঙ্গা ঘাট",
+      hi: "काशी विश्वनाथ एवं गंगा घाट"
+    },
+    clues: {
+      en: [
+        "It is located in one of the world's oldest continuously inhabited living cities on the banks of the River Ganges.",
+        "It is home to the sacred Dashashwamedh Ghat where magnificent evening Maha Aarti takes place every sunset.",
+        "Its golden temple spire is dedicated to Lord Shiva as the supreme Jyotirlinga of liberation.",
+        "It is the spiritual capital of Varanasi, revered for centuries by pilgrims seeking inner peace."
+      ],
+      as: [
+        "ই পৱিত্ৰ গংগা নদীৰ পাৰত অৱস্থিত পৃথিৱীৰ অন্যতম প্ৰাচীন জীৱন্ত নগৰীত স্থিত।",
+        "ইয়াত বিখ্যাত দশাশ্বমেধ ঘাট আছে য’ত প্ৰতি সন্ধিয়া ভব্য গংগা আৰতি অনুষ্ঠিত হয়।",
+        "ইয়াৰ সোণালী মন্দিৰ ভগৱান শিৱৰ পৱিত্ৰ জ্যোতিৰ্লিঙ্গ হিচাপে পূজিত।",
+        "ই মোক্ষ আৰু আধ্যাত্মিক শান্তিৰ বিশ্ববিখ্যাত তীৰ্থস্থান বাৰাণসী বা কাশী।"
+      ],
+      bn: [
+        "এটি পবিত্র গঙ্গা নদীর তীরে অবস্থিত বিশ্বের অন্যতম প্রাচীন জীবন্ত নগরীতে অবস্থিত।",
+        "এখানে বিখ্যাত দশাশ্বমেধ ঘাট রয়েছে যেখানে প্রতিদিন সন্ধ্যায় মনোরম গঙ্গা আরতি হয়।",
+        "এর স্বর্ণমন্দির ভগবান শিবের অন্যতম প্রধান জ্যোতির্লিঙ্গ হিসেবে পূজিত।",
+        "এটি ভারতীয় আধ্যাত্মিকতার ঐতিহাসিক প্রাণকেন্দ্র বারাণসী বা কাশী।"
+      ],
+      hi: [
+        "यह पवित्र गंगा नदी के तट पर बसी विश्व की प्राचीनतम जीवित नगरियों में से एक है।",
+        "यहाँ प्रसिद्ध दशाश्वमेध घाट है जहाँ प्रतिदिन संध्या को भव्य गंगा आरती होती है।",
+        "इसका स्वर्ण शिखर भगवान शिव के द्वादश ज्योतिर्लिंगों में प्रमुख ज्योतिर्लिंग को समर्पित है।",
+        "यह मोक्ष और सनातन संस्कृति की पावन आध्यात्मिक राजधानी काशी (वाराणसी) है।"
+      ]
+    }
+  },
+  {
+    id: "red_fort",
+    state: "Delhi",
+    stateName: {
+      en: "Delhi",
+      as: "দিল্লী",
+      bn: "দিল্লি",
+      hi: "दिल्ली"
+    },
+    category: "monument_heritage",
+    icon: "🏰",
+    name: {
+      en: "Red Fort (Lal Qila)",
+      as: "লালকিল্লা, দিল্লী",
+      bn: "লালকেল্লা, দিল্লি",
+      hi: "लाल किला, दिल्ली"
+    },
+    clues: {
+      en: [
+        "It stands majestically in the heart of Old Delhi near the historic Chandni Chowk bazaar.",
+        "It is fortified with massive red sandstone walls stretching over two kilometers.",
+        "Every year on Independence Day (15th August), the Prime Minister of India unfurls the National Flag from its ramparts.",
+        "It is the historic Lal Qila commissioned by Emperor Shah Jahan in 1638."
+      ],
+      as: [
+        "ই পুৰণি দিল্লীৰ ঐতিহাসিক চান্দনী চকৰ কাষতে অৱস্থিত।",
+        "ই ৰঙা শিলৰ বিশালাকাৰ দুৰ্গ প্ৰাচীৰেৰে সুৰক্ষিত।",
+        "প্ৰতি বছৰে ১৫ আগষ্ট স্বাধীনতা দিৱসত ভাৰতৰ প্ৰধানমন্ত্ৰীয়ে ইয়াৰ প্ৰাচীৰৰ পৰা ত্ৰিৰংগা পতাকা উত্তোলন কৰে।",
+        "ই ১৬৩৮ চনত সম্ৰাট শ্বাহজাহানে নিৰ্মাণ কৰা ঐতিহাসিক লালকিল্লা।"
+      ],
+      bn: [
+        "এটি পুরানো দিল্লির ঐতিহাসিক চাঁদনি চকের সন্নিকটে সগৌরবে দাঁড়িয়ে রয়েছে।",
+        "এটি দুই কিলোমিটারের বেশি বিস্তৃত লাল বেলেপাথরের প্রাচীর দ্বারা বেষ্টিত।",
+        "প্রতি বছর ১৫ আগস্ট স্বাধীনতা দিবসে ভারতের প্রধানমন্ত্রী এর প্রাচীর থেকে জাতীয় পতাকা উত্তোলন করেন।",
+        "এটি ১৬৩৮ সালে সম্রাট শাহজাহান নির্মিত ঐতিহাসিক লালকেল্লা।"
+      ],
+      hi: [
+        "यह पुरानी दिल्ली के दिल में ऐतिहासिक चाँदनी चौक के समीप स्थित है।",
+        "यह लाल बलुआ पत्थर की विशाल और भव्य प्राचीरों से घिरा हुआ है।",
+        "प्रतिवर्ष १५ अगस्त को भारत के प्रधानमंत्री इसके प्राचीर से राष्ट्रीय ध्वज तिरंगा फहराते हैं।",
+        "यह सन् १६३८ में मुग़ल बादशाह शाहजहाँ द्वारा बनवाया गया ऐतिहासिक लाल किला है।"
+      ]
+    }
+  },
+  {
+    id: "golden_temple",
+    state: "Punjab",
+    stateName: {
+      en: "Punjab",
+      as: "পাঞ্জাব",
+      bn: "পাঞ্জাব",
+      hi: "पंजाब"
+    },
+    category: "temple_heritage",
+    icon: "🛕",
+    name: {
+      en: "Golden Temple (Harmandir Sahib)",
+      as: "স্বৰ্ণ মন্দিৰ, অমৃতসৰ",
+      bn: "স্বর্ণ মন্দির, অমৃতসর",
+      hi: "स्वर्ण मंदिर (हरिमंदिर साहिब)",
+      en_sub: "Amritsar, Punjab"
+    },
+    clues: {
+      en: [
+        "It is situated in the vibrant northern state of Punjab, surrounded by a sacred man-made pool called the Amrit Sarovar.",
+        "Its upper floors and domes are gilded with hundreds of kilograms of pure shimmering gold foil.",
+        "It serves free warm meals through its community kitchen (Langar) to over one hundred thousand people daily without discrimination.",
+        "It is Sri Harmandir Sahib in Amritsar, the holiest spiritual shrine of Sikhism."
+      ],
+      as: [
+        "ই পৱিত্ৰ অমৃত সৰোবৰ নামৰ সৰোবৰটোৰ মাজমজিয়াত অৱস্থিত পাঞ্জাবৰ পৱিত্ৰ তীৰ্থ।",
+        "ইয়াৰ ওপৰৰ অংশ আৰু গম্বুজসমূহ বিশুদ্ধ সোণৰ পাতেৰে আবৃত।",
+        "ইয়াৰ বৃহৎ লংগৰত প্ৰতিদিনে এক লাখতকৈও অধিক লোকক বিনামূল্যে তৃপ্তিদায়ক খাদ্য খুওৱা হয়।",
+        "ই অমৃতসৰত অৱস্থিত শিখ ধৰ্মৰ সৰ্বোচ্চ পৱিত্ৰ স্থান শ্ৰী হৰমন্দিৰ চাহিব।"
+      ],
+      bn: [
+        "এটি পাঞ্জাবের পবিত্র অমৃত সরোবরের কেন্দ্রস্থলে শান্ত জলে ভাসমান এক অপূর্ব তীর্থ।",
+        "এর উপরিভাগ শত শত কেজি খাঁটি সোনার পাতে মোড়ানো।",
+        "এখানে বিশ্বখ্যাত লঙ্গরে প্রতিদিন লক্ষাধিক মানুষকে জাতি-ধর্ম নির্বিশেষে বিনামূল্যে প্রসাদ বিতরণ করা হয়।",
+        "এটি অমৃতসরে অবস্থিত শিখ সম্প্রদায়ের পরম পবিত্র তীর্থস্থান শ্রী হরমন্দির সাহিব।"
+      ],
+      hi: [
+        "यह पंजाब के अमृतसर में पवित्र अमृत सरोवर के बीचों-बीच स्थित है।",
+        "इसके ऊपरी गुंबद और दीवारें सैकड़ों किलो शुद्ध सोने के पत्तर से सुसज्जित हैं।",
+        "यहाँ का विश्वप्रसिद्ध लंगर बिना किसी भेदभाव के प्रतिदिन एक लाख से अधिक लोगों को निःशुल्क भोजन कराता है।",
+        "यह सिख धर्म का सर्वोच्च और सबसे पावन तीर्थ स्थल श्री हरिमंदिर साहिब है।"
+      ]
+    }
+  },
+  {
+    id: "gateway_of_india",
+    state: "Maharashtra",
+    stateName: {
+      en: "Maharashtra",
+      as: "মহাৰাষ্ট্ৰ",
+      bn: "মহারাষ্ট্র",
+      hi: "महाराष्ट्र"
+    },
+    category: "monument_heritage",
+    icon: "🏛️",
+    name: {
+      en: "Gateway of India, Mumbai",
+      as: "গেটৱে অফ ইণ্ডিয়া, মুম্বাই",
+      bn: "গেটওয়ে অফ ইন্ডিয়া, মুম্বাই",
+      hi: "गेटवे ऑफ़ इंडिया, मुंबई"
+    },
+    clues: {
+      en: [
+        "It overlooks the Arabian Sea at the Apollo Bunder waterfront in India's financial capital.",
+        "It is built in Indo-Saracenic architectural style using yellow basalt stone and reinforced concrete.",
+        "Directly opposite stands the iconic heritage Taj Mahal Palace Hotel opened in 1903.",
+        "It was erected to commemorate the landing of King George V and Queen Mary in Mumbai in 1911."
+      ],
+      as: [
+        "ই ভাৰতৰ বাণিজ্যিক ৰাজধানী মুম্বাইৰ আৰব সাগৰৰ পাৰত অৱস্থিত।",
+        "ই হালধীয়া বেছল্ট শিলেৰে ভাৰতীয় আৰু ইছলামিক শৈলীৰ সংমিশ্ৰণত নিৰ্মিত।",
+        "ইয়াৰ ঠিক মুখামুখিকৈ ঐতিহাসিক তাজমহল পেলেচ হোটেলখন অৱস্থিত।",
+        "ই ১৯১১ চনত ভাৰতলৈ অহা ৰজা পঞ্চম জৰ্জৰ আগমনৰ স্মৃতিত সজোৱা ঐতিহাসিক তোৰণ।"
+      ],
+      bn: [
+        "এটি ভারতের বাণিজ্যিক রাজধানী মুম্বাইয়ের আরব সাগরের তীরে অবস্থিত।",
+        "এটি হলুদ ব্যাসল্ট পাথরে ইন্দো-সারাসেনিক স্থাপত্যরীতিতে তৈরি এক বিশাল খিলান।",
+        "এর ঠিক বিপরীতে দাঁড়িয়ে রয়েছে ঐতিহ্যবাহী তাজমহল প্যালেস হোটেল।",
+        "এটি ১৯১১ সালে ভারতে রাজা পঞ্চম জর্জের পদার্পণ উপলক্ষে নির্মিত তোরণ।"
+      ],
+      hi: [
+        "यह देश की आर्थिक राजधानी मुंबई में अरब सागर के तट (अपोलो बंदर) पर स्थित है।",
+        "यह पीले बेसाल्ट पत्थर से भारत-अरबी (इंडो-सारैसेनिक) शैली में बना भव्य मेहराब है।",
+        "इसके ठीक सामने ऐतिहासिक ताज महल पैलेस होटल स्थित है।",
+        "यह सन् १९११ में ब्रिटिश सम्राट जॉर्ज पंचम के भारत आगमन की स्मृति में बनाया गया प्रसिद्ध स्मारक है।"
+      ]
+    }
+  },
+  {
+    id: "hawa_mahal",
+    state: "Rajasthan",
+    stateName: {
+      en: "Rajasthan",
+      as: "ৰাজস্থান",
+      bn: "রাজস্থান",
+      hi: "राजस्थान"
+    },
+    category: "palace_heritage",
+    icon: "🏰",
+    name: {
+      en: "Hawa Mahal (Palace of Winds)",
+      as: "হাওয়া মহল, জয়পুৰ",
+      bn: "হাওয়া মহল, জয়পুর",
+      hi: "हवा महल, जयपुर"
+    },
+    clues: {
+      en: [
+        "It is situated in the famous Pink City of Rajasthan, built of pink and red sandstone.",
+        "Its facade resembles the honeycomb of a beehive, designed in the shape of Lord Krishna's crown.",
+        "It features 953 uniquely carved small casements (jharokhas) that allow cool breezes to circulate continuously.",
+        "It was built in 1799 by Maharaja Sawai Pratap Singh so royal women could observe street festivals unseen."
+      ],
+      as: [
+        "ই ৰাজস্থানৰ বিখ্যাত গোলাপী চহৰ জয়পুৰত ৰঙা আৰু গুলপীয়া শিলেৰে নিৰ্মিত।",
+        "ইয়াৰ সন্মুখভাগ ভগৱান শ্ৰীকৃষ্ণৰ মুকুটৰ আকৃতিৰ আৰু মৌচাকৰ দৰে সজোৱা।",
+        "ইয়াত ৯৫৩টা সৰু সৰু খিৰিকী (ঝৰোকা) আছে যাৰ মাজেৰে শীতল বতাহ অহৰহ বৈ থাকে।",
+        "ই ১৭৯৯ চনত মহাৰাজা সৱাই প্ৰতাপ সিঙে নিৰ্মাণ কৰা বিখ্যাত বতাহৰ ৰাজপ্ৰাসাদ।"
+      ],
+      bn: [
+        "এটি রাজস্থানের ঐতিহাসিক গোলাপি শহর জয়পুরে লাল ও গোলাপি বেলেপাথরে নির্মিত।",
+        "এর বহিরঙ্গ মৌচাকের মতো এবং এটি ভগবান শ্রীকৃষ্ণের মুকুটের আদলে তৈরি।",
+        "এতে ৯৫৩টি সূক্ষ্মভাবে খোদাই করা ছোট জানালা বা ঝরোখা রয়েছে যা বাতাস চলাচলে সাহায্য করে।",
+        "১৭৯৯ সালে মহারাজা সোয়াই প্রতাপ সিংহ এটি নির্মাণ করেন।"
+      ],
+      hi: [
+        "यह राजस्थान की गुलाबी नगरी जयपुर में लाल व गुलाबी बलुआ पत्थर से निर्मित है।",
+        "इसकी संरचना भगवान श्रीकृष्ण के मुकुट के समान है और मधुमक्खी के छत्ते जैसी प्रतीत होती है।",
+        "इसमें ९५३ नक्काशीदार झरोखे (खिड़कियाँ) हैं जिनसे होकर सदैव ठंडी हवा प्रवाहित होती है।",
+        "यह सन् १७९९ में महाराजा सवाई प्रताप सिंह द्वारा बनवाया गया प्रसिद्ध 'हवा महल' है।"
+      ]
+    }
+  },
+  {
+    id: "meenakshi_temple",
+    state: "Tamil Nadu",
+    stateName: {
+      en: "Tamil Nadu",
+      as: "তামিলনাডু",
+      bn: "তামিলনাড়ু",
+      hi: "तमिलनाडु"
+    },
+    category: "temple_heritage",
+    icon: "🛕",
+    name: {
+      en: "Meenakshi Amman Temple, Madurai",
+      as: "মীনাক্ষী আম্মান মন্দিৰ, মাদুৰাই",
+      bn: "মীনাক্ষী আম্মান মন্দির, মাদুরাই",
+      hi: "मीनाक्षी अम्मन मंदिर, मदुरै"
+    },
+    clues: {
+      en: [
+        "It is located on the southern bank of the Vaigai River in the historic temple city of Madurai.",
+        "It is an architectural marvel of Dravidian style featuring 14 soaring Gopuram gateway towers covered in thousands of painted sculptures.",
+        "Its premises house the legendary Hall of a Thousand Pillars (Aayiram Kaal Mandapam) carved with extraordinary lifelike details.",
+        "It is dedicated to Goddess Meenakshi (an avatar of Parvati) and her consort Sundareswarar (Lord Shiva)."
+      ],
+      as: [
+        "ই দক্ষিণ ভাৰতৰ তামিলনাডুৰ বৈগাই নদীৰ পাৰত অৱস্থিত ঐতিহাসিক মন্দিৰ চহৰ মাদুৰাইত স্থিত।",
+        "ই দ্ৰাবিড় স্থাপত্যৰ উৎকৃষ্ট নিদৰ্শন, য’ত হাজাৰ হাজাৰ ভাস্কৰ্য্যৰে সুসজ্জিত ১৪টা ওখ গোপুৰম তোৰণ আছে।",
+        "ইয়াত বিখ্যাত 'হাজাৰ স্তম্ভৰ মণ্ডপ' আছে য’ত প্ৰতিটো খুটা অপূৰ্ব ভাস্কৰ্য্যৰে খোদিত।",
+        "ই দেৱী মীনাক্ষী আৰু ভগৱান সুন্দৰেশ্বৰৰ পৱিত্ৰ মহিমামণ্ডিত মন্দিৰ।"
+      ],
+      bn: [
+        "এটি দক্ষিণ ভারতের তামিলনাড়ুর বৈগাই নদীর তীরে ঐতিহাসিক মাদুরাই নগরীতে অবস্থিত।",
+        "এটি দ্রাবিড় স্থাপত্যের শ্রেষ্ঠ নিদর্শন, যাতে রয়েছে হাজার হাজার রঙিন মূর্তিতে সুসজ্জিত ১৪টি বিশাল গোপুরম।",
+        "এর ভেতরে রয়েছে বিশ্বখ্যাত হাজার স্তম্ভের সভাগৃহ (আয়িরাম কাল মণ্ডপম)।",
+        "এটি দেবী মীনাক্ষী ও ভগবান সুন্দরেশ্বরকে উৎসর্গীকৃত প্রাচীন মহাতীর্থ।"
+      ],
+      hi: [
+        "यह दक्षिण भारत के तमिलनाडु में वैगई नदी के तट पर ऐतिहासिक मदुरै नगर में स्थित है।",
+        "यह द्रविड़ वास्तुकला का अनुपम उदाहरण है, जिसमें हज़ारों रंग-बिरंगी मूर्तियों से सजे १४ विशाल गोपुरम हैं।",
+        "इसके परिसर में अद्भुत नक्काशी वाला प्रसिद्ध 'हज़ार खंभों का मंडप' स्थित है।",
+        "यह देवी पार्वती के स्वरूप 'मीनाक्षी' और भगवान शिव के स्वरूप 'सुंदरेश्वर' को समर्पित भव्य मंदिर है।"
+      ]
+    }
+  },
+  {
+    id: "ajanta_ellora",
+    state: "Maharashtra",
+    stateName: {
+      en: "Maharashtra",
+      as: "মহাৰাষ্ট্ৰ",
+      bn: "মহারাষ্ট্র",
+      hi: "महाराष्ट्र"
+    },
+    category: "cave_heritage",
+    icon: "🏔️",
+    name: {
+      en: "Ajanta & Ellora Rock-Cut Caves",
+      as: "অজন্তা আৰু ইলোৰা গুহা",
+      bn: "অজন্তা ও ইলোরা গুহা",
+      hi: "अजंता एवं एलोरा की प्राचीन गुफाएं"
+    },
+    clues: {
+      en: [
+        "They are carved directly into basalt volcanic cliffs in the Aurangabad (Chhatrapati Sambhaji Nagar) district.",
+        "They feature exquisite ancient Buddhist frescoes, murals, and sculptures dating back to the 2nd century BCE.",
+        "Ellora Cave 16 houses the Kailash Temple, the world's largest monolithic rock excavation carved top-down from a single cliff.",
+        "They represent the supreme pinnacle of ancient Indian rock-cut art and harmony of Buddhism, Hinduism, and Jainism."
+      ],
+      as: [
+        "ই মহাৰাষ্ট্ৰৰ পাহাৰ কাটি নিৰ্মাণ কৰা বিশ্ববিখ্যাত প্ৰাচীন গুহা সমষ্টি।",
+        "ইয়াত খ্ৰীষ্টপূৰ্ব দ্বিতীয় শতিকাৰ বৌদ্ধ দেৱালচিত্ৰ আৰু অনন্য ভাস্কৰ্য্য সংৰক্ষিত হৈ আছে।",
+        "ইলোৰাৰ ১৬ নং গুহাত এটা মাত্ৰ বিশাল শিল কাটি ওপৰৰ পৰা তললৈ সাজি উলিওৱা কৈলাস মন্দিৰ অৱস্থিত।",
+        "ই প্ৰাচীন ভাৰতীয় শিল্পকলা আৰু বৌদ্ধ, হিন্দু আৰু জৈন ধৰ্মৰ ঐতিহাসিক মিলনভূমি।"
+      ],
+      bn: [
+        "এগুলি মহারাষ্ট্রের আগ্নেয়গিরির ব্যাসল্ট শিলা কেটে তৈরি প্রাচীন গুহা স্থাপত্য।",
+        "এখানে খ্রিস্টপূর্ব দ্বিতীয় শতকের অপূর্ব বৌদ্ধ দেয়ালচিত্র ও নিখুঁত ভাস্কর্য রয়েছে।",
+        "ইলোরার ১৬ নম্বর গুহায় অবস্থিত কৈলাশ মন্দিরটি একটিমাত্র বিশাল পাথর কেটে তৈরি পৃথিবীর বৃহত্তম স্থাপত্য।",
+        "এটি প্রাচীন ভারতীয় চিত্রকলা ও বৌদ্ধ, হিন্দু ও জৈন সংস্কৃতির মহামিলনের প্রতীক।"
+      ],
+      hi: [
+        "यह महाराष्ट्र के छत्रपति संभाजी नगर में ज्वालामुखीय बेसाल्ट चट्टानों को तराश कर बनाई गई हैं।",
+        "यहाँ ईसा पूर्व दूसरी शताब्दी के बौद्ध भित्तिचित्र, जातक कथाएं और सजीव मूर्तियां विद्यमान हैं।",
+        "एलोरा की गुफा संख्या १६ में एक ही विशालकाय पहाड़ी को ऊपर से नीचे तराशकर बना 'कैलाश मंदिर' स्थित है।",
+        "यह प्राचीन भारतीय पाषाण-शिल्प तथा बौद्ध, हिंदू और जैन धर्मों के सौहार्द का अद्वितीय प्रमाण है।"
+      ]
+    }
+  },
+  {
+    id: "konark_sun_temple",
+    state: "Odisha",
+    stateName: {
+      en: "Odisha",
+      as: "ওড়িশা",
+      bn: "ওড়িশা",
+      hi: "ओडिशा"
+    },
+    category: "temple_heritage",
+    icon: "🛕",
+    name: {
+      en: "Konark Sun Temple",
+      as: "কোণাৰ্কৰ সূৰ্য্য মন্দিৰ",
+      bn: "কোণার্কের সূর্য মন্দির",
+      hi: "कोणार्क सूर्य मंदिर"
+    },
+    clues: {
+      en: [
+        "It is situated on the coastline of the Bay of Bengal in the sacred state of Odisha.",
+        "The entire temple is designed as a colossal chariot for the Sun God (Surya) with 24 elaborately carved stone wheels pulled by 7 spirited horses.",
+        "The giant wheels act as precise sundials, calculating time accurately to the minute using the shadows of spokes.",
+        "It is the celebrated 13th-century 'Black Pagoda' built by King Narasimhadeva I of the Eastern Ganga Dynasty."
+      ],
+      as: [
+        "ই ওড়িশাৰ বঙ্গোপসাগৰৰ উপকূলত অৱস্থিত বিশ্ববিখ্যাত সূৰ্য্য মন্দিৰ।",
+        "সম্পূৰ্ণ মন্দিৰটো ২৪টা বিশাল খোদিত চকা আৰু ৭টা ঘোঁৰাই টানি নিয়া সূৰ্য্যদেৱতাৰ এক সুবিশাল ৰথৰ আকৃতিৰে গঢ়া।",
+        "ইয়াৰ চকাবোৰ নিখুঁত সূৰ্য্য-ঘড়ী হিচাপে কাম কৰে আৰু ছাঁৰ সহায়ত মিনিটৰ হিচাপ দিব পাৰে।",
+        "ই ত্ৰয়োদশ শতিকাৰ ৰজা নৰসিংহদেৱে নিৰ্মাণ কৰা বিখ্যাত কোণাৰ্কৰ সূৰ্য্য মন্দিৰ।"
+      ],
+      bn: [
+        "এটি ওড়িশার বঙ্গোপসাগর উপকূলবর্তী অঞ্চলে অবস্থিত একটি ইউনেস্কো বিশ্ব ঐতিহ্য ক্ষেত্র।",
+        "সমগ্র মন্দিরটি সূর্যদেবের এক বিশাল রথরূপে পরিকল্পিত, যার রয়েছে ২৪টি অলঙ্কৃত চাকা এবং ৭টি অশ্ব।",
+        "এর পাথরের চাকাগুলি সূক্ষ্ম সূর্যঘড়ি হিসেবে কাজ করে এবং সূর্যের ছায়া দেখে সময় নির্ণয় করা যায়।",
+        "এটি ত্রয়োদশ শতকে রাজা প্রথম নরসিংহদেব দ্বারা নির্মিত ব্ল্যাক প্যাগোডা নামে খ্যাত কোণার্ক মন্দির।"
+      ],
+      hi: [
+        "यह ओडिशा के तट पर बंगाल की खाड़ी के समीप स्थित यूनेस्को विश्व धरोहर स्थल है।",
+        "इस संपूर्ण मंदिर को भगवान सूर्य के २४ नक्काशीदार पहियों और ७ घोड़ों वाले एक विशाल रथ के रूप में गढ़ा गया है।",
+        "इसके विशाल पहिये सटीक धूप-घड़ी का काम करते हैं जो सूर्य की छाया से सही समय बताते हैं।",
+        "यह १३वीं शताब्दी में पूर्वी गंग वंश के राजा नरसिंहदेव प्रथम द्वारा निर्मित प्रसिद्ध कोणार्क सूर्य मंदिर है।"
+      ]
+    }
+  },
+  {
+    id: "victoria_memorial",
+    state: "West Bengal",
+    stateName: {
+      en: "West Bengal",
+      as: "পশ্চিমবঙ্গ",
+      bn: "পশ্চিমবঙ্গ",
+      hi: "पश्चिम बंगाल"
+    },
+    category: "monument_heritage",
+    icon: "🏛️",
+    name: {
+      en: "Victoria Memorial & Howrah Bridge",
+      as: "ভিক্টোৰিয়া মেম’ৰিয়েল আৰু হাওৰা দলং",
+      bn: "ভিক্টোরিয়া মেমোরিয়াল ও হাওড়া ব্রিজ",
+      hi: "विक्टोरिया मेमोरियल एवं हावड़ा ब्रिज"
+    },
+    clues: {
+      en: [
+        "It is located in Kolkata on the banks of the sacred Hooghly River, surrounded by the green expanse of the Maidan.",
+        "It is constructed of pristine white Makrana marble and houses royal galleries, gardens, and historic artifacts.",
+        "Nearby stands the iconic cantilever engineering marvel over the river that operates without a single central pillar.",
+        "It is the cultural heart of the City of Joy, capturing Bengal's rich intellectual and architectural heritage."
+      ],
+      as: [
+        "ই পশ্চিমবঙ্গৰ ৰাজধানী কলকাতাত হুগলি নদী আৰু ময়দানৰ কাষত অৱস্থিত।",
+        "ই শুভ্ৰ মাৰ্বল শিলেৰে নিৰ্মিত আৰু ইয়াৰ ভিতৰত বিশাল সংগ্ৰহালয় আৰু সুন্দৰ উদ্যান আছে।",
+        "ইয়াৰ কাষতে হুগলি নদীৰ ওপৰত কোনো মাজৰ খুঁটা নোহোৱাকৈ নিৰ্মিত ঐতিহাসিক হাওৰা দলংখন স্থিত।",
+        "ই আনন্দৰ চহৰ কলকাতাৰ সাংস্কৃতিক আৰু ঐতিহ্যপূৰ্ণ প্ৰাণকেন্দ্ৰ।"
+      ],
+      bn: [
+        "এটি কলকাতার ময়দানের দক্ষিণ প্রান্তে হুগলি নদীর সন্নিকটে অবস্থিত সাদা মার্বেলের অনন্য সৌধ।",
+        "এটি শুভ্র মাকরানা মার্বেল পাথরে নির্মিত এবং এর চারপাশে রয়েছে বিস্তৃত সবুজ বাগান ও দিঘি।",
+        "নিকটেই রয়েছে নদী পারাপারের বিশ্ববিখ্যাত হাওড়া ব্রিজ যা কোনো মধ্যবর্তী স্তম্ভ ছাড়াই দাঁড়িয়ে আছে।",
+        "এটি তিলোত্তমা কলকাতার আভিজাত্য, সংস্কৃতি ও ঐতিহ্যের চিরন্তন প্রতীক।"
+      ],
+      hi: [
+        "यह पश्चिम बंगाल की राजधानी कोलकाता में हुगली नदी के पास मैदान के विशाल हरित क्षेत्र में स्थित है।",
+        "यह सफेद मकराना संगमरमर से निर्मित एक भव्य महलनुमा स्मारक व संग्रहालय है।",
+        "इसके पास ही हुगली नदी पर बिना किसी केंद्रीय खंभे के टिका ऐतिहासिक हावड़ा ब्रिज स्थित है।",
+        "यह 'आनंद के नगर' (कोलकाता) की समृद्ध सांस्कृतिक और वास्तुकला की अमूल्य धरोहर है।"
+      ]
+    }
+  },
+  {
+    id: "dal_lake",
+    state: "Jammu & Kashmir",
+    stateName: {
+      en: "Jammu & Kashmir",
+      as: "জম্মু আৰু কাশ্মীৰ",
+      bn: "জম্মু ও কাশ্মীর",
+      hi: "जम्मू और कश्मीर"
+    },
+    category: "lake_nature",
+    icon: "⛵",
+    name: {
+      en: "Dal Lake & Houseboats",
+      as: "ডাল হ্ৰদ আৰু হাউচব’ট",
+      bn: "ডাল লেক ও হাউসবোট",
+      hi: "डल झील एवं शिकारे"
+    },
+    clues: {
+      en: [
+        "It is nestled in Srinagar surrounded by the breathtaking snow-capped Pir Panjal mountain range.",
+        "It is affectionately celebrated as the 'Jewel in the crown of Kashmir' and the 'Lake of Flowers'.",
+        "It is famous for wooden houseboats, vibrant floating vegetable markets, and colorful canopied Shikara boats.",
+        "Along its boulevards lie the historic terraced Mughal gardens of Shalimar Bagh and Nishat Bagh."
+      ],
+      as: [
+        "ই কাশ্মীৰ উপত্যকাৰ শ্ৰীনগৰত বৰফেৰে আবৃত সুউচ্চ হিমালয় পাহাৰৰ মাজত অৱস্থিত।",
+        "ইয়াক মৰমেৰে 'কাশ্মীৰৰ মুকুটৰ মণি' আৰু 'ফুলৰ হ্ৰদ' বুলি কোৱা হয়।",
+        "ই ঐতিহ্যবাহী কাঠৰ হাউচব’ট, ওপঙা বজাৰ আৰু ৰঙীন কাপোৰেৰে সজোৱা চিকাৰা নাওঁবোৰৰ বাবে জনাজাত।",
+        "ইয়াৰ পাৰতে সম্ৰাট জাহাংগীৰৰ ঐতিহাসিক মোগল উদ্যান শালিমৰ আৰু নিশাত বাগ অৱস্থিত।"
+      ],
+      bn: [
+        "এটি কাশ্মীরের শ্রীনগরে বরফাবৃত পীর পাঞ্জাল পর্বতমালার কোলে অবস্থিত শান্ত ও সুন্দর হ্রদ।",
+        "এটিকে 'কাশ্মীরের মুকুটের মণি' বা 'পুষ্প হ্রদ' নামে অভিহিত করা হয়।",
+        "এটি হস্তনির্মিত কাঠের হাউসবোট, ভাসমান সবজি বাজার এবং রঙিন শিকারার জন্য বিশ্বখ্যাত।",
+        "এর তীরেই রয়েছে ঐতিহাসিক মুঘল উদ্যান শালিমার ও নিশাত বাগ।"
+      ],
+      hi: [
+        "यह श्रीनगर में बर्फ से ढकी पीर पंजाल पर्वतमाला की तलहटी में स्थित अत्यंत मनोरम झील है।",
+        "इसे 'कश्मीर के मुकुट का नगीना' और 'फूलों की झील' कहा जाता है।",
+        "यह पारंपरिक नक्काशीदार हाउसबोट, तैरते बाज़ार और रंगीन शिकारा नौकाओं के लिए विश्वप्रसिद्ध है।",
+        "इसके किनारे पर मुग़ल बादशाहों द्वारा बनवाए गए प्रसिद्ध निशात और शालीमार बाग स्थित हैं।"
+      ]
+    }
+  },
+  {
+    id: "qutub_minar",
+    state: "Delhi",
+    stateName: {
+      en: "Delhi",
+      as: "দিল্লী",
+      bn: "দিল্লি",
+      hi: "दिल्ली"
+    },
+    category: "monument_heritage",
+    icon: "🗼",
+    name: {
+      en: "Qutub Minar & Iron Pillar",
+      as: "কুতুব মিনাৰ আৰু লৌহ স্তম্ভ",
+      bn: "কুতুব মিনার ও লৌহ স্তম্ভ",
+      hi: "क़ुतुब मीनार एवं लौह स्तंभ"
+    },
+    clues: {
+      en: [
+        "It stands in South Delhi as the tallest brick minaret in the world at a height of 72.5 meters.",
+        "Constructed of red sandstone and marble, its five fluted stories are inscribed with intricate calligraphy.",
+        "In its courtyard stands a mysterious 1,600-year-old Gupta-era Iron Pillar that has never rusted despite centuries of weather.",
+        "It was initiated in 1199 CE by Qutb-ud-din Aibak, marking the inception of the Delhi Sultanate."
+      ],
+      as: [
+        "ই দিল্লীত অৱস্থিত পৃথিৱীৰ সৰ্বোচ্চ ইটাৰে নিৰ্মিত মিনাৰ, যাৰ উচ্চতা ৭২.৫ মিটাৰ।",
+        "ৰঙা শিল আৰু মাৰ্বলেৰে নিৰ্মিত ইয়াৰ ৫টা মহলাত সুন্দৰ কাৰুকাৰ্য্য আৰু আৰবী লিপি খোদিত আছে।",
+        "ইয়াৰ চোতালত ১৬০০ বছৰ পুৰণি ঐতিহাসিক গুপ্ত যুগৰ লোৰ স্তম্ভ আছে য’ত কেতিয়াও মামৰে নধৰে।",
+        "ই ১১৯৯ চনত কুতুবুদ্দিন আইবাকে নিৰ্মাণ আৰম্ভ কৰা ঐতিহাসিক কুতুব মিনাৰ।"
+      ],
+      bn: [
+        "এটি দক্ষিণ দিল্লিতে অবস্থিত এবং এটি ইটের তৈরি বিশ্বের উচ্চতম মিনার (উচ্চতা ৭২.৫ মিটার)।",
+        "লাল বেলেপাথর ও মার্বেল পাথরে নির্মিত এই পাঁচতলা মিনারে সূক্ষ্ম লিপি ও কারুকাজ খোদিত আছে।",
+        "এর প্রাঙ্গণে রয়েছে ১৬০০ বছরের পুরনো এক রহস্যময় লৌহস্তম্ভ যাতে শতবর্ষেও কখনো মরিচা ধরে না।",
+        "এটি ১১৯৯ সালে কুতুবউদ্দিন আইবেক কর্তৃক প্রতিষ্ঠিত ঐতিহাসিক কুতুব মিনার।"
+      ],
+      hi: [
+        "यह दक्षिण दिल्ली के महरौली में स्थित ईंटों से बनी विश्व की सबसे ऊँची मीनार (७२.५ मीटर) है।",
+        "लाल बलुआ पत्थर और संगमरमर से बनी इसकी पाँच मंजिलों पर बारीक नक्काशी और शिलालेख हैं।",
+        "इसके परिसर में १६०० वर्ष पुराना गुप्तकालीन लौह स्तंभ खड़ा है जिसमें सदियों से जंग नहीं लगा।",
+        "यह सन् ११९९ में कुतुबुद्दीन ऐबक द्वारा शुरू करवाई गई ऐतिहासिक क़ुतुब मीनार है।"
+      ]
+    }
+  },
+  {
+    id: "kaziranga",
+    state: "Assam",
+    stateName: {
+      en: "Assam",
+      as: "অসম",
+      bn: "আসাম",
+      hi: "असम"
+    },
+    category: "wildlife_sanctuary",
+    icon: "🦏",
+    name: {
+      en: "Kaziranga National Park",
+      as: "কাজিৰঙা ৰাষ্ট্ৰীয় উদ্যান",
+      bn: "কাজিরাঙ্গা জাতীয় উদ্যান",
+      hi: "काजीरंगा राष्ट्रीय उद्यान"
+    },
+    clues: {
+      en: [
+        "It is located in the fertile floodplains along the mighty Brahmaputra River.",
+        "It is a prestigious UNESCO World Heritage Site recognized globally for its biodiversity conservation.",
+        "It features tall elephant grass, lush wetlands, swamp deer, wild water buffalo, and tigers.",
+        "It is world-renowned as home to over two-thirds of the planet's Great Indian One-Horned Rhinoceroses."
+      ],
+      as: [
+        "এই স্থানখন ব্ৰহ্মপুত্ৰ নদীৰ পাৰৰ উৰ্বৰ সমভূমিত অৱস্থিত।",
+        "ই জৈৱ বৈচিত্ৰ্য সংৰক্ষণৰ বাবে ইউনেস্কোৰ বিশ্ব ঐতিহ্য ক্ষেত্ৰৰ স্বীকৃতি প্ৰাপ্ত।",
+        "ইয়াত ওখ নল-খাগৰি, জলাশয়, নল-গাহৰি আৰু জলচৰ পখীৰ বিশাল সমাহাৰ আছে।",
+        "ই পৃথিৱীৰ দুই-তৃতীয়াংশ এশিঙীয়া গঁড়ৰ বাবে বিশ্ববিখ্যাত জাতীয় উদ্যান।"
+      ],
+      bn: [
+        "এই স্থানটি ব্রহ্মপুত্র নদের উর্বর প্লাবনভূমিতে অবস্থিত।",
         "এটি জীববৈচিত্র্যের জন্য ইউনেস্কো ওয়ার্ল্ড হেরিটেজ সাইট হিসেবে স্বীকৃত।",
-        "এখানে উঁচু নল-খাগড়া, জলাভূমি ও ক্রান্তীয় অরণ্য রয়েছে।",
+        "এখানে উঁচু নল-খাগড়া, জলাভূমি, বুনো মোষ ও বাঘের নিরাপদ বিচরণক্ষেত্র রয়েছে।",
         "এটি বিশ্বের দুই-তৃতীয়াংশ একশৃঙ্গ গণ্ডারের আবাসস্থল হিসেবে বিশ্বখ্যাত।"
       ],
-      "hi": [
-        "यह असम में ब्रह्मपुत्र नदी के उपजाऊ मैदानों में स्थित है।",
-        "यह जैव विविधता के लिए यूनेस्को विश्व धरोहर स्थल के रूप में मान्यता प्राप्त है।",
-        "यहाँ विशाल हाथी घास, आर्द्रभूमि और सघन उष्णकटिबंधीय वन हैं।",
-        "यह दुनिया के दो-तिहाई एक सींग वाले गैंडों के घर के रूप में प्रसिद्ध है।"
+      hi: [
+        "यह ब्रह्मपुत्र नदी के उपजाऊ कछारी मैदानों में स्थित भारत का गौरवशाली अभयारण्य है।",
+        "यह जैव विविधता के संरक्षण के लिए यूनेस्को विश्व धरोहर स्थल के रूप में मान्यता प्राप्त है।",
+        "यहाँ विशाल हाथी घास, आर्द्रभूमि, जंगली भैंसे और दलदली हिरण पाए जाते हैं।",
+        "यह दुनिया के दो-तिहाई दुर्लभ एक सींग वाले गैंडों के प्राकृतिक घर के रूप में प्रसिद्ध है।"
       ]
     }
   },
   {
-    "id": "majuli",
-    "state": "Assam",
-    "stateName": {
-      "en": "Assam",
-      "as": "অসম",
-      "bn": "আসাম",
-      "hi": "असम"
+    id: "charminar",
+    state: "Telangana",
+    stateName: {
+      en: "Telangana",
+      as: "তেলেংগানা",
+      bn: "তেলেঙ্গানা",
+      hi: "तेलंगाना"
     },
-    "category": "river_island",
-    "icon": "🏝️",
-    "name": {
-      "en": "Majuli River Island",
-      "as": "মাজুলী নদী দ্বীপ",
-      "bn": "মাজুলী নদী দ্বীপ",
-      "hi": "माजुली नदी द्वीप"
+    category: "monument_heritage",
+    icon: "🏛️",
+    name: {
+      en: "Charminar, Hyderabad",
+      as: "চাৰমিনাৰ, হায়দৰাবাদ",
+      bn: "চারমিনার, হায়দ্রাবাদ",
+      hi: "चारमीनार, हैदराबाद"
     },
-    "clues": {
-      "en": [
-        "It is cradled by the waters of the Brahmaputra and Subansiri rivers in Assam.",
-        "It is the cradle of Assamese neo-Vaishnavite culture and historic Satra monasteries.",
-        "It is internationally celebrated for traditional clay mask-making and pottery.",
-        "It holds the Guinness World Record as the largest inhabited river island on Earth."
+    clues: {
+      en: [
+        "It stands in the bustling heart of Hyderabad near the historic Laad Bazaar and Musi River.",
+        "It is a square structure featuring four grand arches facing the cardinal directions, each topped by an elegant 56-meter minaret.",
+        "Surrounding it are bustling markets world-famous for natural pearl jewelry and traditional glass lac bangles.",
+        "It was built in 1591 by Muhammad Quli Qutb Shah to commemorate the eradication of a devastating plague."
       ],
-      "as": [
-        "ই অসমত ব্ৰহ্মপুত্ৰ আৰু সোৱণশিৰি নদীৰ বুকুত অৱস্থিত।",
-        "ই মহাপুৰুষ শ্ৰীমন্ত শংকৰদেৱ প্ৰৱৰ্তিত নৱ-বৈষ্ণৱ সত্ৰীয়া সংস্কৃতিৰ কেন্দ্ৰস্থল।",
-        "ই পৰম্পৰাগত মাটিৰ মুখা শিল্প আৰু মৃৎশিল্পৰ বাবে জনাজাত।",
-        "ই পৃথিৱীৰ সৰ্ববৃহৎ জনবসতিপূৰ্ণ নদী দ্বীপ হিচাপে গিনিজ বুকত অন্তৰ্ভুক্ত।"
+      as: [
+        "ই তেলেংগানাৰ ৰাজধানী হায়দৰাবাদৰ বিখ্যাত লাদ বজাৰৰ কাষত অৱস্থিত।",
+        "ইয়াৰ চাৰিওফালে চাৰিটা সুবিশাল তোৰণ আৰু ৫৬ মিটাৰ ওখ চাৰিটা সুন্দৰ মিনাৰ আছে।",
+        "ইয়াৰ চৌপাশে খাঁটি মুকুতাৰ গহনা আৰু কাঁচৰ খাৰুৰ বিশ্ববিখ্যাত বজাৰ অৱস্থিত।",
+        "ই ১৫৯১ চনত চুলতান মহম্মদ কুলি কুতুব শ্বাহে নিৰ্মাণ কৰোৱা ঐতিহাসিক চাৰমিনাৰ।"
       ],
-      "bn": [
-        "এটি আসামে ব্রহ্মপুত্র ও সুবর্ণসিঁড়ি নদীর বুকে অবস্থিত।",
-        "এটি নব্য-বৈষ্ণব সত্ৰিয়া সংস্কৃতির মূল কেন্দ্র ও আধ্যাত্মিক রাজধানী।",
-        "এটি ঐতিহ্যবাহী মুখোশ নির্মাণ ও মৃৎশিল্পের জন্য বিখ্যাত।",
-        "এটি পৃথিবীর বৃহত্তম মানববসতিপূর্ণ নদী দ্বীপ।"
+      bn: [
+        "এটি হায়দ্রাবাদের প্রাণকেন্দ্রে ঐতিহাসিক লাদ বাজার ও মুসি নদীর তীরে অবস্থিত।",
+        "এর চারদিকে চারটি বিশাল খিলান এবং চার কোণায় চারটি ৫৬ মিটার উঁচু সুদৃশ্য মিনার রয়েছে।",
+        "এর সংলগ্ন বাজারে বিশ্বখ্যাত খাঁটি মুক্তোর গয়না ও ঐতিহ্যবাহী কাঁচের চুড়ি পাওয়া যায়।",
+        "১৫৯১ সালে কুতুব শাহি বংশের সুলতান মুহম্মদ কুলি কুতুব শাহ এটি নির্মাণ করেন।"
       ],
-      "hi": [
-        "यह असम में ब्रह्मपुत्र और सुबनसिरी नदियों के बीच स्थित है।",
-        "यह असमिया नव-वैष्णव सत्र संस्कृति का ऐतिहासिक केंद्र है।",
-        "यह पारंपरिक मुखौटा निर्माण और मिट्टी के बर्तनों के लिए प्रसिद्ध है।",
-        "यह पृथ्वी पर सबसे बड़ा आबाद नदी द्वीप होने का गिनीज रिकॉर्ड रखता है।"
+      hi: [
+        "यह तेलंगाना के हैदराबाद के प्राचीन केंद्र में मूसी नदी और लाड़ बाज़ार के पास स्थित है।",
+        "इस चौकोर स्मारक में चार भव्य मेहराब और चारों कोनों पर ५६ मीटर ऊँची चार सुंदर मीनारें हैं।",
+        "इसके आसपास का बाज़ार मोतियों के आभूषणों और लाख की चूड़ियों के लिए विश्वविख्यात है।",
+        "यह सन् १५९१ में सुल्तान मुहम्मद कुली क़ुतुब शाह द्वारा निर्मित ऐतिहासिक चारमीनार है।"
       ]
     }
   },
   {
-    "id": "kamakhya",
-    "state": "Assam",
-    "stateName": {
-      "en": "Assam",
-      "as": "অসম",
-      "bn": "আসাম",
-      "hi": "असम"
+    id: "alleppey_backwaters",
+    state: "Kerala",
+    stateName: {
+      en: "Kerala",
+      as: "কেৰালা",
+      bn: "কেরালা",
+      hi: "केरल"
     },
-    "category": "temple_heritage",
-    "icon": "🛕",
-    "name": {
-      "en": "Kamakhya Temple",
-      "as": "কামাখ্যা মন্দিৰ",
-      "bn": "কামাখ্যা মন্দির",
-      "hi": "कामाख्या मंदिर"
+    category: "river_nature",
+    icon: "🌴",
+    name: {
+      en: "Alleppey (Alappuzha) Backwaters",
+      as: "আলেপ্পীৰ ব্যাকৱাটাৰ, কেৰালা",
+      bn: "আলেপ্পির ব্যাকওয়াটার, কেরালা",
+      hi: "अल्लेप्पी (केरल) के बैकवाटर"
     },
-    "clues": {
-      "en": [
-        "It is perched atop the sacred Nilachal Hill overlooking Guwahati in Assam.",
-        "It is one of the oldest and most revered of the 51 Shakti Peethas in Tantric tradition.",
-        "The sanctum houses no statue, but a natural rock fissure shaped as a yoni fed by a spring.",
-        "It hosts the legendary annual Ambubachi Mela celebrating the generative power of Mother Earth."
+    clues: {
+      en: [
+        "It is located on the tropical southwestern Malabar coast of India, often titled the 'Venice of the East'.",
+        "It is a tranquil labyrinth of palm-fringed canals, lagoons, and lakes parallel to the Arabian Sea.",
+        "It is world-renowned for traditional thatched houseboats (Kettuvallam) cruising peacefully through coconut groves.",
+        "It hosts the thrilling annual Nehru Trophy Boat Race featuring magnificent hundred-foot snake boats (Chundan Vallam)."
       ],
-      "as": [
-        "এই মন্দিৰ অসমৰ গুৱাহাটীৰ পবিত্ৰ নীলাচল পাহাৰৰ চূড়াত অৱস্থিত।",
-        "ই ৫১টা শক্তিপীঠৰ অন্যতম প্ৰাচীন আৰু সৰ্বাধিক মৰ্যাদাপূৰ্ণ তীৰ্থস্থান।",
-        "ইয়াৰ গৰ্ভগৃহত কোনো মূৰ্তি নাই, বৰঞ্চ প্ৰাকৃতিক শিলৰ যোনিপীঠ আৰু জুৰি আছে।",
-        "ইয়াত প্ৰতি বছৰে বিখ্যাত অম্বুবাচী মেলা মহাসমাৰোহেৰে অনুষ্ঠিত হয়।"
+      as: [
+        "ই দক্ষিণ-পশ্চিম ভাৰতৰ মালাবাৰ উপকূলৰ কেৰালাত অৱস্থিত, যাক 'পূবৰ ভেনিচ' বুলি জনা যায়।",
+        "ই নাৰিকল গছেৰে আবৃত শান্ত খাল, উপহ্ৰদ আৰু নদীৰ এক অপূৰ্ব জলপথ।",
+        "ইয়াত পৰম্পৰাগত কাঠ আৰু নলেৰে সজোৱা কেট্টুভল্লম হাউচব’টত পৰ্যটকসকলে ভ্ৰমণ কৰে।",
+        "প্ৰতি বছৰে ইয়াত বিখ্যাত নেহৰু ট্ৰফীৰ সাঁপৰ আকৃতিৰ বিশাল নাওঁৰ প্ৰতিযোগিতা অনুষ্ঠিত হয়।"
       ],
-      "bn": [
-        "এই পবিত্র মন্দির আসামের গুয়াহাটির নীলাচল পাহাড়ের চূড়ায় অবস্থিত।",
-        "এটি ৫১টি শক্তিপীঠের অন্যতম প্রধান ও প্রাচীন তান্ত্রিক তীর্থস্থল।",
-        "গর্ভগৃহে কোনো প্রতিমা নেই, কেবল ভূগর্ভস্থ ঝর্ণা দ্বারা সিক্ত একটি প্রাকৃতিক শিলাখন্ড রয়েছে।",
-        "এখানে প্রতি বছর বিখ্যাত অম্বুবাচী মেলা উদযাপিত হয়।"
+      bn: [
+        "এটি ভারতের দক্ষিণ-পশ্চিম মালাবার উপকূলে কেরালায় অবস্থিত, যাকে 'প্রাচ্যের ভেনিস' বলা হয়।",
+        "এটি নারকেল ও পাম গাছে ঘেরা শান্ত খাল, হ্রদ ও লেগুনের এক মনোরম জলজাল।",
+        "এখানে ঐতিহ্যবাহী খড়ের ছাদযুক্ত হাউসবোটে (কেট্টুভল্লম) ভেসে শান্ত জলভ্রমণ করা যায়।",
+        "এখানে প্রতি বছর ঐতিহ্যবাহী শতফুট দীর্ঘ সর্পনৌকার (চুন্দন বল্লম) রোমাঞ্চকর প্রতিযোগিতা হয়।"
       ],
-      "hi": [
-        "यह असम के गुवाहाटी में पवित्र नीलाचल पहाड़ी पर स्थित है।",
-        "यह ५१ शक्तिपीठों में से एक अत्यंत प्राचीन एवं सिद्ध शक्तिपीठ है।",
-        "गर्भगृह में कोई मूर्ति नहीं, बल्कि एक प्राकृतिक शिला और जलस्रोत है।",
-        "यहाँ प्रतिवर्ष प्रसिद्ध अंबुबाची मेला आयोजित किया जाता है।"
+      hi: [
+        "यह दक्षिण-पश्चिम भारत के केरल के मालाबार तट पर स्थित है, जिसे 'पूर्व का वेनिस' भी कहा जाता है।",
+        "यह नारियल के घने कुंजों, शांत नहरों और लैगून का एक अद्भुत व मनोरम जल-संसार है।",
+        "यहाँ पारंपरिक लकड़ी व फूस की छतों वाली हाउसबोट (केट्टुवल्लम) में ठहरने का अनूठा अनुभव मिलता है।",
+        "यहाँ प्रतिवर्ष नेहरू ट्रॉफी के तहत सौ फुट लंबी विशाल सर्प-नौकाओं (चुंदन वल्लम) की रोमांचक दौड़ होती है।"
       ]
     }
   },
   {
-    "id": "loktak",
-    "state": "Manipur",
-    "stateName": {
-      "en": "Manipur",
-      "as": "মণিপুৰ",
-      "bn": "মণিপুর",
-      "hi": "मणिपुर"
+    id: "sanchi_stupa",
+    state: "Madhya Pradesh",
+    stateName: {
+      en: "Madhya Pradesh",
+      as: "মধ্যপ্ৰদেশ",
+      bn: "মধ্যপ্রদেশ",
+      hi: "मध्य प्रदेश"
     },
-    "category": "lake_nature",
-    "icon": "🌊",
-    "name": {
-      "en": "Loktak Lake",
-      "as": "লকটক হ্ৰদ",
-      "bn": "লোকতাক হ্রদ",
-      "hi": "लोकतक झील"
+    category: "monument_heritage",
+    icon: "🛕",
+    name: {
+      en: "Great Stupa of Sanchi",
+      as: "সাঁচীৰ মহান স্তূপ",
+      bn: "সাঁচির মহান স্তূপ",
+      hi: "साँची का महान स्तूप"
     },
-    "clues": {
-      "en": [
-        "It is nestled in the scenic valley of Manipur in Northeast India.",
-        "It is the largest freshwater lake across the entire northeastern region.",
-        "It is internationally famous for floating circular islands of vegetation called Phumdis.",
-        "It hosts Keibul Lamjao, the world's only floating national park and refuge of the dancing Sangai deer."
+    clues: {
+      en: [
+        "It crowns a serene hilltop near the Betwa River in the central Indian state of Madhya Pradesh.",
+        "It is the oldest intact stone structure in India, originally commissioned by Emperor Ashoka the Great in the 3rd century BCE.",
+        "It features four magnificent ceremonial stone gateways (Toranas) carved with intricate stories of Lord Buddha's life and Jataka tales.",
+        "It is crowned by the sacred stone Chhatri umbrella atop its massive hemispherical dome encasing holy relics."
       ],
-      "as": [
-        "ই উত্তৰ-পূব ভাৰতৰ মণিপুৰ ৰাজ্যৰ উপত্যকাত অৱস্থিত।",
-        "ই সমগ্ৰ উত্তৰ-পূব ভাৰতৰ সৰ্ববৃহৎ নিৰ্মল পানীৰ হ্ৰদ।",
-        "ই বৃত্তাকাৰ ওপঙি থকা জৈৱিক দ্বীপ বা ফুমডিৰ বাবে বিখ্যাত।",
-        "ইয়াতেই পৃথিৱীৰ একমাত্ৰ ওপঙি থকা ৰাষ্ট্ৰীয় উদ্যান আৰু দুষ্প্ৰাপ্য চাংগাই পহুৰ বাসস্থান আছে।"
+      as: [
+        "ই মধ্য ভাৰতৰ মধ্যপ্ৰদেশৰ বেতৱা নদীৰ কাষৰ এক শান্ত পাহাৰৰ ওপৰত অৱস্থিত।",
+        "ই ভাৰতৰ অন্যতম প্ৰাচীন অক্ষত শিলৰ স্থাপত্য, যি খ্ৰীষ্টপূৰ্ব তৃতীয় শতিকাত সম্ৰাট অশোকে নিৰ্মাণ কৰিছিল।",
+        "ইয়াৰ চাৰিটা দিশত চাৰিখন বিশাল তোৰণ আছে য’ত বুদ্ধদেৱৰ জীৱন আৰু জাতকৰ কাহিনী খোদিত আছে।",
+        "ই ভগৱান বুদ্ধৰ পৱিত্ৰ ধাতু সংৰক্ষণ কৰা সাঁচীৰ মহান বৌদ্ধ স্তূপ।"
       ],
-      "bn": [
-        "এটি উত্তর-পূর্ব ভারতের মণিপুর রাজ্যের মনোরম উপত্যকায় অবস্থিত।",
-        "এটি উত্তর-পূর্ব ভারতের সর্ববৃহৎ সুপেয় জলের হ্রদ।",
-        "এটি বৃত্তাকার ভাসমান দ্বীপ বা ফুমডির জন্য জগৎখ্যাত।",
-        "এখানে বিশ্বের একমাত্র ভাসমান জাতীয় উদ্যান এবং বিরল সাঙ্গাই হরিণ বাস করে।"
+      bn: [
+        "এটি মধ্যপ্রদেশের বেতোয়া নদীর সন্নিকটে একটি শান্ত পাহাড়ের চূড়ায় অবস্থিত।",
+        "এটি ভারতের অন্যতম প্রাচীন শিলা স্থাপত্য, যা খ্রিস্টপূর্ব তৃতীয় শতকে মহামতি অশোক প্রতিষ্ঠা করেছিলেন।",
+        "এর চারদিকে চারটি অপূর্ব পাথরের তোরণ রয়েছে যাতে বুদ্ধদেবের জীবনী ও জাতকের গল্প খোদিত।",
+        "এটি বৌদ্ধ ঐতিহ্যের পরম পবিত্র প্রতীক সাঁচীর মহামহিমাম্বিত স্তূপ।"
       ],
-      "hi": [
-        "यह पूर्वोत्तर भारत के मणिपुर राज्य में स्थित है।",
-        "यह पूर्वोत्तर भारत की सबसे बड़ी मीठे पानी की झील है।",
-        "यह पानी पर तैरते हुए गोलाकार द्वीपों जिन्हें फुमदी कहते हैं, के लिए प्रसिद्ध है।",
-        "यहाँ दुनिया का एकमात्र तैरता हुआ केबुल लामजाओ राष्ट्रीय उद्यान और संगाई हिरण स्थित हैं।"
+      hi: [
+        "यह मध्य भारत के मध्य प्रदेश में बेतवा नदी के समीप एक शांत पहाड़ी पर स्थित है।",
+        "यह भारत की सबसे प्राचीन पाषाण संरचनाओं में से एक है, जिसे ईसा पूर्व तीसरी शताब्दी में सम्राट अशोक ने बनवाया था।",
+        "इसके चारों ओर चार अलंकृत तोरण द्वार हैं जिन पर भगवान बुद्ध के जीवन और जातक कथाओं की सुंदर नक्काशी है।",
+        "यह पावन बौद्ध अवशेषों को सहेजे हुए 'साँची का महान स्तूप' है।"
       ]
     }
   },
   {
-    "id": "tawang",
-    "state": "Arunachal Pradesh",
-    "stateName": {
-      "en": "Arunachal Pradesh",
-      "as": "অৰুণাচল প্ৰদেশ",
-      "bn": "অরুণাচল প্রদেশ",
-      "hi": "अरुणाचल प्रदेश"
+    id: "mysore_palace",
+    state: "Karnataka",
+    stateName: {
+      en: "Karnataka",
+      as: "কৰ্ণাটক",
+      bn: "কর্ণাটক",
+      hi: "कर्नाटक"
     },
-    "category": "monastery_heritage",
-    "icon": "🏮",
-    "name": {
-      "en": "Tawang Monastery",
-      "as": "টাৱাং বৌদ্ধ মঠ",
-      "bn": "তাওয়াং বৌদ্ধ মঠ",
-      "hi": "तवांग बौद्ध मठ"
+    category: "palace_heritage",
+    icon: "🏰",
+    name: {
+      en: "Mysore Palace (Amba Vilas)",
+      as: "মহীশূৰ ৰাজপ্ৰাসাদ",
+      bn: "মহীশূর রাজপ্রাসাদ",
+      hi: "मैसूर महल (अम्बा विलास)"
     },
-    "clues": {
-      "en": [
-        "It is perched in the snow-capped Himalayan ranges of Arunachal Pradesh at 3,000 meters.",
-        "It belongs to the Gelug school of Mahayana Buddhism, founded in 1680.",
-        "It houses a priceless 8-meter high gilded Buddha statue and centuries-old Tibetan scriptures.",
-        "It is the largest Buddhist monastery in India and the second largest in the world."
+    clues: {
+      en: [
+        "It is situated in the historic royal city of Mysuru in the southern state of Karnataka.",
+        "It is a breathtaking Indo-Saracenic palace with granite domes, stained glass ceilings, and carved teakwood pillars.",
+        "During the autumn Dasara festival, the entire palace is illuminated every evening by nearly one hundred thousand golden incandescent bulbs.",
+        "It was the royal seat of the Wadiyar dynasty and is celebrated as the Amba Vilas Palace."
       ],
-      "as": [
-        "ই অৰুণাচল প্ৰদেশৰ হিমালয়ৰ কোলাত প্ৰায় ৩,০০০ মিটাৰ উচ্চতাত অৱস্থিত।",
-        "ই ১৬৮০ চনত প্ৰতিষ্ঠিত গেলুগ পন্থীয় মহাযান বৌদ্ধ ধৰ্মৰ এক পবিত্ৰ স্থান।",
-        "ইয়াত ৮ মিটাৰ ওখ সোণৰ জলপ দিয়া বুদ্ধৰ মূৰ্তি আৰু প্ৰাচীন তিব্বতী পাণ্ডুলিপি আছে।",
-        "ই ভাৰতৰ সৰ্ববৃহৎ আৰু বিশ্বৰ দ্বিতীয় বৃহত্তম বৌদ্ধ মঠ।"
+      as: [
+        "ই দক্ষিণ ভাৰতৰ কৰ্ণাটকৰ ঐতিহাসিক ৰাজকীয় চহৰ মহীশূৰত অৱস্থিত।",
+        "ই গ্ৰেনাইট শিল, ৰঙীন কাঁচৰ চালি আৰু কাঠেৰে সজোৱা এক অপূৰ্ব ৰাজপ্ৰাসাদ।",
+        "দশেৰা উৎসৱৰ সময়ত প্ৰায় এক লাখ বিজুলী বাতিৰে সমগ্ৰ ৰাজপ্ৰাসাদটো সোণালী পোহৰত জিলিকাই তোলা হয়।",
+        "ই ৱাডিয়াৰ ৰাজবংশৰ ঐতিহাসিক বাসগৃহ আৰু বিখ্যাত অম্বা বিলাস প্ৰাসাদ।"
       ],
-      "bn": [
-        "এটি অরুণাচল প্রদেশের তুষারাবৃত হিমালয়ের ৩,০০০ মিটার উচ্চতায় অবস্থিত।",
-        "এটি ১৬৮০ সালে প্রতিষ্ঠিত গেলুগপা সম্প্রদায়ের অন্যতম পবিত্র মহাযান কেন্দ্র।",
-        "এখানে ৮ মিটার উঁচু স্বর্ণখচিত বুদ্ধ মূর্তি ও শত শত বছরের তিব্বতি পুথি রক্ষিত আছে।",
-        "এটি ভারতের বৃহত্তম এবং বিশ্বের দ্বিতীয় বৃহত্তম বৌদ্ধ মঠ।"
+      bn: [
+        "এটি দক্ষিণ ভারতের কর্ণাটকের ঐতিহাসিক নগরী মহীশূরের কেন্দ্রস্থলে অবস্থিত।",
+        "এটি গ্রানাইট পাথর, রঙিন কাচ ও খোদাই করা মেহগনি কাঠে নির্মিত এক অপূর্ব প্রাসাদ।",
+        "দশেরা উৎসবের সময় প্রায় এক লক্ষ প্রদীপ্ত বাল্বে সমগ্র রাজপ্রাসাদটি স্বর্ণালী আভায় আলোকিত হয়।",
+        "এটি ওয়াদিয়ার রাজপরিবারের ঐতিহাসিক আম্বা বিলাস রাজপ্রাসাদ।"
       ],
-      "hi": [
-        "यह अरुणाचल प्रदेश में हिमालय की गोद में ३,००० मीटर की ऊंचाई पर स्थित है।",
-        "यह १६८० में स्थापित गेलुग्पा संप्रदाय का प्रमुख बौद्ध केंद्र है।",
-        "यहाँ ८ मीटर ऊंची स्वर्ण मंडित बुद्ध प्रतिमा और प्राचीन तिब्बती पांडुलिपियां हैं।",
-        "यह भारत का सबसे बड़ा और ल्हासा के बाद विश्व का दूसरा सबसे बड़ा बौद्ध मठ है।"
+      hi: [
+        "यह दक्षिण भारत के कर्नाटक के ऐतिहासिक नगर मैसूरु में स्थित भव्य राजमहल है।",
+        "यह ग्रेनाइट पत्थरों, रंगीन शीशों की छतों और नक्काशीदार खंभों से बना भारत-अरबी वास्तुकला का अनुपम उदाहरण है।",
+        "प्रसिद्ध मैसूर दशहरा महोत्सव के दौरान यह महल लगभग एक लाख जगमगाते बल्बों की रोशनी से नहा उठता है।",
+        "यह वाडियार राजवंश का ऐतिहासिक राजसिंहासन 'अम्बा विलास पैलेस' है।"
       ]
     }
   },
   {
-    "id": "cherrapunji",
-    "state": "Meghalaya",
-    "stateName": {
-      "en": "Meghalaya",
-      "as": "মেঘালয়",
-      "bn": "মেঘালয়",
-      "hi": "मेघालय"
+    id: "rann_of_kutch",
+    state: "Gujarat",
+    stateName: {
+      en: "Gujarat",
+      as: "গুজৰাট",
+      bn: "গুজরাট",
+      hi: "गुजरात"
     },
-    "category": "hills_waterfalls",
-    "icon": "🌧️",
-    "name": {
-      "en": "Cherrapunji (Sohra)",
-      "as": "চেৰাপুঞ্জী (চোহৰা)",
-      "bn": "চেরাপুঞ্জি (সোহরা)",
-      "hi": "चेरापूंजी (सोहरा)"
+    category: "desert_nature",
+    icon: "🏜️",
+    name: {
+      en: "Great Rann of Kutch (White Desert)",
+      as: "কচ্ছৰ বগা মৰুভূমি",
+      bn: "কচ্ছের সাদা মরুভূমি",
+      hi: "कच्छ का रण (श्वेत मरुस्थल)"
     },
-    "clues": {
-      "en": [
-        "It sits on the high southern plateau of the East Khasi Hills in Meghalaya.",
-        "It overlooks dramatic limestone cliffs and the spectacular plunging Nohkalikai Falls.",
-        "Indigenous Khasi communities engineered bio-living root bridges across roaring torrents here.",
-        "It was historically recorded in meteorological annals as the wettest place on Earth."
+    clues: {
+      en: [
+        "It is located along the western coast of India in the vibrant state of Gujarat near the Arabian Sea.",
+        "It is one of the world's largest seasonal salt marshes, transforming into an endless shimmering expanse of white salt under the full moon.",
+        "Every winter, it hosts the vibrant three-month Rann Utsav celebrating Kutchi folk music, dance, and colorful embroidery.",
+        "It is also a natural sanctuary for the endangered Indian Wild Ass (Khur) and thousands of migratory greater flamingos."
       ],
-      "as": [
-        "ই মেঘালয়ৰ পূব খাছি পাহাৰৰ উচ্চ দক্ষিণাঞ্চলীয় মালভূমিত অৱস্থিত।",
-        "ইয়াৰ পৰা মনোৰম নোহকালিকাই জলপ্ৰপাত আৰু গভীৰ গিৰিখাদ দেখা যায়।",
-        "ইয়াত খাচী জনজাতীয় লোকে গছৰ শিপাৰে জীৱন্ত দলং নিৰ্মাণ কৰিছিল।",
-        "ই ঐতিহাসিকভাৱে পৃথিৱীৰ সৰ্বাধিক বৃষ্টিপাত হোৱা স্থান হিচাপে পৰিচিত।"
+      as: [
+        "ই পশ্চিম ভাৰতৰ গুজৰাটৰ উপকূলত অৱস্থিত পৃথিৱীৰ সৰ্ববৃহৎ নিমখৰ মৰুভূমি।",
+        "পূৰ্ণিমাৰ নিশাত চন্দ্ৰৰ পোহৰত ইয়াৰ শুভ্ৰ নিমখৰ বিশাল সমভূমি ৰূপালী পোহৰৰ দৰে জিলিকে।",
+        "প্ৰতি শীতকালত ইয়াত তিনিমহীয়া কচ্ছ উৎসৱ অনুষ্ঠিত হয় য’ত থলুৱা লোকসংগীত আৰু হস্তশিল্প প্ৰদৰ্শিত হয়।",
+        "ই ভাৰতৰ বিৰল বনৰীয়া গাধ আৰু হাজাৰ হাজাৰ ৰাজহাঁহৰ এক প্ৰাকৃতিক বিচৰণভূমি।"
       ],
-      "bn": [
-        "এটি মেঘালয়ের পূর্ব খাসি পাহাড়ের উচ্চ মালভূমিতে অবস্থিত।",
-        "এখান থেকে বিখ্যাত নোহকালিকাই জলপ্রপাত ও মনোরম চুনাপাথরের উপত্যকা দেখা যায়।",
-        "এখানে স্থানীয় খাসি উপজাতিরা গাছের জীবন্ত শিকড় দিয়ে মজবুত সেতু তৈরি করেছে।",
-        "এটি আবহাওয়া বিজ্ঞানের ইতিহাসে পৃথিবীর সবচেয়ে বৃষ্টিবহুল স্থান হিসেবে চিহ্নিত।"
+      bn: [
+        "এটি ভারতের পশ্চিম প্রান্তে গুজরাটের উপকূল সংলগ্ন পৃথিবীর অন্যতম বৃহত্তম লবণের মরুভূমি।",
+        "পূর্ণিমার রাতে চাঁদের আলোয় মাইলের পর মাইল বিস্তৃত শুভ্র লবণের প্রান্তর রূপালি চাদরের মতো জ্বলজ্বল করে।",
+        "শীতকালে এখানে বিখ্যাত তিন মাসব্যাপী 'রণ উৎসব' উদযাপিত হয় যা হস্তশিল্প ও লোকগীতিতে মুখরিত থাকে।",
+        "এটি বিরল ভারতীয় বুনো গাধা ও পরিযায়ী ফ্লেমিঙ্গো পাখির প্রাকৃতিক আশ্রয়স্থল।"
       ],
-      "hi": [
-        "यह मेघालय के पूर्वी खासी हिल्स के ऊंचे पठार पर स्थित है।",
-        "यहाँ से विहंगम नोहकलिकाई जलप्रपात और गहरी चूना पत्थर की घाटियाँ दिखाई देती हैं।",
-        "यहाँ खासी जनजाति द्वारा पेड़ों की जीवित जड़ों से बनाए गए प्राकृतिक पुल हैं।",
-        "यह ऐतिहासिक रूप से पृथ्वी पर सबसे अधिक वर्षा वाले स्थान के रूप में जाना जाता है।"
-      ]
-    }
-  },
-  {
-    "id": "sivasagar",
-    "state": "Assam",
-    "stateName": {
-      "en": "Assam",
-      "as": "অসম",
-      "bn": "আসাম",
-      "hi": "असम"
-    },
-    "category": "monument_heritage",
-    "icon": "🏛️",
-    "name": {
-      "en": "Sivasagar Rang Ghar",
-      "as": "শিৱসাগৰ ৰংঘৰ",
-      "bn": "শিবসাগর রংঘর",
-      "hi": "शिवसागर रंग घर"
-    },
-    "clues": {
-      "en": [
-        "It was the glorious royal capital of the Ahom Dynasty in Upper Assam.",
-        "It is built beside a colossal historic man-made reservoir called Borpukhuri.",
-        "It features subterranean battle fortifications with escape tunnels at Talatal Ghar.",
-        "It houses Rang Ghar, a two-storeyed royal sports pavilion recognized as Asia's oldest amphitheatre."
-      ],
-      "as": [
-        "ই উজনি অসমত ৬০০ বছৰ শাসন কৰা আহোম স্বৰ্গদেউসকলৰ ঐতিহাসিক ৰাজধানী আছিল।",
-        "ই বৰপুখুৰী নামৰ বিশাল ঐতিহাসিক মানৱসৃষ্ট পুখুৰীৰ পাৰত অৱস্থিত।",
-        "ইয়াত যুদ্ধৰ সুৰক্ষা আৰু সুৰংগ থকা তলাতল ঘৰ আৰু কাৰেংঘৰ আছে।",
-        "ইয়াত এছিয়াৰ সৰ্বপ্ৰথম খেল-ধেমালিৰ ৰাজপ্ৰাসাদ বা পেভিলিয়ন ৰংঘৰ অৱস্থিত।"
-      ],
-      "bn": [
-        "এটি উজনি আসামে ৬০০ বছর রাজত্বকারী আহোম রাজাদের ঐতিহাসিক রাজধানী ছিল।",
-        "এটি বরপুখুরী নামের এক সুবিশাল ঐতিহাসিক হ্রদের তীরে গড়ে উঠেছিল।",
-        "এখানে মাটির নিচের গোপন সুড়ঙ্গ সম্বলিত তালাতল ঘর অবস্থিত।",
-        "এখানে অবস্থিত রংঘর, যা এশিয়ার প্রাচীনতম ক্রীড়া ও সাংস্কৃতিক অ্যাম্পিথিয়েটার।"
-      ],
-      "hi": [
-        "यह ऊपरी असम में ६०० वर्षों तक शासन करने वाले अहोम साम्राज्य की राजधानी थी।",
-        "यह ऐतिहासिक बोरपुखुरी नामक विशाल कृत्रिम सरोवर के तट पर स्थित है।",
-        "यहाँ युद्धकालीन गुप्त सुरंगों से युक्त तलातल घर स्थित है।",
-        "यहाँ दो मंजिला रंग घर स्थित है, जिसे एशिया का सबसे पुराना क्रीड़ा रंगमंच माना जाता है।"
-      ]
-    }
-  },
-  {
-    "id": "ujjayanta",
-    "state": "Tripura",
-    "stateName": {
-      "en": "Tripura",
-      "as": "ত্ৰিপুৰা",
-      "bn": "ত্রিপুরা",
-      "hi": "त्रिपुरा"
-    },
-    "category": "palace_heritage",
-    "icon": "🏰",
-    "name": {
-      "en": "Ujjayanta Palace",
-      "as": "উজ্জয়ন্ত প্ৰাসাদ",
-      "bn": "উজ্জয়ন্ত প্রাসাদ",
-      "hi": "उज्जयंत पैलेस"
-    },
-    "clues": {
-      "en": [
-        "It stands majestically in the heart of Agartala, the capital of Tripura.",
-        "It was bestowed its poetic name by Nobel laureate Rabindranath Tagore during royal visits.",
-        "It features grand neoclassical domes, tiled marble floors, and Mughal-style garden fountains.",
-        "It was the seat of the Manikya kings and now houses the state museum celebrating Northeast heritage."
-      ],
-      "as": [
-        "ই ত্ৰিপুৰাৰ ৰাজধানী আগৰতলাৰ বুকুত গাম্ভীৰ্যপূৰ্ণভাৱে দণ্ডায়মান।",
-        "ইয়াৰ এই কাব্যিক নামটো বিশ্বকবি ৰবীন্দ্ৰনাথ ঠাকুৰে প্ৰদান কৰিছিল।",
-        "ইয়াত সুন্দৰ মোগল শৈলীৰ বাগিচা, ফোৱাৰা আৰু মাৰ্বল পাথৰৰ বিশাল গম্বুজ আছে।",
-        "ই মাণিক্য ৰাজবংশৰ ৰাজপ্ৰাসাদ আছিল আৰু বৰ্তমান ই উত্তৰ-পূব ঐতিহ্যৰ ৰাজ্যিক সংগ্ৰহালয়।"
-      ],
-      "bn": [
-        "এটি ত্রিপুরার রাজধানী আগরতলার কেন্দ্রস্থলে অবস্থিত এক রাজকীয় প্রাসাদ।",
-        "এই অনন্য প্রাসাদটির নামকরণ করেছিলেন স্বয়ং বিশ্বকবি রবীন্দ্রনাথ ঠাকুর।",
-        "এটিতে সুন্দর মুঘল ধাঁচের বাগান, কৃত্রিম ফোয়ারা ও বিশাল গম্বুজ রয়েছে।",
-        "এটি মাণিক্য রাজবংশের বাসস্থান ছিল এবং বর্তমানে ত্রিপুরার রাজ্য জাদুঘর।"
-      ],
-      "hi": [
-        "यह त्रिपुरा की राजधानी अगरतला के हृदय स्थल में स्थित एक भव्य महल है।",
-        "इस ऐतिहासिक महल का नामकरण नोबेल पुरस्कार विजेता रवींद्रनाथ टैगोर ने किया था।",
-        "इसमें सुंदर मुगल शैली के बगीचे, फव्वारे और नवशास्त्रीय संगमरमरी गुंबद हैं।",
-        "यह माणिक्य राजवंश की गद्दी थी और वर्तमान में पूर्वोत्तर विरासत का राज्य संग्रहालय है।"
-      ]
-    }
-  },
-  {
-    "id": "ziro",
-    "state": "Arunachal Pradesh",
-    "stateName": {
-      "en": "Arunachal Pradesh",
-      "as": "অৰুণাচল প্ৰদেশ",
-      "bn": "অরুণাচল প্রদেশ",
-      "hi": "अरुणाचल प्रदेश"
-    },
-    "category": "valley_nature",
-    "icon": "🌾",
-    "name": {
-      "en": "Ziro Valley",
-      "as": "জিৰো উপত্যকা",
-      "bn": "জিরো উপত্যকা",
-      "hi": "जीरो घाटी"
-    },
-    "clues": {
-      "en": [
-        "It is an idyllic plateau valley in Lower Subansiri district of Arunachal Pradesh.",
-        "It is home to the indigenous Apatani tribe, revered for traditional nose plugs and tattoos.",
-        "It features an ingenious UNESCO-proposed wet-rice cultivation system integrating fish farming.",
-        "It hosts India's premier eco-friendly open-air independent Ziro Music Festival."
-      ],
-      "as": [
-        "ই অৰুণাচল প্ৰদেশৰ নামনি সোৱণশিৰি জিলাৰ এক মনোৰম উপত্যকা।",
-        "ই পৰম্পৰাগত মুখৰ টেটু আৰু নাকৰ অলংকাৰৰ বাবে জনাজাত আপাতানি জনগোষ্ঠীৰ বাসস্থান।",
-        "ইয়াত মাছ পালন আৰু ধান খেতিৰ এক অতুলনীয় পৰম্পৰাগত জলসিঞ্চন প্ৰণালী আছে।",
-        "ইয়াত পাইন বনেৰে ঘেৰা ধাননি পথাৰৰ মাজত বিখ্যাত মুকলি আকাশৰ জিৰো সংগীত মহোৎসৱ অনুষ্ঠিত হয়।"
-      ],
-      "bn": [
-        "এটি অরুণাচল প্রদেশের নিম্ন সুবর্ণসিঁড়ি জেলার এক নয়নাবিরাম উপত্যকা।",
-        "এটি ঐতিহ্যবাহী মুখের উল্কি ও নাকের রিং পরা অপাতানি উপজাতির আবাসভূমি।",
-        "এখানে ধান চাষের সাথে মাছ চাষের এক যুগান্তকারী কৃষি পদ্ধতি রয়েছে।",
-        "এখানে পাইন গাছের পটভূমিতে ভারতের বিখ্যাত উন্মুক্ত জিরো মিউজিক ফেস্টিভ্যাল অনুষ্ঠিত হয়।"
-      ],
-      "hi": [
-        "यह अरुणाचल प्रदेश के निचले सुबनसिरी जिले में स्थित एक सुरम्य घाटी है।",
-        "यह पारंपरिक चेहरे के टैटू और नाक के आभूषणों वाली आपातानी जनजाति का घर है।",
-        "यहाँ धान के खेतों में मछली पालन की अनोखी पर्यावरण-अनुकूल कृषि प्रणाली है।",
-        "यहाँ धान के हरे-भरे खेतों के बीच प्रसिद्ध खुला जीरो संगीत समारोह आयोजित होता है।"
-      ]
-    }
-  },
-  {
-    "id": "kohima_hornbill",
-    "state": "Nagaland",
-    "stateName": {
-      "en": "Nagaland",
-      "as": "নাগালেণ্ড",
-      "bn": "নাগাল্যান্ড",
-      "hi": "नागालैंड"
-    },
-    "category": "cultural_heritage",
-    "icon": "🪶",
-    "name": {
-      "en": "Kohima (Hornbill Heritage)",
-      "as": "কহিমা (হৰ্ণবিল ঐতিহ্য)",
-      "bn": "কোহিমা (হর্নবিল ঐতিহ্য)",
-      "hi": "कोहिमा (हॉर्नबिल हेरिटेज)"
-    },
-    "clues": {
-      "en": [
-        "It is situated in the rugged highland hills of Nagaland.",
-        "It witnessed the fierce 1944 World War II battle known as the Stalingrad of the East.",
-        "Its Commonwealth War Cemetery bears the moving words: For your tomorrow, we gave our today.",
-        "Its nearby Kisama Heritage Village stages the electrifying Hornbill Festival uniting all Naga tribes."
-      ],
-      "as": [
-        "ই নাগালেণ্ডৰ উচ্চ পাহাৰীয়া ভূখণ্ডত অৱস্থিত।",
-        "ইয়াত ১৯৪৪ চনৰ দ্বিতীয় বিশ্বযুদ্ধৰ বিখ্যাত পূবৰ ষ্টেলিনগ্ৰাড যুদ্ধ সংঘটিত হৈছিল।",
-        "ইয়াৰ কমনৱেলথ কবৰস্থানত বিখ্যাত উক্তি তোমালোকৰ কাইলৈৰ বাবে আমি আমাৰ আজি ত্যাগ কৰিলোঁ খোদিত আছে।",
-        "ইয়াৰ ওচৰৰ কিচামা ঐতিহ্য গাঁৱত সকলো নাগা জনগোষ্ঠীক একত্ৰিত কৰা হৰ্ণবিল মহোৎসৱ অনুষ্ঠিত হয়।"
-      ],
-      "bn": [
-        "এটি নাগাল্যান্ডের মনোরম ও পার্বত্য উচ্চভূমিতে অবস্থিত।",
-        "এখানে ১৯৪৪ সালে দ্বিতীয় বিশ্বযুদ্ধের বিখ্যাত পূর্বের স্ট্যালিনগ্রাদ যুদ্ধ সংঘটিত হয়েছিল।",
-        "এখানে অবস্থিত ওয়ার সিমেট্রিতে বীরদের স্মরণে বিখ্যাত স্মৃতিবাণী খোদাই করা আছে।",
-        "এর নিকটে অবস্থিত কিসামা গ্রামে সকল নাগা উপজাতিকে নিয়ে মহা সমারোহে হর্নবিল উৎসব পালিত হয়।"
-      ],
-      "hi": [
-        "यह नागालैंड के ऊंचे और खूबसूरत पहाड़ी इलाकों में स्थित है।",
-        "यह १९४४ में द्वितीय विश्व युद्ध की प्रसिद्ध पूर्व का स्टालिनग्राद लड़ाई का साक्षी रहा है।",
-        "इसके युद्ध स्मारक पर प्रसिद्ध पंक्ति तुम्हारे कल के लिए हमने अपना आज दिया अंकित है।",
-        "यहाँ का किसामा हेरिटेज विलेज हर साल सभी नागा जनजातियों का भव्य हॉर्नबिल महोत्सव मनाता है।"
-      ]
-    }
-  },
-  {
-    "id": "kangla",
-    "state": "Manipur",
-    "stateName": {
-      "en": "Manipur",
-      "as": "মণিপুৰ",
-      "bn": "মণিপুর",
-      "hi": "मणिपुर"
-    },
-    "category": "monument_heritage",
-    "icon": "🏯",
-    "name": {
-      "en": "Kangla Fort",
-      "as": "কাংলা দুৰ্গ",
-      "bn": "কাংলা দুর্গ",
-      "hi": "कांगला किला"
-    },
-    "clues": {
-      "en": [
-        "It is situated on the tranquil banks of the Imphal River in Manipur.",
-        "It was the ancient traditional seat and spiritual citadel of the Meitei royalty for centuries.",
-        "It encompasses sacred shrines, coronation enclosures, and ancient moated defensive walls.",
-        "It is famously guarded by towering statues of the mythical dragon-lion beast, the Kangla Sha."
-      ],
-      "as": [
-        "ই মণিপুৰৰ ইম্ফল নদীৰ শান্ত পাৰত অৱস্থিত।",
-        "ই শতিকা ধৰি মেইটেই ৰজা আৰু ৰাজ্যখনৰ প্ৰাচীন ৰাজনৈতিক আৰু আধ্যাত্মিক কেন্দ্ৰ আছিল।",
-        "ইয়াত পবিত্ৰ উপাসনা গৃহ, ৰাজ অভিষেক স্থল আৰু ঐতিহাসিক গড়খাৱৈ আছে।",
-        "ইয়াৰ প্ৰৱেশদ্বাৰত পৌৰাণিক সিংহ-ড্ৰেগন সদৃশ কাংলা চাৰ বিশাল মূৰ্তি আছে।"
-      ],
-      "bn": [
-        "এটি মণিপুরের ইম্ফল নদীর তীরে অবস্থিত এক ঐতিহাসিক সুরক্ষিত স্থান।",
-        "এটি মেইতেই রাজাদের শতাব্দী প্রাচীন ঐতিহ্যবাহী রাজপ্রাসাদ ও প্রশাসনিক কেন্দ্র ছিল।",
-        "এর ভেতরে রয়েছে প্রাচীন মন্দির, রাজ্যাভিষেক স্থল ও প্রতিরক্ষামূলক পরিখা।",
-        "এর প্রধান চত্বরে পৌরাণিক ড্রাগন-সিংহ কাংলা শা-র রাজকীয় ভাস্কর্য রয়েছে।"
-      ],
-      "hi": [
-        "यह मणिपुर में इम्फाल नदी के शांत तट पर स्थित है।",
-        "यह सदियों तक मैतेई राजवंश की प्राचीन राजधानी और पवित्र प्रशासनिक केंद्र रहा।",
-        "इसके भीतर पवित्र मंदिर, राज्याभिषेक मंडप और गहरी सुरक्षात्मक खाइयाँ हैं।",
-        "इसके मुख्य द्वार पर पौराणिक ड्रैगन-सिंह कांगला शा की विशाल मूर्तियां स्थापित हैं।"
-      ]
-    }
-  },
-  {
-    "id": "root_bridges",
-    "state": "Meghalaya",
-    "stateName": {
-      "en": "Meghalaya",
-      "as": "মেঘালয়",
-      "bn": "মেঘালয়",
-      "hi": "मेघालय"
-    },
-    "category": "nature_wonder",
-    "icon": "🌉",
-    "name": {
-      "en": "Living Root Bridges",
-      "as": "জীৱন্ত শিপাৰ দলং",
-      "bn": "জীবন্ত শিকড়ের সেতু",
-      "hi": "जीवित जड़ पुल (Living Root Bridges)"
-    },
-    "clues": {
-      "en": [
-        "They are woven across raging jungle rivers in the deep valleys of the East Khasi Hills.",
-        "They are painstakingly handcrafted over decades by coaxing the aerial roots of rubber fig trees.",
-        "Unlike concrete bridges that decay, these bio-structures grow stronger and denser with time.",
-        "The iconic Double Decker living root bridge at Nongriat spans two breathtaking tiers."
-      ],
-      "as": [
-        "এই দলংসমূহ মেঘালয়ৰ পূব খাছি পাহাৰৰ গভীৰ জংঘল আৰু পাহাৰীয়া নদীৰ ওপৰত অৱস্থিত।",
-        "ৰবৰ গছৰ শিপা বাঁহৰ সহায়ত নদীৰ ওপৰেৰে নি বহু দশক ধৰি এই দলং গঢ়ি তোলা হয়।",
-        "সাধাৰণ দলঙৰ দৰে নষ্ট হোৱাৰ পৰিৱৰ্তে সময়ৰ লগে লগে এই দলং অধিক শক্তিশালী হৈ পৰে।",
-        "ননগ্ৰিয়াট গাঁৱত অৱস্থিত দুমহলীয়া (Double Decker) জীৱন্ত শিপাৰ দলং বিশ্ববিখ্যাত।"
-      ],
-      "bn": [
-        "এগুলি মেঘালয়ের গভীর অরণ্য ও খরস্রোতা নদীর ওপর খাসি উপজাতিদের দ্বারা নির্মিত।",
-        "রাবার গাছের জীবন্ত শিকড়কে বহু দশক ধরে সুকৌশলে নদী পারাপারের সেতুতে রূপ দেওয়া হয়।",
-        "কালক্রমে নষ্ট হওয়ার বদলে এই প্রাকৃতিক সেতুগুলি দিন দিন আরও মজবুত ও শক্তিশালী হয়।",
-        "নংরিয়াট গ্রামের দোতলা জীবন্ত শিকড়ের সেতুটি বিশ্বের এক অনন্য বিস্ময়।"
-      ],
-      "hi": [
-        "यह मेघालय के घने जंगलों और पहाड़ी नदियों के ऊपर पूर्वी खासी हिल्स में स्थित हैं।",
-        "इन्हें रबर के पेड़ों की जीवित जड़ों को दशकों तक विशेष तकनीक से मोड़कर बनाया जाता है।",
-        "कृत्रिम पुलों के विपरीत, ये जीवित पुल समय के साथ और भी अधिक मजबूत होते जाते हैं।",
-        "नोंगरियाट गाँव का प्रसिद्ध दो मंजिला जीवित जड़ पुल दुनिया भर में प्रसिद्ध है।"
-      ]
-    }
-  },
-  {
-    "id": "saraighat",
-    "state": "Assam",
-    "stateName": {
-      "en": "Assam",
-      "as": "অসম",
-      "bn": "আসাম",
-      "hi": "असम"
-    },
-    "category": "landmark_engineering",
-    "icon": "🌉",
-    "name": {
-      "en": "Saraighat Brahmaputra Bridge",
-      "as": "শৰাইঘাট ব্ৰহ্মপুত্ৰ দলং",
-      "bn": "শরাইঘাট ব্রহ্মপুত্র সেতু",
-      "hi": "सरायघाट ब्रह्मपुत्र पुल"
-    },
-    "clues": {
-      "en": [
-        "It spans across the majestic expanse of the Brahmaputra River at Guwahati.",
-        "It was the heroic site of the 1671 river battle where General Lachit Borphukan routed Mughal forces.",
-        "It was the landmark first rail-cum-road bridge constructed over the mighty Brahmaputra.",
-        "It serves as the historic gateway connecting the seven northeastern states to the rest of India."
-      ],
-      "as": [
-        "ই গুৱাহাটীত মহাবাহু ব্ৰহ্মপুত্ৰ নদীৰ দুয়োপাৰক সংযোগ কৰে।",
-        "ইয়াত ১৬৭১ চনত বীৰ লাচিত বৰফুকনে মোগল সেনাক শোচনীয়ভাৱে পৰাস্ত কৰা শৰাইঘাটৰ ৰণ সংঘটিত হৈছিল।",
-        "ই ব্ৰহ্মপুত্ৰৰ বুকুত নিৰ্মিত সৰ্বপ্ৰথম ৰেল আৰু পথযুক্ত ঐতিহাসিক দলং (১৯৬২ চনত মুকলি)।",
-        "ই সমগ্ৰ উত্তৰ-পূব ভাৰতক দেশৰ আন অংশৰ সৈতে সংযোগ কৰা মূল প্ৰৱেশদ্বাৰ।"
-      ],
-      "bn": [
-        "এটি গুয়াহাটিতে মহাবাহু ব্রহ্মপুত্র নদীর প্রশস্ত বক্ষের ওপর নির্মিত।",
-        "এখানে ১৬৭১ সালে সেনাপতি লাচিত বরফুকন মোগল বাহিনীকে ঐতিহাসিক নৌযুদ্ধে পরাজিত করেছিলেন।",
-        "এটি ব্রহ্মপুত্র নদের ওপর নির্মিত সর্বপ্রথম রেল-কাম-সড়ক সেতু।",
-        "এটি উত্তর-পূর্ব ভারতের রাজ্যগুলিকে বাকি ভারতের সাথে যুক্ত করার ঐতিহাসিক প্রবেশদ্বার।"
-      ],
-      "hi": [
-        "यह गुवाहाटी में विशाल ब्रह्मपुत्र नदी के ऊपर बना हुआ है।",
-        "यहाँ १६७१ में वीर सेनापति लाचित बोरफुकन ने शक्तिशाली मुगल सेना को परास्त किया था।",
-        "यह ब्रह्मपुत्र नदी पर बना भारत का पहला रेल-सह-सड़क ऐतिहासिक पुल है।",
-        "यह पूर्वोत्तर भारत को देश के अन्य भागों से जोड़ने वाला मुख्य प्रवेश द्वार है।"
-      ]
-    }
-  },
-  {
-    "id": "jorhat_tea",
-    "state": "Assam",
-    "stateName": {
-      "en": "Assam",
-      "as": "অসম",
-      "bn": "আসাম",
-      "hi": "असम"
-    },
-    "category": "tea_estate",
-    "icon": "🍃",
-    "name": {
-      "en": "Jorhat Tea Gardens",
-      "as": "যোৰহাট চাহ বাগিচা",
-      "bn": "যোরহাট চা বাগান",
-      "hi": "जोरहाट चाय बागान"
-    },
-    "clues": {
-      "en": [
-        "It is nestled in the fertile river plains of Upper Assam.",
-        "It is universally celebrated as the Tea Capital of the World with endless emerald estates.",
-        "It houses the Tocklai Tea Research Institute, established in 1911 as the world's oldest tea research station.",
-        "It was the last historic capital of the independent Ahom kingdom before British colonization."
-      ],
-      "as": [
-        "ই উজনি অসমৰ ব্ৰহ্মপুত্ৰ উপত্যকাৰ সেউজীয়া সমভূমিত অৱস্থিত।",
-        "অগণন সেউজীয়া চাহ বাগিচাৰে পৰিপূৰ্ণ এই ঠাইক বিশ্বৰ চাহৰ ৰাজধানী বুলি জনা যায়।",
-        "ইয়াত ১৯১১ চনত স্থাপিত বিশ্বৰ সৰ্বপ্ৰথম আৰু সৰ্ববৃহৎ টোকলাই চাহ গৱেষণা প্ৰতিষ্ঠান অৱস্থিত।",
-        "ই ব্ৰিটিছ শাসনৰ পূৰ্বে স্বাধীন আহোম ৰাজ্যৰ শেষ ৰাজধানী আছিল।"
-      ],
-      "bn": [
-        "এটি উজনি আসামের উর্বর সমভূমিতে অবস্থিত সবুজ চা বাগানের এক রাজ্য।",
-        "বিশাল ও মনোরম চা বাগানের জন্য এটিকে বিশ্বের চায়ের রাজধানী বলা হয়।",
-        "এখানে ১৯১১ সালে প্রতিষ্ঠিত বিশ্বের প্রাচীনতম তোকলাই চা গবেষণা কেন্দ্র অবস্থিত।",
-        "এটি ব্রিটিশদের আগমনের পূর্বে স্বাধীন আহোম রাজ্যের সর্বশেষ রাজধানী ছিল।"
-      ],
-      "hi": [
-        "यह ऊपरी असम के उपजाऊ मैदानी इलाकों में स्थित है।",
-        "सैकड़ों विशाल और हरे-भरे चाय बागानों के कारण इसे विश्व की चाय राजधानी कहा जाता है।",
-        "यहाँ १९११ में स्थापित विश्व का सबसे पुराना टोकलाई चाय अनुसंधान केंद्र स्थित है।",
-        "यह ब्रिटिश शासन से पूर्व अहोम राजवंश की अंतिम राजधानी थी।"
-      ]
-    }
-  },
-  {
-    "id": "unakoti",
-    "state": "Tripura",
-    "stateName": {
-      "en": "Tripura",
-      "as": "ত্ৰিপুৰা",
-      "bn": "ত্রিপুরা",
-      "hi": "त्रिपुरा"
-    },
-    "category": "monument_heritage",
-    "icon": "🗿",
-    "name": {
-      "en": "Unakoti Rock Carvings",
-      "as": "উনাকোটি শিলৰ ভাস্কৰ্য",
-      "bn": "উনাকোটি পাথরের খোদাই",
-      "hi": "उनाकोटी शैल मूर्तियां"
-    },
-    "clues": {
-      "en": [
-        "It is hidden in the forested Raghunandan hills of Kailashahar in northern Tripura.",
-        "Its name in Bengali and Sanskrit means one less than a crore (9,999,999 figures).",
-        "It features colossal rock-cut bas-relief carvings sculpted into jungle cliffs between 7th-9th centuries.",
-        "The central masterwork is the 30-foot carving of Lord Shiva, known as Unakotiswara Kal Bhairava."
-      ],
-      "as": [
-        "ই উত্তৰ ত্ৰিপুৰাৰ কৈলাসহৰৰ বনাবৃত ৰঘুনন্দন পাহাৰৰ বুকুত অৱস্থিত।",
-        "ইয়াৰ নামৰ অৰ্থ হ'ল এক কোটিতকৈ এক কম (৯৯,৯৯,৯৯৯টা মূৰ্তি)।",
-        "পাহাৰৰ শিল কাটি প্ৰস্তুত কৰা সপ্তম-নৱম শতিকাৰ অসংখ্য বিশাল ভাস্কৰ্য ইয়াত আছে।",
-        "ইয়াৰ কেন্দ্ৰবিন্দুত ভগৱান শিৱৰ ৩০ ফুট ওখ বিশাল কালভৈৰৱ মূৰ্তি খোদিত আছে।"
-      ],
-      "bn": [
-        "এটি উত্তর ত্রিপুরার কৈলাসহরের গভীর জঙ্গলে ঘেরা রঘুনন্দন পাহাড়ে অবস্থিত।",
-        "এই স্থানটির নামের অর্থ এক কোটি থেকে এক কম (৯৯,৯৯,৯৯৯)।",
-        "এখানে সপ্তম থেকে নবম শতাব্দীর পাহাড় কেটে খোদাই করা বিশাল শৈব ভাস্কর্য রয়েছে।",
-        "এর মূল আকর্ষণ হলো ভগবান শিবের ৩০ ফুট উঁচু সুবিশাল কালভৈরব পাথুরে মূর্তি।"
-      ],
-      "hi": [
-        "यह उत्तरी त्रिपुरा के कैलाशहर में घने जंगलों से घिरी रघुनंदन पहाड़ियों में स्थित है।",
-        "इसके नाम का शाब्दिक अर्थ है एक करोड़ से एक कम (९९,९९,९९९)।",
-        "यहाँ ७वीं से ९वीं शताब्दी के बीच प्राकृतिक चट्टानों पर उकेरी गई विशाल मूर्तियाँ हैं।",
-        "यहाँ भगवान शिव की ३० फीट ऊंची विशाल काल भैरव की शैल प्रतिमा सबसे प्रमुख है।"
-      ]
-    }
-  },
-  {
-    "id": "dzukou",
-    "state": "Nagaland",
-    "stateName": {
-      "en": "Nagaland",
-      "as": "নাগালেণ্ড",
-      "bn": "নাগাল্যান্ড",
-      "hi": "नागालैंड"
-    },
-    "category": "valley_nature",
-    "icon": "🌺",
-    "name": {
-      "en": "Dzukou Valley",
-      "as": "জুকৌ উপত্যকা",
-      "bn": "জুকো উপত্যকা",
-      "hi": "जुको घाटी"
-    },
-    "clues": {
-      "en": [
-        "It straddles the high mountainous border between Nagaland and Manipur at 2,600 meters.",
-        "It is famously hailed as the Valley of Flowers of the Northeast.",
-        "It is characterized by undulating emerald-green hills covered in gentle dwarf bamboo.",
-        "It is the exclusive native sanctuary of the rare, seasonal pink-white Dzukou Lily."
-      ],
-      "as": [
-        "ই নাগালেণ্ড আৰু মণিপুৰ সীমান্তৰ ওখ পাহাৰৰ মাজত ২,৬০০ মিটাৰ উচ্চতাত অৱস্থিত।",
-        "ইয়াক উত্তৰ-পূবৰ ফুলৰ উপত্যকা বুলি অভিহিত কৰা হয়।",
-        "ইয়াত সৰু বাঁহ গছেৰে আবৃত মনোৰম সেউজীয়া পাহাৰ আৰু স্ফটিক পানীৰ জুৰি বৈ আছে।",
-        "ই বিশ্বৰ একমাত্ৰ দুষ্প্ৰাপ্য জুকৌ লিলি (Dzukou Lily) ফুলৰ প্ৰাকৃতিক বাসস্থান।"
-      ],
-      "bn": [
-        "এটি নাগাল্যান্ড ও মণিপুর সীমান্তের ২,৬০০ মিটার উচ্চতায় বিস্তৃত এক স্বপ্নিল উপত্যকা।",
-        "এটিকে উত্তর-পূর্ব ভারতের ফুলের উপত্যকা বলা হয়।",
-        "সবুজ ছোট বাঁশ বনে আবৃত ঢেউ খেলানো পাহাড় এবং স্বচ্ছ পাহাড়ি ঝর্ণা এর বিশেষত্ব।",
-        "এটি বিশ্বের অত্যন্ত দুর্লভ ও সুন্দর জুকো লিলি ফুলের একমাত্র প্রাকৃতিক আবাস।"
-      ],
-      "hi": [
-        "यह नागालैंड और मणिपुर की सीमा पर २,६०० मीटर की ऊंचाई पर स्थित एक स्वर्गीय घाटी है।",
-        "इसे पूर्वोत्तर की फूलों की घाटी के रूप में जाना जाता है।",
-        "यहाँ बौने बांस से ढकी मखमली हरी पहाड़ियाँ और शीतल पर्वतीय धाराएं बहती हैं।",
-        "यह केवल इसी घाटी में खिलने वाले दुर्लभ जुको लिली पुष्प का एकमात्र प्राकृतिक घर है।"
-      ]
-    }
-  },
-  {
-    "id": "dawki",
-    "state": "Meghalaya",
-    "stateName": {
-      "en": "Meghalaya",
-      "as": "মেঘালয়",
-      "bn": "মেঘালয়",
-      "hi": "मेघालय"
-    },
-    "category": "river_nature",
-    "icon": "🛶",
-    "name": {
-      "en": "Dawki (Umngot River)",
-      "as": "ডাউকি (উমংগোট নদী)",
-      "bn": "ডাউকি (উমঙ্গোট নদী)",
-      "hi": "डावकी (उमंगोट नदी)"
-    },
-    "clues": {
-      "en": [
-        "It is located on the picturesque international border between Meghalaya and Bangladesh.",
-        "It flows through steep rocky gorges adorned with betel palms in the Jaintia Hills.",
-        "Its river Umngot is globally renowned for water so crystal-clear that boats seem to hover in air.",
-        "It is crowned by an iconic British-era suspension bridge built in 1932."
-      ],
-      "as": [
-        "ই মেঘালয় আৰু বাংলাদেশৰ আন্তঃৰাষ্ট্ৰীয় সীমান্তৰ কাষত অৱস্থিত।",
-        "ই জয়ন্তীয়া পাহাৰৰ সুউচ্চ শিল আৰু তামোল গছেৰে আবৃত গভীৰ গিৰিখাদৰ মাজেৰে বৈ গৈছে।",
-        "ইয়াৰ উমংগোট নদীৰ পানী ইমানেই ফটফটীয়া আৰু নিৰ্মল যে নাওবোৰ বতাহত ওপঙি থকা যেন লাগে।",
-        "ইয়াৰ ওপৰত ১৯৩২ চনত নিৰ্মিত ঐতিহাসিক ব্ৰিটিছ ওলমা দলং (Suspension Bridge) আছে।"
-      ],
-      "bn": [
-        "এটি মেঘালয় ও বাংলাদেশ আন্তর্জাতিক সীমান্তের কোলে অবস্থিত এক মনোমুগ্ধকর স্থান।",
-        "এটি জয়ন্তিয়া পাহাড়ের খাড়া গিরিখাত ও সুপারি বনের মধ্য দিয়ে প্রবাহিত।",
-        "এর উমঙ্গোট নদীর পানি এতটাই স্ফটিকস্বচ্ছ ও নির্মল যে নৌকাগুলোকে শূন্যে ভাসমান মনে হয়।",
-        "এর নদীর ওপর ১৯৩২ সালে নির্মিত বিখ্যাত ব্রিটিশ সাসপেনশন ঝুলন্ত সেতু রয়েছে।"
-      ],
-      "hi": [
-        "यह मेघालय और बांग्लादेश की अंतरराष्ट्रीय सीमा पर स्थित एक अद्भुत प्राकृतिक स्थल है।",
-        "यह जयंतिया पहाड़ियों की खड़ी चट्टानों और सुपारी के पेड़ों से होकर गुजरती है।",
-        "यहाँ की उमंगोट नदी का जल इतना पारदर्शी और स्वच्छ है कि नावें हवा में तैरती हुई प्रतीत होती हैं।",
-        "इसके ऊपर १९३२ में निर्मित ब्रिटिश काल का प्रसिद्ध सस्पेंशन झूला पुल बना हुआ है।"
-      ]
-    }
-  },
-  {
-    "id": "haflong",
-    "state": "Assam",
-    "stateName": {
-      "en": "Assam",
-      "as": "অসম",
-      "bn": "আসাম",
-      "hi": "असम"
-    },
-    "category": "hills_waterfalls",
-    "icon": "⛰️",
-    "name": {
-      "en": "Haflong Hill Station",
-      "as": "হাফলং শৈল চহৰ",
-      "bn": "হাফলং হিল স্টেশন",
-      "hi": "हाफलोंग हिल स्टेशन"
-    },
-    "clues": {
-      "en": [
-        "It is nestled in the mist-shrouded Barail mountain range of Dima Hasao.",
-        "It is celebrated as the one and only picturesque hill station in the state of Assam.",
-        "It features an azure natural lake at its heart, surrounded by cool breezes and pineapples.",
-        "It is near Jatinga village, famous for the enigmatic phenomenon of high-altitude bird arrivals."
-      ],
-      "as": [
-        "ই ডিমা হাচাও জিলাৰ ডাৱৰৰে আবৃত বৰাইল পৰ্বতমালাৰ কোলাত অৱস্থিত।",
-        "ই সমগ্ৰ অসম ৰাজ্যৰ একমাত্ৰ মনোৰম শৈল চহৰ (Hill Station)।",
-        "চহৰখনৰ মাজমজিয়াত এটা সুন্দৰ প্ৰাকৃতিক হ্ৰদ আছে আৰু ই শীতল বতাহ আৰু আনাৰসৰ বাবে জনাজাত।",
-        "ইয়াৰ কাষতেই প্ৰব্ৰজনকাৰী চৰাইৰ ৰহস্যজনক সমাগমৰ বাবে বিখ্যাত জাতিঙ্গা গাঁও অৱস্থিত।"
-      ],
-      "bn": [
-        "এটি দিমা হাসাও জেলার বরবৃত বরাইল পর্বতশ্রেণীর কোলে অবস্থিত।",
-        "এটি সমগ্র আসাম রাজ্যের একমাত্র ও নয়নাভিরাম হিল স্টেশন।",
-        "শহরের কেন্দ্রস্থলে একটি সুন্দর নীল হ্রদ রয়েছে এবং এটি আনারসের বাগানের জন্য পরিচিত।",
-        "এর কাছেই পাখির রহস্যজনক সমাগমের জন্য বিশ্বখ্যাত জাটিঙ্গা গ্রাম অবস্থিত।"
-      ],
-      "hi": [
-        "यह दीमा हसाओ जिले में बादलों से ढकी बराइल पर्वत श्रृंखला में स्थित है।",
-        "यह पूरे असम राज्य का एकमात्र खूबसूरत हिल स्टेशन है।",
-        "इसके केंद्र में एक सुंदर झील है और यह अपनी ठंडी हवाओं और अनन्नास के बागानों के लिए प्रसिद्ध है।",
-        "इसके पास ही पक्षियों के रहस्यमय आगमन के लिए विश्व प्रसिद्ध जटिंगा गाँव स्थित है।"
+      hi: [
+        "यह भारत के पश्चिमी राज्य गुजरात में थार मरुस्थल और अरब सागर के बीच स्थित है।",
+        "यह दुनिया के सबसे बड़े नमक के मैदानों में से एक है जो पूर्णिमा की रात को चाँदी की तरह चमकता है।",
+        "सर्दियों में यहाँ तीन महीने का भव्य 'रण उत्सव' आयोजित होता है जिसमें कच्छी लोककला और संगीत की धूम रहती है।",
+        "यह दुर्लभ भारतीय जंगली गधे (खुर) और हज़ारों प्रवासी राजहंसों (फ्लेमिंगो) का प्राकृतिक घर है।"
       ]
     }
   }
 ];
-
-

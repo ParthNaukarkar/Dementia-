@@ -54,7 +54,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleCaretakerSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!caretakerName.trim() || !caretakerEmail.trim()) {
-      setErrorMsg('Please enter your name and valid email.');
+      setErrorMsg(currentLanguage === 'hi' ? 'कृपया अपना नाम और वैध ईमेल दर्ज करें।' : 'Please enter your name and valid email.');
       return;
     }
     const ageNum = parseInt(caretakerAge, 10) || 30;
@@ -74,7 +74,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handlePatientSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!patientName.trim()) {
-      setErrorMsg('Please enter patient full name.');
+      setErrorMsg(currentLanguage === 'hi' ? 'कृपया रोगी का पूरा नाम दर्ज करें।' : 'Please enter patient full name.');
       return;
     }
     const ageNum = parseInt(patientAge, 10) || 72;
@@ -102,25 +102,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden my-auto">
         
         {/* Header */}
-        <div className="p-5 sm:p-6 bg-gradient-to-r from-slate-900 via-slate-800 to-amber-950 text-white flex items-center justify-between">
+        <div className="p-5 sm:p-6 bg-slate-900 text-white border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center">
               {modalMode === 'caretaker_login' ? <ShieldCheck className="w-5 h-5" /> : <Heart className="w-5 h-5" />}
             </div>
             <div>
-              <h3 className="font-extrabold text-base sm:text-lg tracking-tight">
-                {modalMode === 'caretaker_login' ? 'Caretaker Portal Login' : 'Register New Patient Profile'}
+              <h3 className="font-extrabold text-base sm:text-lg tracking-tight text-white">
+                {modalMode === 'caretaker_login' 
+                  ? (currentLanguage === 'hi' ? 'देखभालकर्ता पोर्टल लॉगिन' : 'Caretaker Portal Login')
+                  : (currentLanguage === 'hi' ? 'नया रोगी प्रोफ़ाइल पंजीकृत करें' : 'Register New Patient Profile')}
               </h3>
               <p className="text-xs text-slate-300">
                 {modalMode === 'caretaker_login' 
-                  ? 'Manage your elderly patient care plan & clinical reports' 
-                  : 'Created & managed exclusively by family caretaker'}
+                  ? (currentLanguage === 'hi' ? 'अपने वरिष्ठ रोगी की देखभाल योजना और नैदानिक रिपोर्ट प्रबंधित करें' : 'Manage your elderly patient care plan & clinical reports')
+                  : (currentLanguage === 'hi' ? 'पारिवारिक देखभालकर्ता द्वारा विशेष रूप से निर्मित और प्रबंधित' : 'Created & managed exclusively by family caretaker')}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer transition-colors"
+            className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -133,21 +135,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               onClick={() => setModalMode('create_patient')}
               className={`pb-2.5 border-b-2 transition-all cursor-pointer ${
                 modalMode === 'create_patient' 
-                  ? 'border-amber-600 text-amber-900 font-extrabold' 
+                  ? 'border-teal-600 text-teal-900 font-extrabold' 
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
-              + Add Patient Profile
+              {currentLanguage === 'hi' ? '+ रोगी प्रोफ़ाइल जोड़ें' : '+ Add Patient Profile'}
             </button>
             <button
               onClick={() => setModalMode('caretaker_login')}
               className={`pb-2.5 border-b-2 transition-all cursor-pointer ${
                 modalMode === 'caretaker_login' 
-                  ? 'border-amber-600 text-amber-900 font-extrabold' 
+                  ? 'border-teal-600 text-teal-900 font-extrabold' 
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
-              Caretaker Account Info
+              {currentLanguage === 'hi' ? 'देखभालकर्ता खाता विवरण' : 'Caretaker Account Info'}
             </button>
           </div>
         )}
@@ -166,7 +168,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <form onSubmit={handleCaretakerSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Caretaker Full Name *
+                  {currentLanguage === 'hi' ? 'देखभालकर्ता का पूरा नाम *' : 'Caretaker Full Name *'}
                 </label>
                 <input
                   type="text"
@@ -181,7 +183,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Caretaker Age *
+                    {currentLanguage === 'hi' ? 'देखभालकर्ता की आयु *' : 'Caretaker Age *'}
                   </label>
                   <input
                     type="number"
@@ -196,17 +198,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Role
+                    {currentLanguage === 'hi' ? 'भूमिका' : 'Role'}
                   </label>
                   <div className="px-3.5 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-sm text-slate-700 font-bold">
-                    Family Caregiver
+                    {currentLanguage === 'hi' ? 'पारिवारिक देखभालकर्ता' : 'Family Caregiver'}
                   </div>
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Email Address *
+                  {currentLanguage === 'hi' ? 'ईमेल पता *' : 'Email Address *'}
                 </label>
                 <input
                   type="email"
@@ -221,10 +223,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 ring-2 ring-teal-200"
                 >
                   <UserCheck className="w-4 h-4" />
-                  <span>Save Caretaker & Proceed to Patient Profile</span>
+                  <span>{currentLanguage === 'hi' ? 'देखभालकर्ता सहेजें और रोगी प्रोफ़ाइल पर आगे बढ़ें' : 'Save Caretaker & Proceed to Patient Profile'}</span>
                 </button>
               </div>
             </form>
@@ -248,7 +250,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Patient Age *
+                    {currentLanguage === 'hi' ? 'रोगी की आयु *' : 'Patient Age *'}
                   </label>
                   <input
                     type="number"
@@ -263,16 +265,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Gender
+                    {currentLanguage === 'hi' ? 'लिंग' : 'Gender'}
                   </label>
                   <select
                     value={patientGender}
                     onChange={(e) => setPatientGender(e.target.value as any)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-hidden focus:ring-2 focus:ring-amber-500 font-medium bg-white"
                   >
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
+                    <option value="male">{currentLanguage === 'hi' ? 'पुरुष' : 'Male'}</option>
+                    <option value="female">{currentLanguage === 'hi' ? 'महिला' : 'Female'}</option>
+                    <option value="other">{currentLanguage === 'hi' ? 'अन्य' : 'Other'}</option>
                   </select>
                 </div>
               </div>
@@ -280,7 +282,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Primary Language
+                    {currentLanguage === 'hi' ? 'प्राथमिक भाषा' : 'Primary Language'}
                   </label>
                   <select
                     value={patientLang}
@@ -293,12 +295,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Relationship
+                    {currentLanguage === 'hi' ? 'संबंध' : 'Relationship'}
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Grandfather, Mother"
+                    placeholder={currentLanguage === 'hi' ? 'उदा. दादाजी, माताजी' : 'e.g. Grandfather, Mother'}
                     value={relationship}
                     onChange={(e) => setRelationship(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-hidden focus:ring-2 focus:ring-amber-500 font-medium"
@@ -308,23 +310,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Baseline Clinical Stage
+                  {currentLanguage === 'hi' ? 'आधारभूत नैदानिक अवस्था' : 'Baseline Clinical Stage'}
                 </label>
                 <select
                   value={diagnosisStage}
                   onChange={(e) => setDiagnosisStage(e.target.value as DementiaDiagnosisStage)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-hidden focus:ring-2 focus:ring-amber-500 font-medium bg-white"
                 >
-                  <option value="healthy">Healthy Aging (Preventative Cognitive Fitness)</option>
-                  <option value="mild_cognitive_impairment">Mild Cognitive Impairment (MCI - Early Memory Lapses)</option>
-                  <option value="mild_alzheimers">Mild Alzheimer's Dementia (Needs Structured Guidance)</option>
-                  <option value="moderate_dementia">Moderate Dementia (High Auto-Assist & Caregiver Guided)</option>
+                  <option value="healthy">
+                    {currentLanguage === 'hi' ? 'स्वस्थ उम्र बढ़ना (निवारक संज्ञानात्मक स्वास्थ्य)' : 'Healthy Aging (Preventative Cognitive Fitness)'}
+                  </option>
+                  <option value="mild_cognitive_impairment">
+                    {currentLanguage === 'hi' ? 'हल्की संज्ञानात्मक हानि (MCI - प्रारंभिक स्मृति चूक)' : 'Mild Cognitive Impairment (MCI - Early Memory Lapses)'}
+                  </option>
+                  <option value="mild_alzheimers">
+                    {currentLanguage === 'hi' ? "हल्का अल्जाइमर मनोभ्रंश (संरचित मार्गदर्शन की आवश्यकता)" : "Mild Alzheimer's Dementia (Needs Structured Guidance)"}
+                  </option>
+                  <option value="moderate_dementia">
+                    {currentLanguage === 'hi' ? 'मध्यम मनोभ्रंश (उच्च स्वचालित सहायता और देखभालकर्ता निर्देशित)' : 'Moderate Dementia (High Auto-Assist & Caregiver Guided)'}
+                  </option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Emergency Phone Contact
+                  {currentLanguage === 'hi' ? 'आपातकालीन फ़ोन संपर्क' : 'Emergency Phone Contact'}
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -340,10 +350,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 ring-2 ring-teal-200"
                 >
                   <Check className="w-4 h-4 stroke-[3]" />
-                  <span>Create Patient Profile & Launch Daily Routine</span>
+                  <span>{currentLanguage === 'hi' ? 'रोगी प्रोफ़ाइल बनाएं और दैनिक दिनचर्या शुरू करें' : 'Create Patient Profile & Launch Daily Routine'}</span>
                 </button>
               </div>
             </form>

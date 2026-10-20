@@ -7,7 +7,9 @@ export type PortalSyncEventType =
   | 'ROUTINE_MUTATED'
   | 'PRESCRIPTION_MUTATED'
   | 'REPORTS_MUTATED'
-  | 'LANGUAGE_CHANGED';
+  | 'LANGUAGE_CHANGED'
+  | 'PATIENT_SOS_ALERT'
+  | 'SOS_ALERTS_MUTATED';
 
 export interface PortalSyncMessage {
   type: PortalSyncEventType;
@@ -66,6 +68,9 @@ class PortalSyncRelay {
     });
     window.addEventListener('smriti_reports_updated', () => {
       this.broadcast('REPORTS_MUTATED', { updated: true });
+    });
+    window.addEventListener('smriti_sos_alerts_updated', () => {
+      this.broadcast('SOS_ALERTS_MUTATED', { updated: true });
     });
   }
 

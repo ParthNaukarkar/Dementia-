@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Gamepad2,
   Pill,
@@ -8,10 +8,11 @@ import {
   ExternalLink,
   ArrowLeft,
   Sparkles,
-  Heart,
+  Brain,
   AlertTriangle,
   LogOut,
   Cpu,
+  ChevronDown,
 } from 'lucide-react';
 
 import type { SupportedLanguage, PatientPrescription, GameId } from '../../types/prescription';
@@ -26,6 +27,7 @@ import {
   saveStoredRoutine,
 } from '../../utils/caregiverStorage';
 import { DailySessionManager } from '../../utils/dailySessionManager';
+import { recordGameGeneratedReport, recordFullSessionReport } from '../../utils/reportsStorage';
 import { AdaptiveGameFlowEngine, type FlowRecommendation } from '../../engine/adaptive-game-flow';
 import { GAME_CATALOG } from '../../data/gameCatalog';
 
@@ -50,6 +52,7 @@ import { WorkoutIntermissionModal } from '../workout/WorkoutIntermissionModal';
 import { WorkoutCompletedCelebrationModal } from '../workout/WorkoutCompletedCelebrationModal';
 import { AIGameCalibratorService, type GameAIConfig } from '../../services/ai-game-calibrator';
 import { CloudAIConfigModal } from '../modals/CloudAIConfigModal';
+import { PatientSOSModal } from '../modals/PatientSOSModal';
 
 interface PatientPortalProps {
   language: SupportedLanguage;
@@ -86,7 +89,25 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [isWorkoutCelebrationOpen, setIsWorkoutCelebrationOpen] = useState<boolean>(false);
   const [lastFlowRecommendation, setLastFlowRecommendation] = useState<FlowRecommendation | null>(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState<boolean>(false);
+  const [isSOSOpen, setIsSOSOpen] = useState<boolean>(false);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [gameAIConfig, setGameAIConfig] = useState<GameAIConfig>(() => AIGameCalibratorService.getConfig());
+
+  // Close header dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   // Synchronize active workout playlist when prescription changes outside workout
   useEffect(() => {
@@ -177,6 +198,12 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     // 1. Record session in DailySessionManager (only counts played games)
     const dailyComposite = DailySessionManager.recordSession(summary, true);
 
+    // 1b. Store persistent generated game report document for Caregiver Reports Vault
+    recordGameGeneratedReport(patient.id, {
+      ...summary,
+      gameId,
+    });
+
     // 2. Broadcast to Caregiver Portal with full data mirroring payload
     portalSync.broadcast(
       'SESSION_COMPLETED',
@@ -208,6 +235,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       const isFinished = (workoutCurrentIndex + 1 >= prescribedGameCount) || (updatedCompleted.length >= prescribedGameCount);
 
       if (isFinished) {
+        // Record daily full comprehensive session report document
+        recordFullSessionReport(patient.id, dailyComposite);
         setIsIntermissionOpen(false);
         setIsWorkoutMode(false);
         setActiveGameId(null);
@@ -290,149 +319,215 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans flex flex-col">
+    <div className="min-h-screen bg-[#FAF8F5] text-[#1F2421] font-sans flex flex-col">
       
-      {/* ─── TOP PATIENT HEADER ───────────────────────────────────────────── */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      {/* ─── TOP PATIENT HEADER (Keen System) ─────────────────────────────── */}
+      <header className="bg-white/95 backdrop-blur-md border-b border-[#E5DFD5] sticky top-0 z-30 shadow-xs">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between">
           
           {/* Logo & Portal Identity */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white shadow-sm">
-              <Heart className="w-5 h-5 fill-white" />
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-[#FDF1EB] border border-[#F5D3C4] flex items-center justify-center text-[#C05634] shadow-xs">
+              <Brain className="w-6 h-6 text-[#C05634]" />
             </div>
             <div>
-              <h1 className="font-extrabold text-base text-slate-900 leading-tight">
-                {t.appTitle}
+              <h1 className="font-['Sora'] font-extrabold text-lg text-[#1F2421] leading-tight flex items-center gap-1">
+                <span>Smriti</span><span className="text-[#C05634]">Setu</span>
               </h1>
-              <p className="text-[11px] font-bold text-teal-700 uppercase tracking-wider">
-                {t.patientPortal} • {patient.name}
+              <p className="text-[12px] font-bold text-[#28573E] uppercase tracking-wider">
+                {t.patientPortal} • <span className="text-[#1F2421]">{patient.name}</span>
               </p>
             </div>
           </div>
 
-          {/* Right Controls: Language & Switch to Caregiver */}
-          <div className="flex items-center gap-3">
-            {/* AI Game Director Settings Button */}
+          {/* Right Controls: Quick SOS & Consolidated Menu Dropdown */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* Quick SOS Emergency Header Button */}
             <button
-              onClick={() => setIsAIModalOpen(true)}
-              className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black transition-all cursor-pointer ${
-                gameAIConfig.apiKey.trim() && gameAIConfig.enabled
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-              }`}
-              title="Configure OpenAI Game Director API Key"
+              onClick={() => setIsSOSOpen(true)}
+              className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl bg-[#B91C1C] hover:bg-[#991B1B] text-white font-['Sora'] font-black text-xs transition-all shadow-xs cursor-pointer shrink-0"
+              title={language === 'hi' ? 'आपातकालीन सहायता (SOS)' : 'Emergency Assistance (SOS)'}
             >
-              <Cpu className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{gameAIConfig.apiKey.trim() && gameAIConfig.enabled ? `Game AI: OpenAI (${gameAIConfig.model})` : 'Game AI: IRT Math'}</span>
+              <AlertTriangle className="w-3.5 h-3.5 text-white" />
+              <span>SOS</span>
             </button>
 
-            {/* Language Selector */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
-              {(['en', 'hi'] as SupportedLanguage[]).map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => onLanguageChange(lang)}
-                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                    language === lang
-                      ? 'bg-white text-teal-900 shadow-2xs font-black'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {lang === 'hi' ? 'हिन्दी' : 'EN'}
-                </button>
-              ))}
+            {/* Consolidated Patient Menu Dropdown */}
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl bg-[#F4F0EA] hover:bg-[#EDE7DE] border border-[#E5DFD5] text-[#1F2421] transition-all cursor-pointer shadow-2xs select-none"
+                aria-expanded={isMenuOpen}
+                aria-label="Patient menu and options"
+              >
+                <div className="w-7 h-7 rounded-lg sm:rounded-xl bg-[#C05634] text-white flex items-center justify-center font-['Sora'] font-black text-xs">
+                  {patient.name.charAt(0).toUpperCase()}
+                </div>
+                <span className="font-['Sora'] font-bold text-xs hidden sm:inline text-[#1F2421]">
+                  {patient.name.split(' ')[0]}
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-[#636B65] transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown Menu Panel */}
+              {isMenuOpen && (
+                <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl border border-[#E5DFD5] shadow-xl py-2 z-50 animate-fadeIn divide-y divide-[#E5DFD5]/60">
+                  
+                  {/* Profile Summary */}
+                  <div className="px-4 py-3 bg-[#FAF8F5]/80 rounded-t-2xl">
+                    <p className="font-['Sora'] font-bold text-sm text-[#1F2421] truncate">
+                      {patient.name}
+                    </p>
+                    <p className="text-xs text-[#28573E] font-medium mt-0.5">
+                      {language === 'hi' ? 'दैनिक संज्ञान पोर्टल' : 'Cognitive Daily Wellness'}
+                    </p>
+                  </div>
+
+                  {/* Language Selector */}
+                  <div className="px-4 py-2.5">
+                    <span className="text-[11px] font-bold text-[#636B65] uppercase tracking-wider block mb-1.5">
+                      {language === 'hi' ? 'भाषा (Language)' : 'Language'}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {([
+                        { code: 'en', label: 'English' },
+                        { code: 'hi', label: 'हिन्दी' },
+                      ] as const).map(({ code, label }) => (
+                        <button
+                          key={code}
+                          onClick={() => onLanguageChange(code)}
+                          className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-['Sora'] font-bold transition-all cursor-pointer text-center ${
+                            language === code
+                              ? 'bg-[#C05634] text-white shadow-2xs'
+                              : 'bg-[#F4F0EA] text-[#636B65] hover:text-[#1F2421]'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="py-1">
+                    {/* Settings Option (Moved from Tab Bar) */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('settings');
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-2.5 flex items-center gap-3 text-left hover:bg-[#FAF8F5] text-sm font-medium text-[#1F2421] transition-colors cursor-pointer"
+                    >
+                      <Settings className="w-4 h-4 text-[#636B65]" />
+                      <span>{t.settings}</span>
+                    </button>
+
+                    {/* Game AI Configuration */}
+                    <button
+                      onClick={() => {
+                        setIsAIModalOpen(true);
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-2.5 flex items-center justify-between text-left hover:bg-[#FAF8F5] text-sm font-medium text-[#1F2421] transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Cpu className="w-4 h-4 text-[#28573E]" />
+                        <span>{language === 'hi' ? 'गेम AI कैलिब्रेटर' : 'Game AI Engine'}</span>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EDF5F0] text-[#28573E]">
+                        {gameAIConfig.apiKey.trim() && gameAIConfig.enabled ? 'Cloud' : 'Adaptive'}
+                      </span>
+                    </button>
+
+                    {/* Switch to Caregiver Portal */}
+                    {onOpenCaregiverPortal && (
+                      <button
+                        onClick={() => {
+                          onOpenCaregiverPortal();
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full px-4 py-2.5 flex items-center gap-3 text-left hover:bg-[#FAF8F5] text-sm font-medium text-[#28573E] transition-colors cursor-pointer"
+                      >
+                        <ExternalLink className="w-4 h-4 text-[#28573E]" />
+                        <span>{t.switchToCaregiver}</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Sign Out */}
+                  {onLogout && (
+                    <div className="pt-1">
+                      <button
+                        onClick={() => {
+                          onLogout();
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full px-4 py-2.5 flex items-center gap-3 text-left hover:bg-red-50 text-sm font-medium text-red-600 transition-colors cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4 text-red-500" />
+                        <span>{t.logout}</span>
+                      </button>
+                    </div>
+                  )}
+
+                </div>
+              )}
             </div>
-
-            {/* Switch to Caregiver Portal */}
-            {onOpenCaregiverPortal && (
-              <button
-                onClick={onOpenCaregiverPortal}
-                className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-              >
-                <span>{t.switchToCaregiver}</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </button>
-            )}
-
-            {/* Logout / Switch User */}
-            {onLogout && (
-              <button
-                onClick={onLogout}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 text-xs font-bold transition-all cursor-pointer"
-                title={t.logout}
-              >
-                <LogOut className="w-3.5 h-3.5 text-slate-500 hover:text-rose-600" />
-                <span>{t.logout}</span>
-              </button>
-            )}
           </div>
 
         </div>
 
-        {/* Navigation Tabs Bar */}
+        {/* Navigation Tabs Bar (Generous Senior Interaction Targets: 52px height) */}
         {!activeGameId && (
-          <div className="border-t border-slate-100 bg-white">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1 overflow-x-auto py-2">
+          <div className="border-t border-[#E5DFD5] bg-[#F4F0EA]/70 backdrop-blur-xs py-2.5">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-2.5 overflow-x-auto">
               
               <button
                 onClick={() => setActiveTab('workout')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-['Sora'] font-bold transition-all duration-200 cursor-pointer whitespace-nowrap ${
                   activeTab === 'workout'
-                    ? 'bg-teal-700 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    ? 'bg-[#C05634] text-white shadow-sm'
+                    : 'bg-white hover:bg-[#FAF8F5] text-[#38403A] border border-[#E5DFD5]'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-4 h-4" />
                 <span>{t.todaysWorkout}</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('library')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-['Sora'] font-bold transition-all duration-200 cursor-pointer whitespace-nowrap ${
                   activeTab === 'library'
-                    ? 'bg-teal-700 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    ? 'bg-[#C05634] text-white shadow-sm'
+                    : 'bg-white hover:bg-[#FAF8F5] text-[#38403A] border border-[#E5DFD5]'
                 }`}
               >
-                <Gamepad2 className="w-3.5 h-3.5" />
+                <Gamepad2 className="w-4 h-4" />
                 <span>{t.gameLibrary}</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('medications')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-['Sora'] font-bold transition-all duration-200 cursor-pointer whitespace-nowrap ${
                   activeTab === 'medications'
-                    ? 'bg-teal-700 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    ? 'bg-[#C05634] text-white shadow-sm'
+                    : 'bg-white hover:bg-[#FAF8F5] text-[#38403A] border border-[#E5DFD5]'
                 }`}
               >
-                <Pill className="w-3.5 h-3.5" />
+                <Pill className="w-4 h-4" />
                 <span>{t.myMedsToday}</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('routine')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-['Sora'] font-bold transition-all duration-200 cursor-pointer whitespace-nowrap ${
                   activeTab === 'routine'
-                    ? 'bg-teal-700 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    ? 'bg-[#C05634] text-white shadow-sm'
+                    : 'bg-white hover:bg-[#FAF8F5] text-[#38403A] border border-[#E5DFD5]'
                 }`}
               >
-                <Calendar className="w-3.5 h-3.5" />
+                <Calendar className="w-4 h-4" />
                 <span>{t.myRoutineToday}</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                  activeTab === 'settings'
-                    ? 'bg-teal-700 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <Settings className="w-3.5 h-3.5" />
-                <span>{t.settings}</span>
               </button>
 
             </div>
@@ -473,16 +568,17 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   }
                 }}
                 onExitWorkout={handleExitWorkout}
+                language={language}
               />
             )}
 
             {!isWorkoutMode && (
               <button
                 onClick={() => setActiveGameId(null)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold hover:bg-slate-50 cursor-pointer shadow-2xs"
+                className="flex items-center gap-2.5 px-5 py-2.5 rounded-2xl bg-white hover:bg-[#FAF8F5] border border-[#D5CCC0] text-sm font-['Sora'] font-bold text-[#1F2421] hover:text-[#C05634] transition-all cursor-pointer shadow-xs active:scale-[0.98]"
               >
-                <ArrowLeft className="w-4 h-4" />
-                <span>← Exit Exercise</span>
+                <ArrowLeft className="w-4 h-4 text-[#C05634]" />
+                <span>{language === 'hi' ? 'अभ्यास से बाहर निकलें' : 'Exit Exercise to Library'}</span>
               </button>
             )}
 
@@ -619,8 +715,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <AlertTriangle className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Exercise Not Available</h3>
-                  <p className="text-xs text-slate-500 mt-1">The requested exercise "{activeGameId}" could not be loaded.</p>
+                  <h3 className="text-base font-bold text-slate-900">
+                    {language === 'hi' ? 'अभ्यास उपलब्ध नहीं है' : 'Exercise Not Available'}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {language === 'hi' 
+                      ? `अनुरोधित अभ्यास "${activeGameId}" लोड नहीं किया जा सका।` 
+                      : `The requested exercise "${activeGameId}" could not be loaded.`}
+                  </p>
                 </div>
                 <button
                   onClick={() => {
@@ -629,7 +731,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   }}
                   className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer hover:bg-slate-800"
                 >
-                  Return to Dashboard
+                  {language === 'hi' ? 'डैशबोर्ड पर वापस जाएं' : 'Return to Dashboard'}
                 </button>
               </div>
             )}
@@ -657,6 +759,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onOpenPrescriptionModal={() => {}}
                 dayStreak={dayStreak}
                 showCognitiveIndex={false}
+                onOpenSOS={() => setIsSOSOpen(true)}
               />
             )}
 
@@ -671,56 +774,61 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               />
             )}
 
-            {/* TAB: MY MEDICATIONS CHECKLIST */}
+            {/* TAB: MY MEDICATIONS CHECKLIST (Keen Senior Design) */}
             {activeTab === 'medications' && (
               <div className="space-y-6 animate-fadeIn">
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-                  <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                    <div className="w-10 h-10 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center">
-                      <Pill className="w-5 h-5" />
+                <div className="bg-white p-7 sm:p-9 rounded-3xl border border-[#E5DFD5] shadow-xs">
+                  <div className="flex items-center gap-4 border-b border-[#E5DFD5] pb-5">
+                    <div className="w-12 h-12 rounded-2xl bg-[#EDF5F0] text-[#28573E] flex items-center justify-center border border-[#CCE2D4]">
+                      <Pill className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-slate-900">{t.myMedsToday}</h3>
-                      <p className="text-xs text-slate-500">Tap each medicine after taking it.</p>
+                      <h3 className="font-['Sora'] text-2xl font-bold text-[#1F2421]">{t.myMedsToday}</h3>
+                      <p className="text-sm text-[#636B65] font-medium mt-0.5">
+                        {language === 'hi' ? 'दवा लेने के बाद उस पर टैप करें। यह सूची आपके देखभालकर्ता के साथ तुरंत सिंक होती है।' : 'Tap each medicine after taking it. Synced in real-time with your caregiver.'}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="divide-y divide-slate-100 mt-4">
+                  <div className="divide-y divide-[#E5DFD5] mt-5">
                     {medications.map((med) => (
                       <div
                         key={med.id}
                         onClick={() => handleToggleMed(med.id)}
-                        className={`py-4 px-3 rounded-2xl flex items-center justify-between gap-4 cursor-pointer transition-colors ${
-                          med.takenToday ? 'bg-emerald-50/50' : 'hover:bg-slate-50'
+                        className={`py-5 px-4 rounded-2xl flex items-center justify-between gap-4 cursor-pointer transition-all duration-150 ${
+                          med.takenToday ? 'bg-[#EDF5F0]/60' : 'hover:bg-[#FAF8F5]'
                         }`}
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+                          {/* 48px Touch Target Checkbox */}
                           <div
-                            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shrink-0 ${
                               med.takenToday
-                                ? 'bg-emerald-500 text-white shadow-sm'
-                                : 'border-2 border-slate-300 text-transparent'
+                                ? 'bg-[#28573E] text-white shadow-xs'
+                                : 'border-2 border-[#D5CCC0] text-transparent hover:border-[#28573E]'
                             }`}
                           >
-                            <CheckCircle2 className="w-6 h-6" />
+                            <CheckCircle2 className="w-7 h-7" />
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className={`font-bold text-base ${med.takenToday ? 'text-emerald-950 line-through' : 'text-slate-900'}`}>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                              <p className={`font-['Sora'] font-bold text-lg ${med.takenToday ? 'text-[#28573E] line-through opacity-75' : 'text-[#1F2421]'}`}>
                                 {med.name}
                               </p>
-                              <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#F4F0EA] text-[#38403A] border border-[#E5DFD5]">
                                 {med.dosage}
                               </span>
                             </div>
-                            <p className="text-xs text-slate-500 mt-0.5 capitalize">
+                            <p className="text-sm text-[#636B65] mt-1 capitalize font-medium">
                               {med.timing} • {med.instructions}
                             </p>
                           </div>
                         </div>
 
-                        <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                          med.takenToday ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                        <span className={`text-xs font-bold px-3.5 py-1.5 rounded-full shrink-0 ${
+                          med.takenToday 
+                            ? 'bg-[#EDF5F0] text-[#28573E] border border-[#CCE2D4]' 
+                            : 'bg-[#FAF3E7] text-[#A86F15] border border-[#F2E1C2]'
                         }`}>
                           {med.takenToday ? t.taken : t.pending}
                         </span>
@@ -728,61 +836,66 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     ))}
 
                     {medications.length === 0 && (
-                      <p className="text-xs text-slate-400 py-8 text-center">{t.noMedications}</p>
+                      <p className="text-sm text-[#636B65] py-10 text-center font-medium">{t.noMedications}</p>
                     )}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* TAB: MY DAILY ROUTINE CHECKLIST */}
+            {/* TAB: MY DAILY ROUTINE CHECKLIST (Keen Senior Design) */}
             {activeTab === 'routine' && (
               <div className="space-y-6 animate-fadeIn">
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-                  <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                    <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                      <Calendar className="w-5 h-5" />
+                <div className="bg-white p-7 sm:p-9 rounded-3xl border border-[#E5DFD5] shadow-xs">
+                  <div className="flex items-center gap-4 border-b border-[#E5DFD5] pb-5">
+                    <div className="w-12 h-12 rounded-2xl bg-[#FAF3E7] text-[#A86F15] flex items-center justify-center border border-[#F2E1C2]">
+                      <Calendar className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-slate-900">{t.myRoutineToday}</h3>
-                      <p className="text-xs text-slate-500">Your planned activities for today.</p>
+                      <h3 className="font-['Sora'] text-2xl font-bold text-[#1F2421]">{t.myRoutineToday}</h3>
+                      <p className="text-sm text-[#636B65] font-medium mt-0.5">
+                        {language === 'hi' ? 'आज के लिए आपकी नियोजित गतिविधियाँ व कल्याणकारी कार्य।' : 'Your planned wellness and cognitive routine for today.'}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="divide-y divide-slate-100 mt-4">
+                  <div className="divide-y divide-[#E5DFD5] mt-5">
                     {routines.map((item) => (
                       <div
                         key={item.id}
                         onClick={() => handleToggleRoutine(item.id)}
-                        className={`py-4 px-3 rounded-2xl flex items-center justify-between gap-4 cursor-pointer transition-colors ${
-                          item.completed ? 'bg-emerald-50/50' : 'hover:bg-slate-50'
+                        className={`py-5 px-4 rounded-2xl flex items-center justify-between gap-4 cursor-pointer transition-all duration-150 ${
+                          item.completed ? 'bg-[#EDF5F0]/60' : 'hover:bg-[#FAF8F5]'
                         }`}
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+                          {/* 48px Touch Target Checkbox */}
                           <div
-                            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shrink-0 ${
                               item.completed
-                                ? 'bg-emerald-500 text-white shadow-sm'
-                                : 'border-2 border-slate-300 text-transparent'
+                                ? 'bg-[#28573E] text-white shadow-xs'
+                                : 'border-2 border-[#D5CCC0] text-transparent hover:border-[#28573E]'
                             }`}
                           >
-                            <CheckCircle2 className="w-6 h-6" />
+                            <CheckCircle2 className="w-7 h-7" />
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-extrabold text-xs text-teal-800 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-200">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                              <span className="font-bold text-xs text-[#28573E] bg-[#EDF5F0] px-3 py-1 rounded-full border border-[#CCE2D4]">
                                 {item.time}
                               </span>
-                              <p className={`font-bold text-sm ${item.completed ? 'text-emerald-950 line-through' : 'text-slate-900'}`}>
+                              <p className={`font-['Sora'] font-bold text-lg ${item.completed ? 'text-[#28573E] line-through opacity-75' : 'text-[#1F2421]'}`}>
                                 {item.activity}
                               </p>
                             </div>
-                            <p className="text-xs text-slate-400 mt-0.5 capitalize">{item.category}</p>
+                            <p className="text-sm text-[#636B65] mt-1 capitalize font-medium">{item.category}</p>
                           </div>
                         </div>
 
-                        <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                          item.completed ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                        <span className={`text-xs font-bold px-3.5 py-1.5 rounded-full shrink-0 ${
+                          item.completed 
+                            ? 'bg-[#EDF5F0] text-[#28573E] border border-[#CCE2D4]' 
+                            : 'bg-[#F4F0EA] text-[#636B65] border border-[#E5DFD5]'
                         }`}>
                           {item.completed ? t.completed : t.pending}
                         </span>
@@ -790,37 +903,39 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     ))}
 
                     {routines.length === 0 && (
-                      <p className="text-xs text-slate-400 py-8 text-center">{t.noRoutines}</p>
+                      <p className="text-sm text-[#636B65] py-10 text-center font-medium">{t.noRoutines}</p>
                     )}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* TAB: SETTINGS */}
+            {/* TAB: SETTINGS (Keen Surface) */}
             {activeTab === 'settings' && (
-              <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6 animate-fadeIn">
-                <div>
-                  <h3 className="text-lg font-black text-slate-900">{t.platformSettings}</h3>
-                  <p className="text-xs text-slate-500">{t.platformSettingsDesc}</p>
+              <div className="bg-white p-7 sm:p-9 rounded-3xl border border-[#E5DFD5] shadow-xs space-y-6 animate-fadeIn">
+                <div className="border-b border-[#E5DFD5] pb-5">
+                  <h3 className="font-['Sora'] text-2xl font-bold text-[#1F2421]">{t.platformSettings}</h3>
+                  <p className="text-sm text-[#636B65] font-medium mt-0.5">{t.platformSettingsDesc}</p>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <div className="p-6 rounded-2xl bg-[#F4F0EA] border border-[#E5DFD5] space-y-3">
+                  <span className="text-xs font-bold text-[#38403A] uppercase tracking-wider">
                     {t.selectLanguage}
                   </span>
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2.5 flex-wrap">
                     {[
                       { code: 'en', label: 'English' },
                       { code: 'hi', label: 'हिन्दी (Hindi)' },
+                      { code: 'bn', label: 'বাংলা (Bengali)' },
+                      { code: 'as', label: 'অসমীয়া (Assamese)' },
                     ].map((lang) => (
                       <button
                         key={lang.code}
                         onClick={() => onLanguageChange(lang.code as SupportedLanguage)}
-                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        className={`px-5 py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                           language === lang.code
-                            ? 'bg-teal-800 text-white shadow-xs'
-                            : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                            ? 'bg-[#C05634] text-white shadow-xs'
+                            : 'bg-white text-[#38403A] border border-[#D5CCC0] hover:bg-[#FAF8F5]'
                         }`}
                       >
                         {lang.label}
@@ -829,11 +944,42 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-teal-50/60 border border-teal-200 text-xs text-teal-900 space-y-2">
-                  <p className="font-bold">{t.syncStatus}</p>
-                  <p className="text-teal-800">{t.realtimeSyncActive}</p>
-                  <p className="text-[11px] text-teal-700">
-                    Patient Portal: <strong>Port 5173</strong> • Caregiver Portal: <strong>Port 5174</strong>
+                {/* Cloud AI Multi-Model Calibrator Trigger */}
+                <div className="p-6 rounded-2xl bg-[#EDF5F0] border border-[#CCE2D4] flex flex-wrap items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#28573E]" />
+                      <h4 className="font-['Sora'] text-sm font-bold uppercase tracking-wider text-[#1F2421]">
+                        {language === 'hi' ? 'क्लाउड AI मल्टी-मॉडल कैलिब्रेटर' : 'Cloud AI Multi-Model Calibrator'}
+                      </h4>
+                      <span className="text-xs font-bold bg-white text-[#28573E] border border-[#CCE2D4] px-2.5 py-0.5 rounded-full">
+                        {gameAIConfig.enabled && gameAIConfig.apiKey 
+                          ? (language === 'hi' ? `${gameAIConfig.provider.toUpperCase()} सक्रिय` : `${gameAIConfig.provider.toUpperCase()} Active`)
+                          : (language === 'hi' ? 'IRT बैकअप' : 'IRT Fallback')}
+                      </span>
+                    </div>
+                    <p className="text-sm text-[#38403A] max-w-md font-medium leading-relaxed">
+                      {language === 'hi'
+                        ? 'वास्तविक समय में खेल के स्तर को समायोजित करने और क्लिनिकल मूल्यांकन हेतु Google Gemini या OpenAI कुंजियाँ कॉन्फ़िगर करें।'
+                        : 'Configure Google Gemini or OpenAI keys for real-time neuro-adaptive game difficulty scaling and clinical reflection.'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsAIModalOpen(true)}
+                    className="px-5 py-3 rounded-xl bg-[#28573E] hover:bg-[#1E4430] text-white text-sm font-bold transition-all shadow-xs cursor-pointer flex items-center gap-2"
+                  >
+                    <Settings className="w-4 h-4 text-[#CCE2D4]" />
+                    <span>{t.configureCloudAi}</span>
+                  </button>
+                </div>
+
+                <div className="p-6 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] text-sm text-[#38403A] space-y-1.5 font-medium">
+                  <p className="font-bold text-[#1F2421]">{t.syncStatus}</p>
+                  <p className="text-[#28573E] font-bold">{t.realtimeSyncActive}</p>
+                  <p className="text-xs text-[#636B65]">
+                    {language === 'hi' 
+                      ? <>मरीज पोर्टल: <strong>Port 5173</strong> • देखभालकर्ता पोर्टल: <strong>Port 5174</strong></>
+                      : <>Patient Portal: <strong>Port 5173</strong> • Caregiver Portal: <strong>Port 5174</strong></>}
                   </p>
                 </div>
               </div>
@@ -895,10 +1041,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
         language={language}
         dayStreak={dayStreak}
         patientName={patient.name}
-        onViewReport={() => {
-          setIsWorkoutCelebrationOpen(false);
-          setActiveTab('workout');
-        }}
         onGoToMedications={() => {
           setIsWorkoutCelebrationOpen(false);
           setIsWorkoutMode(false);
@@ -920,6 +1062,38 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           setGameAIConfig(AIGameCalibratorService.getConfig());
         }}
         initialTab="GAMES_AI"
+        language={language}
+      />
+
+      {/* ─── BIG ASS PERSISTENT FLOATING SOS EMERGENCY BUTTON (Calm, Dignified, Non-distracting) ─── */}
+      <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40">
+        <button
+          onClick={() => setIsSOSOpen(true)}
+          className="group relative flex items-center gap-3.5 h-16 sm:h-18 px-6 sm:px-7 rounded-full bg-[#B91C1C] hover:bg-[#991B1B] text-white shadow-lg hover:shadow-xl border-3 border-white transition-all duration-150 transform hover:scale-102 active:scale-95 cursor-pointer focus:outline-none focus:ring-4 focus:ring-red-200 select-none"
+          aria-label={language === 'hi' ? 'आपातकालीन सहायता बटन (SOS)' : 'Emergency SOS Help Button'}
+        >
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          </div>
+
+          <div className="text-left pr-1">
+            <span className="block font-['Sora'] font-black text-lg sm:text-xl tracking-widest leading-none text-white">
+              SOS
+            </span>
+            <span className="block text-[10px] sm:text-[11px] font-['Sora'] font-bold uppercase tracking-wider text-red-100 mt-0.5">
+              {language === 'hi' ? 'सहायता' : 'Emergency'}
+            </span>
+          </div>
+        </button>
+      </div>
+
+      {/* ─── FULLSCREEN REASSURING EMERGENCY & DISTRESS MODAL ─── */}
+      <PatientSOSModal
+        isOpen={isSOSOpen}
+        onClose={() => setIsSOSOpen(false)}
+        language={language}
+        patient={patient}
+        caretaker={caretaker}
       />
 
     </div>

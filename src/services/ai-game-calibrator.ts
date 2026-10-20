@@ -130,13 +130,16 @@ export class AIGameCalibratorService {
           return { success: false, message: errData?.error?.message || `HTTP ${res.status}`, latencyMs: elapsed };
         }
       } else {
-        // Gemini fallback test
+        // Gemini test connection
         const cleanKey = config.apiKey.trim();
-        const model = config.model || 'gemini-3.8-flash';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanKey}`;
+        const model = config.model || 'gemini-3.5-flash';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
         const res = await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': cleanKey,
+          },
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: 'Respond with OK.' }] }],
           }),
@@ -312,9 +315,9 @@ Return ONLY valid JSON matching this schema:
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-    const model = config.model || 'gemini-3.8-flash';
+    const model = config.model || 'gemini-3.5-flash';
     const cleanKey = config.apiKey.trim();
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
     const profile = getGameCognitiveProfile(input.gameId);
 
@@ -341,7 +344,10 @@ Calibrate difficulty tier (1 to ${input.maxTiers}) for the next round. Respond w
     try {
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': cleanKey,
+        },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: promptText }] }],
           generationConfig: { responseMimeType: 'application/json' },
@@ -555,11 +561,15 @@ Respond with strictly valid JSON:
         const data = await res.json();
         rawText = data.choices?.[0]?.message?.content || '{}';
       } else {
-        const model = config.model || 'gemini-3.8-flash';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.apiKey.trim()}`;
+        const model = config.model || 'gemini-3.5-flash';
+        const cleanKey = config.apiKey.trim();
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
         const res = await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': cleanKey,
+          },
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: promptTeacher }] }],
             generationConfig: { responseMimeType: 'application/json' },

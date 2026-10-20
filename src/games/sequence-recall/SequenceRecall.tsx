@@ -5,7 +5,6 @@ import {
   Sliders, 
   Brain, 
   CheckCircle2, 
-  AlertCircle, 
   Activity, 
   ChevronRight,
   Disc3,
@@ -25,6 +24,7 @@ import type {
   SequenceRecallSessionSummary, 
   TrialTelemetry
 } from './types';
+import { PatientGameCompletionView } from '../../components/games/PatientGameCompletionView';
 import { SequenceRecallEngine } from './engine';
 import { getItemById } from './items-catalog';
 import { sequenceAudio } from './audio';
@@ -58,7 +58,7 @@ const LOCALIZED_UI: Record<string, any> = {
     correctFeedback: 'অতি উত্তম! আপুনি সম্পূৰ্ণ ক্ৰমটো সঠিককৈ মনত ৰাখিলে!',
     partialFeedback: 'বহুত ভাল চেষ্টা! আপোনাৰ ক্ৰম পঞ্জীয়ন হ’ল।',
     nextTrial: 'পৰৱৰ্তী ক্ৰম (Next Sequence) ➔',
-    finish: 'ফলাফল চাওক (View Report)',
+    finish: 'অনুশীলন সমাপ্ত কৰক (Complete Exercise)',
     audioOn: 'শব্দ অন (Audio Cues ON)',
     audioMute: 'শব্দ বন্ধ (Muted)',
     autoAssistBeacon: 'AI সহায়: পৰৱৰ্তী বস্তুটো বাছনি কৰিবলৈ ইংগিত দিয়া হৈছে',
@@ -81,7 +81,7 @@ const LOCALIZED_UI: Record<string, any> = {
     correctFeedback: 'দারুণ! আপনি পুরো ক্রমটি নির্ভুলভাবে মনে রেখেছেন!',
     partialFeedback: 'খুব ভালো প্রয়াস! আপনার স্মৃতি প্রশংসনীয়।',
     nextTrial: 'পরবর্তী ক্রম (Next Sequence) ➔',
-    finish: 'রিপোর্ট দেখুন (View Report)',
+    finish: 'অনুশীলন সম্পন্ন করুন (Complete Exercise)',
     audioOn: 'শব্দ চালু (Audio Cues ON)',
     audioMute: 'শব্দ বন্ধ (Muted)',
     autoAssistBeacon: 'AI সাহায্য: পরবর্তী সঠিক বস্তুটি নির্দেশ করা হয়েছে',
@@ -104,7 +104,7 @@ const LOCALIZED_UI: Record<string, any> = {
     correctFeedback: 'शानदार! आपने पूरा क्रम बिल्कुल सही याद रखा!',
     partialFeedback: 'बहुत अच्छा प्रयास! आपकी याददाश्त सराहनीय है।',
     nextTrial: 'अगला क्रम (Next Sequence) ➔',
-    finish: 'रिपोर्ट देखें (View Report)',
+    finish: 'अभ्यास पूर्ण करें (Complete Exercise)',
     audioOn: 'ध्वनि चालू (Audio ON)',
     audioMute: 'ध्वनि बंद (Mute)',
     autoAssistBeacon: 'AI सहायता: अगली वस्तु की ओर संकेत किया गया है',
@@ -127,7 +127,7 @@ const LOCALIZED_UI: Record<string, any> = {
     correctFeedback: 'Wonderful! You remembered the exact sequence accurately!',
     partialFeedback: 'Great effort! Your sequential memory is strong!',
     nextTrial: 'Next Sequence ➔',
-    finish: 'View Clinical Report',
+    finish: 'Complete Exercise',
     audioOn: 'Sound Cues: ON',
     audioMute: 'Sound: MUTED',
     autoAssistBeacon: 'AI Scaffolding: Next target card gently highlighted',
@@ -422,20 +422,20 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
       {/* Game Header Bar (Lumosity Aligned) */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white flex items-center justify-center shadow-md shrink-0">
-            <Brain className="w-8 h-8" />
+          <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 text-teal-400 flex items-center justify-center shadow-sm shrink-0">
+            <Brain className="w-8 h-8 text-teal-400" />
           </div>
           <div>
             <div className="flex items-center gap-2.5">
               <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
                 {t.title}
               </h2>
-              <span className="bg-amber-100 text-amber-900 text-xs sm:text-sm px-3 py-1 rounded-full font-black border border-amber-200">
+              <span className="bg-teal-50 text-teal-900 text-xs sm:text-sm px-3 py-1 rounded-full font-black border border-teal-200">
                 Sequence {trialNumber} of {totalTrials}
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 font-bold mt-1">
-              {t.subtitle} • Span: <strong className="text-amber-700">{difficulty.sequenceLength} Items</strong> ({difficulty.direction})
+              {t.subtitle} • Span: <strong className="text-teal-700">{difficulty.sequenceLength} Items</strong> ({difficulty.direction})
             </p>
           </div>
         </div>
@@ -447,7 +447,7 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
             onClick={toggleAudio}
             className={`px-3.5 py-2 rounded-xl border font-black text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all active:scale-95 ${
               isAudioActive 
-                ? 'bg-amber-100/80 border-amber-300 text-amber-900 hover:bg-amber-200' 
+                ? 'bg-teal-50 border-teal-300 text-teal-900 hover:bg-teal-100' 
                 : 'bg-slate-100 border-slate-300 text-slate-600 hover:bg-slate-200'
             }`}
             title={isAudioActive ? 'Sound is ON. Tap to mute.' : 'Sound is MUTED. Tap to turn on sound.'}
@@ -469,19 +469,19 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
             <button
               onClick={handleCaregiverEndEarly}
               className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-extrabold text-xs rounded-xl cursor-pointer transition-all"
-              title="Save progress and gracefully conclude session"
+              title={language === 'hi' ? 'प्रगति सहेजें और सत्र समाप्त करें' : 'Save progress and gracefully conclude session'}
             >
-              Save & Rest
+              {language === 'hi' ? 'सहेजें व विश्राम करें' : 'Save & Rest'}
             </button>
           )}
 
           <button
             onClick={() => setShowJudgeControls(!showJudgeControls)}
             className="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 font-black text-xs rounded-xl flex items-center gap-1 cursor-pointer transition-all"
-            title="Inspect real-time 2PL IRT dynamic variables"
+            title={language === 'hi' ? 'वास्तविक समय 2PL IRT चर देखें' : 'Inspect real-time 2PL IRT dynamic variables'}
           >
             <Sliders className="w-3.5 h-3.5 text-slate-600" />
-            <span>AI Testbed</span>
+            <span>{language === 'hi' ? 'AI क्लिनिकल टेस्टबेड' : 'AI Testbed'}</span>
           </button>
 
           {onExit && (
@@ -489,7 +489,7 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
               onClick={onExit}
               className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold text-xs rounded-xl cursor-pointer"
             >
-              Exit
+              {language === 'hi' ? 'बाहर निकलें' : 'Exit'}
             </button>
           )}
         </div>
@@ -501,46 +501,70 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
           <div className="flex items-center justify-between border-b border-slate-800 pb-2">
             <span className="font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
               <Activity className="w-4 h-4 text-amber-400" />
-              Continuous 2PL IRT Dynamic Difficulty Adjustment (DDA) Telemetry
+              {language === 'hi' 
+                ? 'निरंतर 2PL IRT डायनामिक कठिनाई समायोजन (DDA) टेलीमेट्री' 
+                : 'Continuous 2PL IRT Dynamic Difficulty Adjustment (DDA) Telemetry'}
             </span>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full">
                 Profile: {liveProfileConfig.displayName[language] || liveProfileConfig.displayName.en} ({liveProfileConfig.assistTimeoutMs / 1000}s)
               </span>
-              <span className="text-[10px] text-slate-400 font-mono">Bayesian Adaptive Loop</span>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {language === 'hi' ? 'बायेसियन अनुकूली लूप' : 'Bayesian Adaptive Loop'}
+              </span>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1 font-mono">
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Latent Ability (θ)</span>
+              <span className="text-slate-400 block text-[10px] uppercase">
+                {language === 'hi' ? 'अन्तर्निहित क्षमता (θ)' : 'Latent Ability (θ)'}
+              </span>
               <strong className="text-base text-white">{engine.getTheta().toFixed(2)}</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Sequence Span (L)</span>
-              <strong className="text-base text-amber-300">{difficulty.sequenceLength} items</strong>
+              <span className="text-slate-400 block text-[10px] uppercase">
+                {language === 'hi' ? 'अनुक्रम विस्तार (L)' : 'Sequence Span (L)'}
+              </span>
+              <strong className="text-base text-amber-300">
+                {difficulty.sequenceLength} {language === 'hi' ? 'वस्तुएं' : 'items'}
+              </strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Display Exposure (T_disp)</span>
+              <span className="text-slate-400 block text-[10px] uppercase">
+                {language === 'hi' ? 'प्रदर्शन समय (T_disp)' : 'Display Exposure (T_disp)'}
+              </span>
               <strong className="text-base text-emerald-300">{difficulty.stimulusDurationMs}ms</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Breathing Gap (ISI)</span>
+              <span className="text-slate-400 block text-[10px] uppercase">
+                {language === 'hi' ? 'अंतराल समय (ISI)' : 'Breathing Gap (ISI)'}
+              </span>
               <strong className="text-base text-sky-300">{difficulty.isiDurationMs}ms</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Choice Pool (K)</span>
-              <strong className="text-base text-white">{difficulty.poolSize} cards</strong>
+              <span className="text-slate-400 block text-[10px] uppercase">
+                {language === 'hi' ? 'विकल्प पूल (K)' : 'Choice Pool (K)'}
+              </span>
+              <strong className="text-base text-white">
+                {difficulty.poolSize} {language === 'hi' ? 'कार्ड' : 'cards'}
+              </strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Recall Direction</span>
+              <span className="text-slate-400 block text-[10px] uppercase">
+                {language === 'hi' ? 'स्मरण दिशा' : 'Recall Direction'}
+              </span>
               <strong className="text-base text-orange-300">{difficulty.direction}</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Tremor Debounce</span>
+              <span className="text-slate-400 block text-[10px] uppercase">
+                {language === 'hi' ? 'कंपन फ़िल्टर' : 'Tremor Debounce'}
+              </span>
               <strong className="text-base text-teal-300">{difficulty.tremorDebounceMs}ms</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Auto-Assist Dignity</span>
+              <span className="text-slate-400 block text-[10px] uppercase">
+                {language === 'hi' ? 'स्वतः सहायता गरिमा' : 'Auto-Assist Dignity'}
+              </span>
               <strong className="text-base text-purple-300">{difficulty.autoAssistTimeoutMs / 1000}s</strong>
             </div>
           </div>
@@ -549,7 +573,7 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
           <div className="pt-3 border-t border-slate-800 space-y-2.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-slate-300 font-extrabold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                <span>⚡ Test Sequence Span (Items that Flash):</span>
+                <span>{language === 'hi' ? '⚡ अनुक्रम विस्तार का परीक्षण करें (चमकने वाली वस्तुएं):' : '⚡ Test Sequence Span (Items that Flash):'}</span>
               </span>
               <div className="flex items-center gap-1.5">
                 {[2, 3, 4, 5, 6].map((span) => (
@@ -565,7 +589,7 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
                         : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
                     }`}
                   >
-                    {span} Items
+                    {span} {language === 'hi' ? 'वस्तुएं' : 'Items'}
                   </button>
                 ))}
               </div>
@@ -808,7 +832,7 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
               className="text-xs font-bold text-amber-700 hover:underline flex items-center gap-1 cursor-pointer"
             >
               <Heart className="w-3.5 h-3.5 fill-amber-700" />
-              <span>Comfort Guide</span>
+              <span>{language === 'hi' ? 'आराम गाइड' : 'Comfort Guide'}</span>
             </button>
           </div>
         </div>
@@ -834,13 +858,15 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
               {latestTelemetry.isCorrect ? t.correctFeedback : t.partialFeedback}
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 font-bold">
-              Sequence Length: {latestTelemetry.difficultySnapshot.sequenceLength} items • Deliberation: {(latestTelemetry.initialDeliberationMs / 1000).toFixed(1)}s
+              {language === 'hi' ? 'अनुक्रम लंबाई: ' : 'Sequence Length: '}{latestTelemetry.difficultySnapshot.sequenceLength} {language === 'hi' ? 'वस्तुएं • चिंतन: ' : 'items • Deliberation: '}{(latestTelemetry.initialDeliberationMs / 1000).toFixed(1)}s
             </p>
           </div>
 
           {/* Step Comparison Visualizer */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-lg mx-auto space-y-2 text-left">
-            <span className="text-[10px] font-black text-slate-400 uppercase">Target Sequence Order:</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase">
+              {language === 'hi' ? 'लक्षित अनुक्रम क्रम:' : 'Target Sequence Order:'}
+            </span>
             <div className="flex flex-wrap items-center gap-2">
               {expectedSequence.map((id, idx) => {
                 const item = getItemById(id);
@@ -854,7 +880,7 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
 
             {latestTelemetry.errorType !== 'NONE' && (
               <div className="pt-2 border-t border-slate-200 text-[11px] font-bold text-amber-800">
-                Cognitive Biomarker Note: <span className="uppercase">{latestTelemetry.errorType}</span> detected (calibrated in 2PL IRT).
+                {language === 'hi' ? 'संज्ञानात्मक बायोमार्कर नोट: ' : 'Cognitive Biomarker Note: '}<span className="uppercase">{latestTelemetry.errorType}</span> {language === 'hi' ? 'पहचाना गया (2PL IRT में कैलिब्रेटेड)' : 'detected (calibrated in 2PL IRT).'}
               </div>
             )}
           </div>
@@ -871,96 +897,36 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
         </div>
       )}
 
-      {/* PHASE 5: SESSION COMPLETE (CLINICAL SUMMARY) */}
+      {/* PHASE 5: SESSION COMPLETE (WARM REASSURING PATIENT VIEW) */}
       {phase === 'SESSION_COMPLETE' && sessionSummary && (
-        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8 animate-in fade-in duration-300">
-          <div className="text-center space-y-2 border-b border-slate-100 pb-6">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-2">
-              <CheckCircle2 className="w-10 h-10" />
-            </div>
-            <h3 className="text-2xl sm:text-3xl font-black text-slate-900">
-              Sequence Recall Assessment Report
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-500 font-bold">
-              Cognitive Working Memory & Temporal Sequencing Concordance (Corsi / CANTAB Aligned)
-            </p>
-          </div>
-
-          {/* Key Metric Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">Max Span Achieved</span>
-              <p className="text-2xl font-black text-slate-900 mt-1">{sessionSummary.maxSpanAchieved} Items</p>
-              <span className="text-[10px] text-slate-500 font-bold">Forward: {sessionSummary.forwardSpan} | Reverse: {sessionSummary.reverseSpan}</span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">Accuracy Rate</span>
-              <p className="text-2xl font-black text-emerald-600 mt-1">{sessionSummary.accuracyPercentage}%</p>
-              <span className="text-[10px] text-slate-500 font-bold">{sessionSummary.correctTrials} of {sessionSummary.totalTrials} Trials</span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">Est. MoCA Memory</span>
-              <p className="text-2xl font-black text-amber-700 mt-1">{sessionSummary.estimatedMoCAWorkingMemoryScore} / 5</p>
-              <span className="text-[10px] text-slate-500 font-bold">Working Memory Index</span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">Processing Speed</span>
-              <p className="text-2xl font-black text-indigo-700 mt-1 capitalize">{sessionSummary.processingSpeedProfile}</p>
-              <span className="text-[10px] text-slate-500 font-bold">{(sessionSummary.meanDeliberationMs / 1000).toFixed(1)}s Deliberation</span>
-            </div>
-          </div>
-
-          {/* Clinical Error Decomposition Breakdown */}
-          <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-3">
-            <h4 className="font-extrabold text-sm text-amber-950 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-700" />
-              Neuropsychological Error Pattern Decomposition
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div className="p-3 bg-white rounded-xl border border-amber-200/80">
-                <span className="font-extrabold text-slate-800 block">Transposition Errors: {sessionSummary.transpositionErrors}</span>
-                <span className="text-[10px] text-slate-500">Correct items in altered order (Frontal sequencing)</span>
-              </div>
-              <div className="p-3 bg-white rounded-xl border border-amber-200/80">
-                <span className="font-extrabold text-slate-800 block">Intrusion Errors: {sessionSummary.intrusionErrors}</span>
-                <span className="text-[10px] text-slate-500">Unpresented items selected (Hippocampal storage)</span>
-              </div>
-              <div className="p-3 bg-white rounded-xl border border-amber-200/80">
-                <span className="font-extrabold text-slate-800 block">Perseverations: {sessionSummary.perseverationErrors}</span>
-                <span className="text-[10px] text-slate-500">Repetitive single card taps (Motor disinhibition)</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <button
-              onClick={() => {
-                setGameKey(k => k + 1);
-                setPhase('PRESENTATION');
-                setSessionSummary(null);
-                setRecalledSteps([]);
-                setActiveItemIndexInPresentation(null);
-                setLatestTelemetry(null);
-                setAutoAssistItemId(null);
-              }}
-              className="px-6 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-sm cursor-pointer transition-all flex items-center gap-2 border border-slate-200"
-            >
-              <RotateCcw className="w-4 h-4" />
-              <span>Play Again</span>
-            </button>
-
-            <button
-              onClick={onExit}
-              className="px-8 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm shadow-md cursor-pointer transition-all active:scale-95 flex items-center gap-2"
-            >
-              <span>Continue</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        <PatientGameCompletionView
+          language={language}
+          activityTitle={language === 'hi' ? 'क्रम स्मरण' : 'Sequence Recall'}
+          stats={[
+            {
+              label: language === 'hi' ? 'सटीकता' : 'Accuracy',
+              value: `${sessionSummary.accuracyPercentage}%`,
+            },
+            {
+              label: language === 'hi' ? 'सफल प्रयास' : 'Successful Rounds',
+              value: `${sessionSummary.correctTrials} / ${sessionSummary.totalTrials}`,
+            },
+            {
+              label: language === 'hi' ? 'सर्वोत्तम क्रम' : 'Longest Sequence',
+              value: `${sessionSummary.maxSpanAchieved} ${language === 'hi' ? 'वस्तुएं' : 'items'}`,
+            },
+          ]}
+          onRetry={() => {
+            setGameKey(k => k + 1);
+            setPhase('PRESENTATION');
+            setSessionSummary(null);
+            setRecalledSteps([]);
+            setActiveItemIndexInPresentation(null);
+            setLatestTelemetry(null);
+            setAutoAssistItemId(null);
+          }}
+          onExit={onExit}
+        />
       )}
 
     </div>

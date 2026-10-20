@@ -48,18 +48,20 @@ export const LumosityHeader: React.FC<LumosityHeaderProps> = ({
           <Menu className="w-5 h-5" />
         </button>
         <span className="font-black text-lg tracking-tight text-slate-900">
-          Neuro<span className="text-amber-600">Saathi</span>
+          Neuro<span className="text-teal-600">Saathi</span>
         </span>
       </div>
 
       {/* Center/Left Desktop status message */}
       <div className="hidden lg:flex items-center gap-2">
         <span className="text-xs font-black text-slate-700">
-          {currentRole === 'caretaker' ? '🩺 Caregiver Management Console' : '🧠 Dementia Cognitive Routine'}
+          {currentRole === 'caretaker'
+            ? (language === 'hi' ? '🩺 देखभालकर्ता प्रबंधन कंसोल' : '🩺 Caregiver Management Console')
+            : (language === 'hi' ? '🧠 डिमेंशिया दैनिक संज्ञानात्मक अभ्यास' : '🧠 Dementia Cognitive Routine')}
         </span>
         <span className="text-slate-300">•</span>
         <span className="text-xs text-slate-500 font-medium">
-          Patient: <strong>{activePatient?.name || 'Grandfather'}</strong> ({activePatient?.age || 76}y)
+          {language === 'hi' ? 'मरीज' : 'Patient'}: <strong>{activePatient?.name || (language === 'hi' ? 'दादाजी' : 'Grandfather')}</strong> ({activePatient?.age || 76}{language === 'hi' ? ' वर्ष' : 'y'})
         </span>
       </div>
 
@@ -67,19 +69,19 @@ export const LumosityHeader: React.FC<LumosityHeaderProps> = ({
       <div className="flex items-center gap-2 sm:gap-3">
         
         {/* 100% Offline PWA Badge */}
-        <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full">
+        <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-full">
           <WifiOff className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Offline PWA</span>
+          <span>{language === 'hi' ? 'ऑफ़लाइन PWA' : 'Offline PWA'}</span>
         </div>
 
         {/* Streak Flame (Image 1) */}
-        <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-full text-xs font-black text-amber-900 shadow-2xs" title="Daily Workout Streak">
-          <Flame className="w-4 h-4 text-orange-500 fill-orange-500 animate-pulse" />
+        <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-full text-xs font-black text-amber-900 shadow-2xs" title={language === 'hi' ? 'दैनिक अभ्यास नियमितता' : 'Daily Workout Streak'}>
+          <Flame className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse" />
           <span>{streakCount}</span>
         </div>
 
         {/* Cognitive Index Score / Bolt (Image 1) */}
-        <div className="hidden md:flex items-center gap-1 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full text-xs font-black text-slate-700 shadow-2xs" title="Cognitive Performance Index">
+        <div className="hidden md:flex items-center gap-1 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full text-xs font-black text-slate-700 shadow-2xs" title={language === 'hi' ? 'संज्ञानात्मक प्रदर्शन सूचकांक' : 'Cognitive Performance Index'}>
           <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
           <span>{cognitiveScore}</span>
         </div>
@@ -88,11 +90,11 @@ export const LumosityHeader: React.FC<LumosityHeaderProps> = ({
         {currentRole === 'caretaker' && (
           <button
             onClick={onOpenPrescriptionModal}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-extrabold transition-colors cursor-pointer border border-amber-300"
-            title="Caregiver Game Prescription"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 text-xs font-extrabold transition-colors cursor-pointer border border-teal-300"
+            title={language === 'hi' ? 'देखभालकर्ता खेल प्रिस्क्रिप्शन' : 'Caregiver Game Prescription'}
           >
-            <Sliders className="w-3.5 h-3.5 text-amber-700" />
-            <span>Care Plan</span>
+            <Sliders className="w-3.5 h-3.5 text-teal-700" />
+            <span>{language === 'hi' ? 'देखभाल योजना' : 'Care Plan'}</span>
           </button>
         )}
 
@@ -101,7 +103,7 @@ export const LumosityHeader: React.FC<LumosityHeaderProps> = ({
           <button
             onClick={() => onLanguageChange('hi')}
             className={`px-2.5 py-0.5 rounded-lg transition-all cursor-pointer font-black ${
-              language === 'hi' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:bg-white/60'
+              language === 'hi' ? 'bg-teal-700 text-white shadow-xs' : 'text-slate-600 hover:bg-white/60'
             }`}
           >
             हिन्दी
@@ -109,7 +111,7 @@ export const LumosityHeader: React.FC<LumosityHeaderProps> = ({
           <button
             onClick={() => onLanguageChange('en')}
             className={`px-2.5 py-0.5 rounded-lg transition-all cursor-pointer font-black ${
-              language === 'en' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:bg-white/60'
+              language === 'en' ? 'bg-teal-700 text-white shadow-xs' : 'text-slate-600 hover:bg-white/60'
             }`}
           >
             EN

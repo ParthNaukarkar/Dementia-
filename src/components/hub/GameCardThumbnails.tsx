@@ -224,13 +224,13 @@ export const GameThumbnail: React.FC<GameThumbnailProps> = ({ gameId, className 
             <text x="32" y="58" fontSize="9" fontWeight="900" fill="#fdba74" textAnchor="middle">ORANGE</text>
           </g>
 
-          {/* Produce Basket 3: Japi Hat */}
+          {/* Produce Basket 3: Brass Diya */}
           <g transform="translate(188, 66)">
             <ellipse cx="32" cy="48" rx="28" ry="12" fill="#92400e" stroke="#451a03" strokeWidth="2" />
             <circle cx="32" cy="34" r="22" fill="#fef9c3" stroke="#ca8a04" strokeWidth="2" />
-            <text x="32" y="41" fontSize="24" textAnchor="middle">👒</text>
+            <text x="32" y="41" fontSize="24" textAnchor="middle">🪔</text>
             <rect x="12" y="46" width="40" height="14" rx="4" fill="#713f12" />
-            <text x="32" y="56" fontSize="9" fontWeight="900" fill="#fde047" textAnchor="middle">JAPI</text>
+            <text x="32" y="56" fontSize="9" fontWeight="900" fill="#fde047" textAnchor="middle">DIYA</text>
           </g>
 
           {/* Memory Checklist Badge on Right */}

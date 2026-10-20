@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { CaregiverPortal } from './components/portals/CaregiverPortal';
 import { PatientPortal } from './components/portals/PatientPortal';
 import { LoginPage } from './components/auth/LoginPage';
@@ -8,7 +8,6 @@ import { DailySessionManager } from './utils/dailySessionManager';
 import { portalSync, type PortalSyncMessage } from './utils/portalSync';
 import type { SupportedLanguage, PatientPrescription } from './types/prescription';
 import type { CaretakerUser, PatientProfile } from './types/auth';
-import { ArrowRightLeft, LogOut } from 'lucide-react';
 
 export type AuthView = 'login' | 'patient' | 'caregiver';
 
@@ -137,52 +136,8 @@ export function App() {
     updateView('patient');
   };
 
-  const togglePortalInPlace = () => {
-    updateView(activeView === 'caregiver' ? 'patient' : 'caregiver');
-  };
-
   return (
-    <div className="min-h-screen flex flex-col font-sans selection:bg-purple-100 selection:text-purple-900">
-      
-      {/* ─── UNIFIED SINGLE-ORIGIN TOP BAR (When Logged In) ──────────────── */}
-      {activeView !== 'login' && (
-        <div className="bg-slate-900 text-slate-300 text-xs px-4 py-2 flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 z-50">
-          <div className="flex items-center gap-2.5">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-bold text-white tracking-tight">NeuroSaathi Unified Platform</span>
-            <span className="text-slate-500 hidden sm:inline">|</span>
-            <span className="text-slate-400 hidden sm:inline">
-              Single Localhost: <strong className="text-white">{window.location.port || '5173'}</strong> • Active Mode:{' '}
-              <strong className={activeView === 'caregiver' ? 'text-purple-400' : 'text-teal-400'}>
-                {activeView === 'caregiver' ? 'Caregiver Portal (Anita Joshi)' : 'Patient Portal (Meera Joshi)'}
-              </strong>
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* In-Place View Switcher */}
-            <button
-              onClick={togglePortalInPlace}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold transition-colors cursor-pointer"
-              title="Toggle portal view in-place"
-            >
-              <ArrowRightLeft className="w-3 h-3 text-purple-400" />
-              <span>Switch to {activeView === 'caregiver' ? 'Patient Portal' : 'Caregiver Portal'}</span>
-            </button>
-
-            {/* Logout / Switch User */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-800/80 font-bold transition-colors cursor-pointer"
-              title="Log out to Login / Role Selection Screen"
-            >
-              <LogOut className="w-3 h-3 text-rose-300" />
-              <span>Log Out</span>
-            </button>
-          </div>
-        </div>
-      )}
-
+    <div className="min-h-screen flex flex-col selection:bg-[#FDF1EB] selection:text-[#C05634] bg-[#FAF8F5]">
       {/* ─── CONDITIONAL VIEW RENDERING ──────────────────────────────────── */}
       <div className="flex-1 flex flex-col">
         {activeView === 'login' ? (

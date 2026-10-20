@@ -22,6 +22,7 @@ import {
 import { AIGameCalibratorService, type GameAIConfig } from '../../services/ai-game-calibrator';
 import { CloudAIConfigModal } from '../../components/modals/CloudAIConfigModal';
 import { memoryMatchAudio } from './audio';
+import { PatientGameCompletionView } from '../../components/games/PatientGameCompletionView';
 import type { 
   CardItem, 
   MemoryMatchProps, 
@@ -114,12 +115,31 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
       accuracy: 'শুদ্ধতা',
       tapToFlip: 'স্পৰ্শ কৰক',
       nextRound: 'পৰৱৰ্তী ৰাউণ্ড (Next Round) ➔',
-      viewReport: 'চিকিৎসা প্ৰতিবেদন চাওক (View Report)',
+      viewReport: 'অনুশীলন সমাপ্ত কৰক (Complete Exercise)',
       autoAssistPrompt: 'AI সহায়: মিল থকা কাৰ্ড দুখন আলোকিত কৰা হৈছে।',
       ftcLabel: 'প্ৰথমবাৰতেই শুদ্ধ',
       perseverationLabel: 'পুনৰাবৃত্তিমূলক ভুল',
       entropyLabel: 'স্থানিক অন্বেষণ এন্ট্ৰপি',
       autonomyLabel: 'স্বায়ত্তশাসন সূচক',
+      flips: 'ফ্লিপ:',
+      ftc: 'প্ৰথম প্ৰয়াস:',
+      perseverations: 'পুনৰাবৃত্তি:',
+      bayesianAbility: 'বায়োচিয়ান ক্ষমতা (θ):',
+      assistanceTimeout: 'সহায়তা সময়সীমা:',
+      tremorDebounce: 'কম্পন ফিল্টাৰ টেপ:',
+      filtered: 'ফিল্টাৰ কৰা হ’ল',
+      manualTierSelect: 'মেনুৱেল স্তৰ বাছক (1-9):',
+      previewStudyPhase: 'অধ্যয়ন পূৰ্বৰূপ পৰ্যায়:',
+      studyActive: 'সক্ৰিয় (খোলা কাৰ্ড অধ্যয়ন)',
+      studyDisabled: 'নিষ্ক্ৰিয় (তত্কাল সোঁৱৰণ)',
+      retryRound: 'ৰাউণ্ড পুনৰ খেলক',
+      returnToHub: 'গেম হাবলৈ উভতি যাওক',
+      assessmentComplete: 'মূল্যায়ন সম্পূৰ্ণ হ’ল!',
+      roundComplete: (r: number) => `ৰাউণ্ড ${r} সম্পূৰ্ণ হ’ল!`,
+      cantabTelemetry: 'CANTAB সহযোগী শিক্ষা টেলিমেট্ৰি পঞ্জীয়ন কৰা হ’ল',
+      pairs: 'যোৰা',
+      cards: 'কাৰ্ড',
+      tier: 'স্তৰ',
     },
     bn: {
       title: 'ছবির জোড়া (Memory Match)',
@@ -131,12 +151,31 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
       accuracy: 'সঠিকতা',
       tapToFlip: 'স্পর্শ করুন',
       nextRound: 'পরবর্তী রাউন্ড (Next Round) ➔',
-      viewReport: 'ক্লিনিক্যাল রিপোর্ট দেখুন (View Report)',
+      viewReport: 'অনুশীলন সম্পন্ন করুন (Complete Exercise)',
       autoAssistPrompt: 'AI সাহায্য: ম্যাচিং কার্ড দুটি চিহ্নিত করা হয়েছে।',
       ftcLabel: 'প্রথম প্রচেষ্টায় সঠিক',
       perseverationLabel: 'পুনরাবৃত্তিমূলক ভুল',
       entropyLabel: 'স্থানিক অনুসন্ধান এন্ট্রপি',
       autonomyLabel: 'স্বায়ত্তশাসন সূচক',
+      flips: 'ফ্লিপ:',
+      ftc: 'প্রথম প্রয়াস:',
+      perseverations: 'পুনরাবৃত্তি:',
+      bayesianAbility: 'বায়েসিয়ান ক্ষমতা (θ):',
+      assistanceTimeout: 'সহায়তা টাইমআউট:',
+      tremorDebounce: 'কম্পন ফিল্টার ট্যাপ:',
+      filtered: 'ফিল্টার করা',
+      manualTierSelect: 'ম্যানুয়াল স্তর নির্বাচন (1-9):',
+      previewStudyPhase: 'অধ্যয়ন পূর্বরূপ পর্যায়:',
+      studyActive: 'সক্রিয় (খোলা কার্ড অধ্যয়ন)',
+      studyDisabled: 'নিষ্ক্রিয় (তাত্ক্ষণিক স্মরণ)',
+      retryRound: 'রাউন্ড পুনরায় খেলুন',
+      returnToHub: 'গেম হাবে ফিরুন',
+      assessmentComplete: 'মূল্যায়ন সম্পূর্ণ!',
+      roundComplete: (r: number) => `রাউন্ড ${r} সম্পূর্ণ!`,
+      cantabTelemetry: 'CANTAB সহযোগী শিক্ষা টেলিমেট্রি নিবন্ধিত',
+      pairs: 'জোড়া',
+      cards: 'কার্ড',
+      tier: 'স্তর',
     },
     hi: {
       title: 'स्मृति युग्म (Memory Match)',
@@ -148,12 +187,31 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
       accuracy: 'सटीकता',
       tapToFlip: 'स्पर्श करें',
       nextRound: 'अगला राउंड (Next Round) ➔',
-      viewReport: 'चिकित्सीय रिपोर्ट देखें (View Report)',
+      viewReport: 'अभ्यास पूर्ण करें (Complete Exercise)',
       autoAssistPrompt: 'AI सहायता: सही जोड़ी वाले कार्डों को चमकाया गया है।',
       ftcLabel: 'प्रथम प्रयास में सही',
       perseverationLabel: 'पुनरावृत्ति त्रुटियां',
       entropyLabel: 'स्थानिक खोज एंट्रॉपी',
       autonomyLabel: 'स्वायत्तता स्कोर',
+      flips: 'फ्लिप्स:',
+      ftc: 'प्रथम प्रयास:',
+      perseverations: 'पुनरावृत्ति:',
+      bayesianAbility: 'बायेसियन क्षमता (θ):',
+      assistanceTimeout: 'सहायता टाइमआउट:',
+      tremorDebounce: 'कंपन फिल्टर टैप्स:',
+      filtered: 'फिल्टर किए गए',
+      manualTierSelect: 'मैन्युअल स्तर चयन (1-9):',
+      previewStudyPhase: 'अध्ययन पूर्वावलोकन चरण:',
+      studyActive: 'सक्रिय (खुला कार्ड अध्ययन)',
+      studyDisabled: 'निष्क्रिय (तत्काल स्मरण)',
+      retryRound: 'राउंड पुनः खेलें',
+      returnToHub: 'गेम हब पर लौटें',
+      assessmentComplete: 'मूल्यांकन पूरा हुआ!',
+      roundComplete: (r: number) => `राउंड ${r} पूरा हुआ!`,
+      cantabTelemetry: 'CANTAB संबद्ध शिक्षार्थी टेलीमेट्री पंजीकृत',
+      pairs: 'जोड़े',
+      cards: 'कार्ड',
+      tier: 'स्तर',
     },
     en: {
       title: 'Memory Match (Paired Associates)',
@@ -165,12 +223,31 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
       accuracy: 'Accuracy',
       tapToFlip: 'Tap',
       nextRound: 'Next Round ➔',
-      viewReport: 'View Clinical Report',
+      viewReport: 'Complete Exercise',
       autoAssistPrompt: 'AI Scaffolding: Matching cards gently highlighted to assist recall.',
       ftcLabel: 'First-Trial Correct',
       perseverationLabel: 'Perseverative Errors',
       entropyLabel: 'Search Pattern Entropy',
       autonomyLabel: 'Autonomy Index',
+      flips: 'Flips:',
+      ftc: 'FTC:',
+      perseverations: 'Perseverations:',
+      bayesianAbility: 'Bayesian Ability (θ):',
+      assistanceTimeout: 'Assistance Timeout:',
+      tremorDebounce: 'Tremor Debounce Taps:',
+      filtered: 'filtered',
+      manualTierSelect: 'Manual Tier Select (1-9):',
+      previewStudyPhase: 'Preview Study Phase:',
+      studyActive: 'Active (Face-Up Study)',
+      studyDisabled: 'Disabled (Immediate Recall)',
+      retryRound: 'Retry Round',
+      returnToHub: 'Return to Hub',
+      assessmentComplete: 'Assessment Complete!',
+      roundComplete: (r: number) => `Round ${r} Complete!`,
+      cantabTelemetry: 'CANTAB Paired Associates Learning Telemetry Registered',
+      pairs: 'Pairs',
+      cards: 'Cards',
+      tier: 'Tier',
     },
   }[language] || {
     title: 'Memory Match (Paired Associates)',
@@ -182,12 +259,31 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
     accuracy: 'Accuracy',
     tapToFlip: 'Tap',
     nextRound: 'Next Round ➔',
-    viewReport: 'View Clinical Report',
+    viewReport: 'Complete Exercise',
     autoAssistPrompt: 'AI Scaffolding: Matching cards gently highlighted to assist recall.',
     ftcLabel: 'First-Trial Correct',
     perseverationLabel: 'Perseverative Errors',
     entropyLabel: 'Search Pattern Entropy',
     autonomyLabel: 'Autonomy Index',
+    flips: 'Flips:',
+    ftc: 'FTC:',
+    perseverations: 'Perseverations:',
+    bayesianAbility: 'Bayesian Ability (θ):',
+    assistanceTimeout: 'Assistance Timeout:',
+    tremorDebounce: 'Tremor Debounce Taps:',
+    filtered: 'filtered',
+    manualTierSelect: 'Manual Tier Select (1-9):',
+    previewStudyPhase: 'Preview Study Phase:',
+    studyActive: 'Active (Face-Up Study)',
+    studyDisabled: 'Disabled (Immediate Recall)',
+    retryRound: 'Retry Round',
+    returnToHub: 'Return to Hub',
+    assessmentComplete: 'Assessment Complete!',
+    roundComplete: (r: number) => `Round ${r} Complete!`,
+    cantabTelemetry: 'CANTAB Paired Associates Learning Telemetry Registered',
+    pairs: 'Pairs',
+    cards: 'Cards',
+    tier: 'Tier',
   };
 
   /**
@@ -356,7 +452,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
     } else if (profileConfig.scaffoldingLevel === 'motor_stabilization') {
       // Motor profile: Reassure patient, keep generous touch windows
       memoryMatchAudio.playAutoAssistChime();
-      setFeedbackBanner('🛡️ Motor stabilization active. Take all the time you need to tap.');
+      setFeedbackBanner(language === 'hi' ? '🛡️ मोटर स्थिरीकरण सक्रिय। टैप करने के लिए जितना समय चाहिए लें।' : '🛡️ Motor stabilization active. Take all the time you need to tap.');
       setTimeout(() => setFeedbackBanner(null), 4500);
 
       setAiDynamicActions(prev => [
@@ -735,7 +831,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
       <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-3 py-1 rounded-full border border-amber-300">
+            <span className="text-[10px] font-black uppercase tracking-wider text-teal-800 bg-teal-50 px-3 py-1 rounded-full border border-teal-200">
               Tier {currentTier.tier}/9 • {currentTier.pairCount} Pairs ({currentTier.totalCards} Cards)
             </span>
             <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
@@ -770,7 +866,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
               setIsMuted(muted);
             }}
             className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
-            title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+            title={isMuted ? (language === 'hi' ? 'ध्वनि चालू करें' : 'Unmute Audio') : (language === 'hi' ? 'ध्वनि बंद करें' : 'Mute Audio')}
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-slate-400" /> : <Volume2 className="w-4 h-4 text-slate-700" />}
           </button>
@@ -779,10 +875,10 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
             onClick={() => setShowJudgeControls(!showJudgeControls)}
             className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
               showJudgeControls 
-                ? 'bg-purple-100 text-purple-900 border-purple-300 shadow-inner' 
+                ? 'bg-slate-800 text-teal-300 border-slate-700 shadow-inner' 
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-transparent'
             }`}
-            title="Caregiver Live DDA Calibration Panel"
+            title={language === 'hi' ? 'देखभालकर्ता लाइव DDA कैलिब्रेशन पैनल' : 'Caregiver Live DDA Calibration Panel'}
           >
             <Sliders className="w-4 h-4" />
           </button>
@@ -791,16 +887,16 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
             onClick={() => triggerAdaptiveAssistance(liveAssistanceProfile, true)}
             disabled={isCompleted || isInPreviewPhase}
             className="px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 shadow-xs disabled:opacity-50"
-            title="Request AI Scaffolding Hint"
+            title={language === 'hi' ? 'AI सहायता संकेत मांगें' : 'Request AI Scaffolding Hint'}
           >
             <HelpCircle className="w-4 h-4 text-amber-600" />
-            <span className="hidden sm:inline">Hint</span>
+            <span className="hidden sm:inline">{language === 'hi' ? 'संकेत' : 'Hint'}</span>
           </button>
 
           <button
             onClick={() => initRound(currentRoundIdx, manualTierOverride)}
             className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
-            title="Reset Current Round"
+            title={language === 'hi' ? 'वर्तमान राउंड रीसेट करें' : 'Reset Current Round'}
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -834,7 +930,9 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-amber-400" />
-              <h4 className="font-black text-sm text-white">National Clinical AI Testbed &amp; Live Telemetry Inspector</h4>
+              <h4 className="font-black text-sm text-white">
+                {language === 'hi' ? 'देखभालकर्ता लाइव DDA और राष्ट्रीय नैदानिक परीक्षण ड्रावर' : 'Caregiver Live DDA & National Clinical Testbed Drawer'}
+              </h4>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-1 rounded-full">
@@ -846,19 +944,19 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
           {/* Real-time Metrics Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950/60 p-3 rounded-2xl border border-slate-800">
             <div>
-              <span className="text-slate-400 text-[10px] block">Bayesian Ability (θ):</span>
+              <span className="text-slate-400 text-[10px] block">{t.bayesianAbility}</span>
               <strong className="text-amber-400 text-sm font-mono">{engine.getTheta().toFixed(3)}</strong>
             </div>
             <div>
-              <span className="text-slate-400 text-[10px] block">Assistance Timeout:</span>
+              <span className="text-slate-400 text-[10px] block">{t.assistanceTimeout}</span>
               <strong className="text-teal-400 text-sm font-mono">{liveAssistanceProfile.assistTimeoutMs / 1000}s</strong>
             </div>
             <div>
-              <span className="text-slate-400 text-[10px] block">Tremor Debounce Taps:</span>
-              <strong className="text-emerald-400 text-sm font-mono">{engine.getTremorTapCount()} filtered</strong>
+              <span className="text-slate-400 text-[10px] block">{t.tremorDebounce}</span>
+              <strong className="text-emerald-400 text-sm font-mono">{engine.getTremorTapCount()} {t.filtered}</strong>
             </div>
             <div>
-              <span className="text-slate-400 text-[10px] block">Autonomy Index:</span>
+              <span className="text-slate-400 text-[10px] block">{t.autonomyLabel}:</span>
               <strong className="text-purple-400 text-sm font-mono">{lastAutonomyScore}%</strong>
             </div>
           </div>
@@ -866,7 +964,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-bold pt-1">
             {/* Tier Override */}
             <div>
-              <span className="text-slate-400 block mb-1 text-[11px]">Manual Tier Select (1-9):</span>
+              <span className="text-slate-400 block mb-1 text-[11px]">{t.manualTierSelect}</span>
               <select
                 value={manualTierOverride !== null ? manualTierOverride : currentTier.tier - 1}
                 onChange={(e) => {
@@ -876,9 +974,9 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
                 }}
                 className="w-full bg-slate-800 text-slate-200 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-amber-400 outline-none"
               >
-                {MEMORY_MATCH_TIERS.map((t, idx) => (
-                  <option key={t.tier} value={idx}>
-                    Tier {t.tier}: {t.pairCount} Pairs ({t.totalCards} Cards) - θ:{t.baseTheta}
+                {MEMORY_MATCH_TIERS.map((tierItem, idx) => (
+                  <option key={tierItem.tier} value={idx}>
+                    {t.tier} {tierItem.tier}: {tierItem.pairCount} {t.pairs} ({tierItem.totalCards} {t.cards}) - θ:{tierItem.baseTheta}
                   </option>
                 ))}
               </select>
@@ -908,7 +1006,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
 
             {/* Preview Study Toggle */}
             <div>
-              <span className="text-slate-400 block mb-1 text-[11px]">Preview Study Phase:</span>
+              <span className="text-slate-400 block mb-1 text-[11px]">{t.previewStudyPhase}</span>
               <button
                 onClick={() => setPreviewStudyEnabled(!previewStudyEnabled)}
                 className={`w-full py-1.5 rounded-xl font-black text-xs transition-all cursor-pointer ${
@@ -917,7 +1015,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
                     : 'bg-slate-800 text-slate-400'
                 }`}
               >
-                {previewStudyEnabled ? 'Active (Face-Up Study)' : 'Disabled (Immediate Recall)'}
+                {previewStudyEnabled ? t.studyActive : t.studyDisabled}
               </button>
             </div>
           </div>
@@ -936,9 +1034,9 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
             </span>
 
             <div className="flex items-center gap-4 text-[11px] text-slate-500">
-              <span>Flips: <strong className="text-slate-900">{totalFlips}</strong></span>
-              <span>FTC: <strong className="text-emerald-700">{firstTrialCorrectCount}</strong></span>
-              <span>Perseverations: <strong className="text-purple-700">{perseverations}</strong></span>
+              <span>{t.flips} <strong className="text-slate-900">{totalFlips}</strong></span>
+              <span>{t.ftc} <strong className="text-emerald-700">{firstTrialCorrectCount}</strong></span>
+              <span>{t.perseverations} <strong className="text-purple-700">{perseverations}</strong></span>
             </div>
           </div>
 
@@ -1020,8 +1118,29 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
           </div>
 
         </div>
+      ) : isSessionFinished ? (
+        /* Final Session Completion Modal - Warm Reassuring Patient View */
+        <PatientGameCompletionView
+          language={language}
+          activityTitle={language === 'hi' ? 'स्मृति मिलान' : 'Memory Match'}
+          stats={[
+            {
+              label: language === 'hi' ? 'मिलाए गए जोड़े' : 'Pairs Matched',
+              value: `${roundTelemetryListRef.current.reduce((sum, r) => sum + r.pairCount, 0)}`,
+            },
+            {
+              label: language === 'hi' ? 'पूरे किए गए राउंड' : 'Rounds Completed',
+              value: `${totalRounds} / ${totalRounds}`,
+            },
+          ]}
+          onRetry={() => {
+            initRound(0, manualTierOverride);
+            setIsSessionFinished(false);
+          }}
+          onExit={onExit}
+        />
       ) : (
-        /* Round / Session Completion Modal */
+        /* Intermediate Round Completion Modal - Warm & Encouraging */
         <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6 text-center animate-fadeIn">
           <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-inner">
             <CheckCircle2 className="w-10 h-10" />
@@ -1029,31 +1148,11 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
 
           <div>
             <h3 className="text-2xl sm:text-3xl font-black text-slate-900">
-              {isSessionFinished ? 'Assessment Complete!' : `Round ${currentRoundIdx + 1} Complete!`}
+              {t.roundComplete(currentRoundIdx + 1)}
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 font-bold mt-1">
-              CANTAB Paired Associates Learning Telemetry Registered
+              {language === 'hi' ? 'शानदार प्रयास! सभी जोड़े सफलतापूर्वक मिल गए।' : 'Splendid work! All pairs matched successfully.'}
             </p>
-          </div>
-
-          {/* Clinical Metrics Summary Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto text-left">
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">{t.ftcLabel}</span>
-              <p className="text-2xl font-black text-emerald-600 mt-0.5">{firstTrialCorrectCount} / {currentTier.pairCount}</p>
-            </div>
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">{t.perseverationLabel}</span>
-              <p className="text-2xl font-black text-purple-600 mt-0.5">{perseverations}</p>
-            </div>
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">{t.autonomyLabel}</span>
-              <p className="text-2xl font-black text-blue-600 mt-0.5">{lastAutonomyScore}%</p>
-            </div>
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Bayesian Ability (θ)</span>
-              <p className="text-2xl font-black text-amber-600 mt-0.5">{engine.getTheta().toFixed(2)}</p>
-            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
@@ -1062,28 +1161,16 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
               className="px-6 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-sm cursor-pointer transition-all flex items-center gap-2 border border-slate-200"
             >
               <RotateCcw className="w-4 h-4" />
-              <span>Retry Round</span>
+              <span>{t.retryRound}</span>
             </button>
 
-            {!isSessionFinished && (
-              <button
-                onClick={handleProceedNext}
-                className="px-8 py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-sm shadow-md cursor-pointer transition-all flex items-center gap-2"
-              >
-                <span>{currentRoundIdx + 1 >= totalRounds ? t.viewReport : t.nextRound}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
-
-            {isSessionFinished && onExit && (
-              <button
-                onClick={onExit}
-                className="px-8 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md cursor-pointer transition-all flex items-center gap-2"
-              >
-                <span>Return to Hub</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
+            <button
+              onClick={handleProceedNext}
+              className="px-8 py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-sm shadow-md cursor-pointer transition-all flex items-center gap-2"
+            >
+              <span>{currentRoundIdx + 1 >= totalRounds ? (language === 'hi' ? 'सत्र पूरा करें ➔' : 'Complete Session ➔') : t.nextRound}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       )}

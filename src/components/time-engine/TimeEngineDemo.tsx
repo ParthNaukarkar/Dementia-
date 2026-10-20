@@ -22,8 +22,13 @@ import {
   circadianManager, 
   type CircadianStatus 
 } from '../../engine/circadian-manager';
+import type { SupportedLanguage } from '../../types/prescription';
 
-export const TimeEngineDemo: React.FC = () => {
+interface TimeEngineDemoProps {
+  language?: SupportedLanguage;
+}
+
+export const TimeEngineDemo: React.FC<TimeEngineDemoProps> = ({ language = 'hi' }) => {
   // Latency Simulator State
   const [isTrialActive, setIsTrialActive] = useState(false);
   const [currentStage, setCurrentStage] = useState<LatencyStage>('NORMAL_DELIBERATION');
@@ -86,43 +91,44 @@ export const TimeEngineDemo: React.FC = () => {
   return (
     <div className="space-y-8 max-w-5xl mx-auto p-4 md:p-6 text-slate-800">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
+      <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl border border-slate-800 relative overflow-hidden">
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 bg-amber-500/40 text-amber-100 text-sm px-3 py-1 rounded-full mb-3 backdrop-blur-xs font-semibold">
-            <Clock className="w-4 h-4" />
-            <span>National Clinical AI • Time &amp; Circadian Architecture</span>
+          <div className="inline-flex items-center gap-2 bg-teal-500/20 text-teal-300 text-sm px-3 py-1 rounded-full mb-3 backdrop-blur-xs font-semibold border border-teal-500/30">
+            <Clock className="w-4 h-4 text-teal-400" />
+            <span>{language === 'hi' ? 'राष्ट्रीय क्लिनिकल AI • समय एवं सर्कैडियन आर्किटेक्चर' : 'National Clinical AI • Time & Circadian Architecture'}</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white mb-2">
-            Clinical Latency & Circadian Timing Engine
+            {language === 'hi' ? 'क्लिनिकल विलंबता एवं सर्कैडियन टाइमिंग इंजन' : 'Clinical Latency & Circadian Timing Engine'}
           </h1>
-          <p className="text-amber-100/90 text-sm md:text-base max-w-2xl leading-relaxed">
-            Standardizing geriatric response times based on <strong>CANTAB & Cogstate</strong> guidelines. 
-            Replaces rigid countdown timers with compassionate stage-graduated cues and automated <strong>Sundowning</strong> protection.
+          <p className="text-slate-300 text-sm md:text-base max-w-2xl leading-relaxed">
+            {language === 'hi' 
+              ? 'CANTAB और Cogstate दिशानिर्देशों के आधार पर बुजुर्गों के प्रतिक्रिया समय का मानकीकरण। कठोर उलटी गिनती टाइमर को करुणामय चरणबद्ध संकेतों और स्वचालित सनडाउनिंग सुरक्षा से बदलता है।' 
+              : 'Standardizing geriatric response times based on CANTAB & Cogstate guidelines. Replaces rigid countdown timers with compassionate stage-graduated cues and automated Sundowning protection.'}
           </p>
         </div>
-        <div className="absolute right-0 -bottom-10 opacity-15 pointer-events-none text-white">
+        <div className="absolute right-0 -bottom-10 opacity-10 pointer-events-none text-white">
           <Clock className="w-64 h-64" />
         </div>
       </div>
 
       {/* MODULE 1: CLINICAL IN-GAME LATENCY & STAGED PROMPT ENGINE */}
-      <section className="bg-white rounded-2xl p-6 md:p-8 shadow-md border border-amber-100/80">
+      <section className="bg-white rounded-2xl p-6 md:p-8 shadow-md border border-slate-200/90">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-100">
           <div>
-            <div className="flex items-center gap-2 text-amber-700 font-bold text-sm tracking-wider uppercase">
-              <Brain className="w-5 h-5 text-amber-600" />
-              <span>System 1 • Clinical Latency Staging</span>
+            <div className="flex items-center gap-2 text-teal-700 font-bold text-sm tracking-wider uppercase">
+              <Brain className="w-5 h-5 text-teal-600" />
+              <span>{language === 'hi' ? 'सिस्टम १ • क्लिनिकल विलंबता स्टेजिंग' : 'System 1 • Clinical Latency Staging'}</span>
             </div>
             <h2 className="text-xl md:text-2xl font-bold text-slate-800 mt-1">
-              Graduated Thinking Window (0s – 30s)
+              {language === 'hi' ? 'चरणबद्ध चिंतन अवधि (0s – 30s)' : 'Graduated Thinking Window (0s – 30s)'}
             </h2>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs font-medium bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg">
-              Trials Logged: <strong>{timingProfile.totalTrialsRecorded}</strong>
+              {language === 'hi' ? 'दर्ज परीक्षण:' : 'Trials Logged:'} <strong>{timingProfile.totalTrialsRecorded}</strong>
             </span>
-            <span className="text-xs font-medium bg-amber-50 text-amber-800 px-3 py-1.5 rounded-lg border border-amber-200">
-              Median Latency: <strong>{(timingProfile.personalBaselineMs / 1000).toFixed(1)}s</strong>
+            <span className="text-xs font-medium bg-teal-50 text-teal-800 px-3 py-1.5 rounded-lg border border-teal-200">
+              {language === 'hi' ? 'माध्यिका विलंबता:' : 'Median Latency:'} <strong>{(timingProfile.personalBaselineMs / 1000).toFixed(1)}s</strong>
             </span>
           </div>
         </div>
@@ -130,11 +136,11 @@ export const TimeEngineDemo: React.FC = () => {
         {/* Live Timeline Stages Visualizer */}
         <div className="mt-6 space-y-4">
           <div className="flex justify-between items-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            <span>0.0s Normal</span>
-            <span>7.0s Visual Glow</span>
-            <span>10.0s Vernacular Voice</span>
-            <span>15.0s Recalibrate</span>
-            <span>30.0s Soft Assist</span>
+            <span>{language === 'hi' ? '0.0s सामान्य' : '0.0s Normal'}</span>
+            <span>{language === 'hi' ? '7.0s विज़ुअल चमक' : '7.0s Visual Glow'}</span>
+            <span>{language === 'hi' ? '10.0s क्षेत्रीय स्वर' : '10.0s Vernacular Voice'}</span>
+            <span>{language === 'hi' ? '15.0s पुनर्समायोजन' : '15.0s Recalibrate'}</span>
+            <span>{language === 'hi' ? '30.0s सौम्य सहायता' : '30.0s Soft Assist'}</span>
           </div>
 
           {/* Progress Bar with stages */}
@@ -177,21 +183,21 @@ export const TimeEngineDemo: React.FC = () => {
 
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm tracking-wide uppercase">Active Stage:</span>
+                <span className="font-bold text-sm tracking-wide uppercase">{language === 'hi' ? 'सक्रिय चरण:' : 'Active Stage:'}</span>
                 <span className="font-extrabold text-base">
-                  {currentStage === 'NORMAL_DELIBERATION' && '1. Unhurried Deliberation Zone (0.0s – 7.0s)'}
-                  {currentStage === 'VISUAL_GUIDANCE' && '2. Subtle Visual Guidance Glow (7.0s – 10.0s)'}
-                  {currentStage === 'VERNACULAR_PROMPT' && '3. Vernacular Voice Prompt Triggered (10.0s – 15.0s)'}
-                  {currentStage === 'COGNITIVE_OVERLOAD' && '4. Clinical Delay Logged (>15.0s • Next Round Eased)'}
-                  {currentStage === 'SOFT_AUTO_ASSIST' && '5. Soft Auto-Assist Completed (30.0s • Zero Penalty)'}
+                  {currentStage === 'NORMAL_DELIBERATION' && (language === 'hi' ? '१. शांत चिंतन क्षेत्र (0.0s – 7.0s)' : '1. Unhurried Deliberation Zone (0.0s – 7.0s)')}
+                  {currentStage === 'VISUAL_GUIDANCE' && (language === 'hi' ? '२. सूक्ष्म दृश्य मार्गदर्शन चमक (7.0s – 10.0s)' : '2. Subtle Visual Guidance Glow (7.0s – 10.0s)')}
+                  {currentStage === 'VERNACULAR_PROMPT' && (language === 'hi' ? '३. क्षेत्रीय स्वर संकेत सक्रिय (10.0s – 15.0s)' : '3. Vernacular Voice Prompt Triggered (10.0s – 15.0s)')}
+                  {currentStage === 'COGNITIVE_OVERLOAD' && (language === 'hi' ? '४. क्लिनिकल विलंब दर्ज (>15.0s • अगला राउंड सरल)' : '4. Clinical Delay Logged (>15.0s • Next Round Eased)')}
+                  {currentStage === 'SOFT_AUTO_ASSIST' && (language === 'hi' ? '५. सौम्य स्वतः सहायता संपन्न (30.0s • शून्य दंड)' : '5. Soft Auto-Assist Completed (30.0s • Zero Penalty)')}
                 </span>
               </div>
               <p className="text-sm mt-1 opacity-90">
-                {currentStage === 'NORMAL_DELIBERATION' && 'Silent thinking space. Zero on-screen distractions, giving the elder dignity and time.'}
-                {currentStage === 'VISUAL_GUIDANCE' && 'Target cards gently pulse with a warm golden outline to draw natural eye focus.'}
-                {currentStage === 'VERNACULAR_PROMPT' && 'Soothing local audio speaks: "ধীৰে ধীৰে কৰক, একো অসুবিধা নাই" ("Take your time, Dada").'}
-                {currentStage === 'COGNITIVE_OVERLOAD' && 'High cognitive load recognized. AI reduces distractors and expands buttons for the next trial.'}
-                {currentStage === 'SOFT_AUTO_ASSIST' && 'Step completes automatically with cheerful chime and positive words. No failure screen.'}
+                {currentStage === 'NORMAL_DELIBERATION' && (language === 'hi' ? 'शांत चिंतन स्थल। स्क्रीन पर शून्य व्याकुलता, बुजुर्ग को गरिमा और समय प्रदान करता है।' : 'Silent thinking space. Zero on-screen distractions, giving the elder dignity and time.')}
+                {currentStage === 'VISUAL_GUIDANCE' && (language === 'hi' ? 'लक्षित कार्ड प्राकृतिक रूप से ध्यान आकर्षित करने के लिए सुनहरी रूपरेखा के साथ धीरे से चमकते हैं।' : 'Target cards gently pulse with a warm golden outline to draw natural eye focus.')}
+                {currentStage === 'VERNACULAR_PROMPT' && (language === 'hi' ? 'शांत स्थानीय ऑडियो: "धीमे-धीमे करें, कोई जल्दी नहीं है" ("आराम से समय लें दादाजी")।' : 'Soothing local audio speaks: "ধীৰে ধীৰে কৰক, একো অসুবিধা নাই" ("Take your time, Dada").')}
+                {currentStage === 'COGNITIVE_OVERLOAD' && (language === 'hi' ? 'उच्च संज्ञानात्मक भार पहचाना गया। AI अगले परीक्षण के लिए व्याकुलता कम करता है और बटन बड़े करता है।' : 'High cognitive load recognized. AI reduces distractors and expands buttons for the next trial.')}
+                {currentStage === 'SOFT_AUTO_ASSIST' && (language === 'hi' ? 'सकारात्मक शब्दों और सुखद ध्वनि के साथ चरण स्वतः पूरा होता है। कोई विफलता स्क्रीन नहीं।' : 'Step completes automatically with cheerful chime and positive words. No failure screen.')}
               </p>
             </div>
 
@@ -199,7 +205,7 @@ export const TimeEngineDemo: React.FC = () => {
               <div className="text-2xl md:text-3xl font-mono font-black tracking-tight">
                 {elapsedSeconds}s
               </div>
-              <span className="text-xs text-slate-500 font-medium">Elapsed Time</span>
+              <span className="text-xs text-slate-500 font-medium">{language === 'hi' ? 'बीता हुआ समय' : 'Elapsed Time'}</span>
             </div>
           </div>
         </div>
@@ -212,7 +218,7 @@ export const TimeEngineDemo: React.FC = () => {
               className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-md transition-transform active:scale-95 flex items-center gap-2 cursor-pointer"
             >
               <Clock className="w-5 h-5" />
-              <span>Start Trial Timer</span>
+              <span>{language === 'hi' ? 'परीक्षण टाइमर शुरू करें' : 'Start Trial Timer'}</span>
             </button>
           ) : (
             <button
@@ -224,13 +230,13 @@ export const TimeEngineDemo: React.FC = () => {
               }`}
             >
               <CheckCircle2 className="w-6 h-6" />
-              <span>Simulate Patient Tap (Select Item)</span>
+              <span>{language === 'hi' ? 'रोगी के टैप का अनुकरण करें (विकल्प चुनें)' : 'Simulate Patient Tap (Select Item)'}</span>
             </button>
           )}
 
           {lastRecordedLatency !== null && !isTrialActive && (
             <div className="text-sm bg-white px-4 py-2.5 rounded-lg border border-slate-200 font-medium text-slate-700">
-              Last Response Time: <strong className="text-amber-700 font-bold">{(lastRecordedLatency / 1000).toFixed(2)}s</strong> ({lastRecordedLatency} ms)
+              {language === 'hi' ? 'पिछला प्रतिक्रिया समय:' : 'Last Response Time:'} <strong className="text-amber-700 font-bold">{(lastRecordedLatency / 1000).toFixed(2)}s</strong> ({lastRecordedLatency} ms)
             </div>
           )}
         </div>
@@ -239,7 +245,7 @@ export const TimeEngineDemo: React.FC = () => {
         <div className="mt-4 flex items-start gap-2.5 text-xs text-slate-500 bg-amber-50/50 p-3 rounded-lg border border-amber-100">
           <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
           <span>
-            <strong>Clinical Benchmark:</strong> CANTAB guidelines establish choice reaction times for MCI cohorts at 2.5s–4.5s and dementia sequencing at 8.0s–14.0s. NeuroSaathi uses a rolling median ($MdL$) to prevent false alarms for slower individuals.
+            <strong>{language === 'hi' ? 'नैदानिक बेंचमार्क:' : 'Clinical Benchmark:'}</strong> {language === 'hi' ? 'CANTAB दिशानिर्देश MCI समूहों के लिए पसंद प्रतिक्रिया समय 2.5s–4.5s और मनोभ्रंश अनुक्रमण 8.0s–14.0s स्थापित करते हैं। NeuroSaathi धीमी गति वाले व्यक्तियों के लिए गलत अलार्म को रोकने के लिए एक रोलिंग माध्यिका (MdL) का उपयोग करता है।' : 'CANTAB guidelines establish choice reaction times for MCI cohorts at 2.5s–4.5s and dementia sequencing at 8.0s–14.0s. NeuroSaathi uses a rolling median (MdL) to prevent false alarms for slower individuals.'}
           </span>
         </div>
       </section>
@@ -250,10 +256,10 @@ export const TimeEngineDemo: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 text-indigo-700 font-bold text-sm tracking-wider uppercase">
               <Sunset className="w-5 h-5 text-indigo-600" />
-              <span>System 2 • Circadian Sundowning Safeguard</span>
+              <span>{language === 'hi' ? 'सिस्टम २ • सर्कैडियन सनडाउनिंग सुरक्षा' : 'System 2 • Circadian Sundowning Safeguard'}</span>
             </div>
             <h2 className="text-xl md:text-2xl font-bold text-slate-800 mt-1">
-              24-Hour Circadian Phase Manager
+              {language === 'hi' ? '२४-घंटे सर्कैडियन चरण प्रबंधक' : '24-Hour Circadian Phase Manager'}
             </h2>
           </div>
 
@@ -266,12 +272,12 @@ export const TimeEngineDemo: React.FC = () => {
               {circadian.isSundowningActive ? (
                 <>
                   <ShieldAlert className="w-4 h-4" />
-                  <span>Sundowning Active (Evening)</span>
+                  <span>{language === 'hi' ? 'सनडाउनिंग सक्रिय (शाम)' : 'Sundowning Active (Evening)'}</span>
                 </>
               ) : (
                 <>
                   <Sun className="w-4 h-4" />
-                  <span>Standard Cognitive Phase</span>
+                  <span>{language === 'hi' ? 'मानक संज्ञानात्मक चरण' : 'Standard Cognitive Phase'}</span>
                 </>
               )}
             </span>
@@ -298,13 +304,21 @@ export const TimeEngineDemo: React.FC = () => {
               </div>
               <div>
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Current Phase Status
+                  {language === 'hi' ? 'वर्तमान चरण स्थिति' : 'Current Phase Status'}
                 </span>
                 <h3 className="text-lg md:text-xl font-extrabold text-slate-800">
-                  {circadian.phase.replace('_', ' ')}
+                  {language === 'hi'
+                    ? (circadian.phase === 'MORNING_COGNITIVE'
+                        ? 'सुबह संज्ञानात्मक'
+                        : circadian.phase === 'AFTERNOON_STABLE'
+                        ? 'दोपहर स्थिर'
+                        : circadian.phase === 'SUNDOWNING_VULNERABLE'
+                        ? 'सनडाउनिंग संवेदनशील'
+                        : 'रात्रि विश्राम')
+                    : circadian.phase.replace('_', ' ')}
                 </h3>
                 <p className="text-xs md:text-sm text-slate-600 mt-0.5">
-                  Recommended Mode: <strong className="text-amber-700">{circadian.recommendedMode}</strong>
+                  {language === 'hi' ? 'अनुशंसित मोड:' : 'Recommended Mode:'} <strong className="text-amber-700">{circadian.recommendedMode}</strong>
                 </p>
               </div>
             </div>
@@ -318,7 +332,7 @@ export const TimeEngineDemo: React.FC = () => {
         {/* Quick Time Simulator Buttons for Hackathon Judges */}
         <div className="mt-6">
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-            Simulate Time-of-Day (Judge Demonstration Controls):
+            {language === 'hi' ? 'दिन के समय का अनुकरण करें (प्रदर्शन नियंत्रण):' : 'Simulate Time-of-Day (Judge Demonstration Controls):'}
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <button
@@ -331,9 +345,11 @@ export const TimeEngineDemo: React.FC = () => {
             >
               <div className="flex items-center gap-1.5 font-bold mb-1 text-amber-600">
                 <Sun className="w-4 h-4" />
-                <span>09:30 AM</span>
+                <span>{language === 'hi' ? 'सुबह ०९:३० बजे' : '09:30 AM'}</span>
               </div>
-              <span className="text-[11px] text-slate-500">Morning Games Mode</span>
+              <span className="text-[11px] text-slate-500">
+                {language === 'hi' ? 'सुबह के खेल मोड' : 'Morning Games Mode'}
+              </span>
             </button>
 
             <button
@@ -346,9 +362,11 @@ export const TimeEngineDemo: React.FC = () => {
             >
               <div className="flex items-center gap-1.5 font-bold mb-1 text-blue-600">
                 <Sun className="w-4 h-4" />
-                <span>02:00 PM</span>
+                <span>{language === 'hi' ? 'दोपहर ०२:०० बजे' : '02:00 PM'}</span>
               </div>
-              <span className="text-[11px] text-slate-500">Light Maintenance</span>
+              <span className="text-[11px] text-slate-500">
+                {language === 'hi' ? 'हल्का रखरखाव' : 'Light Maintenance'}
+              </span>
             </button>
 
             <button
@@ -361,9 +379,11 @@ export const TimeEngineDemo: React.FC = () => {
             >
               <div className="flex items-center gap-1.5 font-bold mb-1 text-rose-600">
                 <Sunset className="w-4 h-4" />
-                <span>06:00 PM (Sundown)</span>
+                <span>{language === 'hi' ? 'शाम ०६:०० बजे (सूर्यास्त)' : '06:00 PM (Sundown)'}</span>
               </div>
-              <span className="text-[11px] text-slate-500">Calming Memory Vault</span>
+              <span className="text-[11px] text-slate-500">
+                {language === 'hi' ? 'शांत स्मृति तिजोरी' : 'Calming Memory Vault'}
+              </span>
             </button>
 
             <button
@@ -376,9 +396,11 @@ export const TimeEngineDemo: React.FC = () => {
             >
               <div className="flex items-center gap-1.5 font-bold mb-1 text-slate-700">
                 <RotateCcw className="w-4 h-4" />
-                <span>Reset to Real Clock</span>
+                <span>{language === 'hi' ? 'वास्तविक घड़ी पर रीसेट करें' : 'Reset to Real Clock'}</span>
               </div>
-              <span className="text-[11px] text-slate-500">Use Device Local Time</span>
+              <span className="text-[11px] text-slate-500">
+                {language === 'hi' ? 'डिवाइस का स्थानीय समय उपयोग करें' : 'Use Device Local Time'}
+              </span>
             </button>
           </div>
         </div>

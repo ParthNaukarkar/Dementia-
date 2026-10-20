@@ -218,37 +218,15 @@ class BrainStoryAudio {
   /**
    * Accessible Web Speech API Story Narrator calibrated at 0.82 rate
    */
-  public speakStorySentence(sentence: string, language: SupportedLanguage, onEnd?: () => void) {
-    if (this.muted) {
-      if (onEnd) onEnd();
-      return;
+  public speakStorySentence(_sentence: string, _language: SupportedLanguage, onEnd?: () => void) {
+    // Spoken voice permanently disabled
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
     }
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      if (onEnd) onEnd();
-      return;
-    }
-
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(sentence);
-      utterance.rate = 0.82; // Calibrated for geriatric cognitive clarity
-
-      const langMap: Record<SupportedLanguage, string> = {
-        hi: 'hi-IN',
-        en: 'en-IN',
-      };
-      utterance.lang = langMap[language] || 'en-IN';
-
-      utterance.onend = () => {
-        if (onEnd) onEnd();
-      };
-      utterance.onerror = () => {
-        if (onEnd) onEnd();
-      };
-
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      if (onEnd) onEnd();
+    if (onEnd) {
+      onEnd();
     }
   }
 

@@ -216,48 +216,15 @@ export class WhatChangedAudio {
    * Speaks clinical guidance prompts in patient's preferred language.
    */
   public speakGuidance(
-    type: 'study' | 'detect' | 'correct' | 'try_again' | 'hint',
-    lang: SupportedLanguage
+    _type: 'study' | 'detect' | 'correct' | 'try_again' | 'hint',
+    _lang: SupportedLanguage
   ) {
-    if (this.isMuted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-    const scripts: Record<string, Record<SupportedLanguage, string>> = {
-      study: {
-        hi: 'दृश्य को ध्यान से देखें और वस्तुओं को याद रखें।',
-        en: 'Memorize the items in this scene carefully.',
-      },
-      detect: {
-        hi: 'क्या बदला? जो वस्तु बदली है, उस पर टैप करें।',
-        en: 'What changed? Tap on the item that changed.',
-      },
-      correct: {
-        hi: 'बहुत बढ़िया! आपने सही बदलाव पहचान लिया।',
-        en: 'Splendid! You correctly spotted the change.',
-      },
-      try_again: {
-        hi: 'कोई बात नहीं, अगला दृश्य देखें।',
-        en: 'No worries, let us observe the next scene.',
-      },
-      hint: {
-        hi: 'सुनहरी रोशनी की ओर देखें।',
-        en: 'Notice the gentle golden glow.',
-      },
-    };
-
-    try {
-      window.speechSynthesis.cancel();
-      const text = scripts[type]?.[lang] || scripts[type]?.en;
-      if (!text) return;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.85;
-
-      const langMap: Record<SupportedLanguage, string> = {
-        hi: 'hi-IN',
-        en: 'en-US',
-      };
-      utterance.lang = langMap[lang] || 'en-US';
-      window.speechSynthesis.speak(utterance);
-    } catch {}
+    // Spoken voice permanently disabled
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
   }
 }
 

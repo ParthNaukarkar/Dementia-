@@ -4,7 +4,6 @@ import {
   CheckCircle2, 
   Flame, 
   Sparkles, 
-  FileText, 
   Home,
   Pill,
   CalendarCheck,
@@ -21,7 +20,6 @@ interface WorkoutCompletedCelebrationModalProps {
   completedGameIds: GameId[];
   sessionSummaries: Record<string, any>;
   dayStreak?: number;
-  onViewReport: () => void;
   onReturnHome: () => void;
   onGoToMedications?: () => void;
   onGoToRoutine?: () => void;
@@ -34,7 +32,6 @@ export const WorkoutCompletedCelebrationModal: React.FC<WorkoutCompletedCelebrat
   completedGameIds,
   sessionSummaries,
   dayStreak = 1,
-  onViewReport,
   onReturnHome,
   onGoToMedications,
   onGoToRoutine,
@@ -71,34 +68,34 @@ export const WorkoutCompletedCelebrationModal: React.FC<WorkoutCompletedCelebrat
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fadeIn overflow-y-auto">
-      <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden text-slate-800 my-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+      <div className="bg-white w-full max-w-xl rounded-3xl shadow-xl border border-[#E5DFD5] overflow-hidden text-[#1F2421] my-8">
         
-        {/* Vibrant Celebration Header */}
-        <div className="bg-gradient-to-tr from-amber-500 via-orange-500 to-amber-600 text-white p-6 sm:p-8 text-center relative overflow-hidden">
-          <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white mx-auto shadow-inner border border-white/40 mb-3 animate-bounce">
-            <Trophy className="w-10 h-10 text-white fill-white/20" />
+        {/* Vibrant Celebration Header (Keen Warm Canvas) */}
+        <div className="bg-[#FAF8F5] p-6 sm:p-8 text-center relative overflow-hidden border-b border-[#E5DFD5]">
+          <div className="w-20 h-20 rounded-3xl bg-[#FAF3E7] border border-[#F2E1C2] flex items-center justify-center text-[#A86F15] mx-auto shadow-xs mb-3.5">
+            <Trophy className="w-10 h-10 text-[#A86F15]" />
           </div>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-black uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#EDF5F0] text-[#28573E] border border-[#CCE2D4] text-xs font-['Sora'] font-bold uppercase tracking-wider mb-2.5">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>{language === 'hi' ? 'आज का दैनिक व्यायाम पूर्ण!' : "Today's Daily Workout Complete!"}</span>
+            <span>{language === 'hi' ? 'दैनिक मस्तिष्क व्यायाम पूर्ण!' : "Today's Daily Workout Complete!"}</span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+          <h2 className="font-['Sora'] text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1F2421]">
             {language === 'hi' 
               ? `शानदार प्रयास, ${patientName.split(' ')[0]} जी!` 
-              : `Sensational effort, ${patientName.split(' ')[0]}!`}
+              : `Splendid effort, ${patientName.split(' ')[0]}!`}
           </h2>
-          <p className="text-xs sm:text-sm text-amber-100 font-medium mt-1 max-w-md mx-auto leading-relaxed">
+          <p className="text-sm text-[#636B65] font-medium mt-1.5 max-w-md mx-auto leading-relaxed">
             {language === 'hi' 
-              ? `आपने आज के सभी ${completedGameIds.length} निर्धारित खेल सफलतापूर्वक पूरे किए। आपके मस्तिष्क के तंत्रिका मार्ग सक्रिय हैं!` 
+              ? `आपने आज के सभी ${completedGameIds.length} निर्धारित खेल सफलतापूर्वक पूरे किए। आपकी स्मृति और ध्यान के तंत्रिका मार्ग सक्रिय हैं!` 
               : `You completed all ${completedGameIds.length} prescribed exercises today. Your memory and focus pathways are actively firing!`}
           </p>
 
           {/* Streak pill */}
-          <div className="inline-flex items-center gap-2 mt-4 px-4 py-1.5 rounded-full bg-slate-950/40 text-amber-300 border border-amber-300/30 text-xs font-black shadow-md">
-            <Flame className="w-4 h-4 text-orange-400 fill-orange-400" />
+          <div className="inline-flex items-center gap-2 mt-4 px-4 py-1.5 rounded-full bg-white text-[#C05634] border border-[#F5D3C4] text-xs font-['Sora'] font-bold shadow-xs">
+            <Flame className="w-4 h-4 text-[#C05634] fill-[#C05634]" />
             <span>
               {language === 'hi' 
                 ? `${dayStreak} दिन का संज्ञान सिलसिला जारी!` 
@@ -108,36 +105,36 @@ export const WorkoutCompletedCelebrationModal: React.FC<WorkoutCompletedCelebrat
         </div>
 
         {/* Modal Content */}
-        <div className="p-6 sm:p-7 space-y-5">
+        <div className="p-6 sm:p-8 space-y-6">
           
-          {/* Direct Next Step Action Guidance Banner */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-indigo-500/10 border-2 border-emerald-500/30 space-y-3">
+          {/* Direct Next Step Action Guidance Banner in Warm Terracotta Well */}
+          <div className="p-5 rounded-2xl bg-[#FDF1EB] border border-[#F5D3C4] space-y-3.5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-emerald-600" />
+              <span className="text-xs font-['Sora'] font-bold uppercase tracking-wider text-[#C05634] flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-[#C05634]" />
                 <span>{language === 'hi' ? 'अब अगला महत्वपूर्ण कदम:' : 'Next Important Steps:'}</span>
               </span>
-              <span className="text-[10px] font-bold text-slate-500">
-                {language === 'hi' ? 'देखभालकर्ता द्वारा निर्धारित' : 'Prescribed by Caregiver'}
+              <span className="text-xs font-bold text-[#636B65] bg-white px-2.5 py-0.5 rounded-full border border-[#F5D3C4]">
+                {language === 'hi' ? 'दैनिक दिनचर्या' : 'Daily Routine'}
               </span>
             </div>
 
-            {/* Go to Medications CTA Button */}
+            {/* Go to Medications CTA Button: Terracotta 56px Target */}
             {onGoToMedications && (
               <button
                 onClick={onGoToMedications}
-                className="w-full p-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-between cursor-pointer active:scale-98 group"
+                className="w-full p-4 rounded-2xl bg-[#C05634] hover:bg-[#A64727] text-white font-['Sora'] font-bold text-base shadow-sm hover:shadow-md transition-all flex items-center justify-between cursor-pointer active:scale-[0.98] group"
               >
-                <div className="flex items-center gap-3 text-left">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-3.5 text-left">
+                  <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                     <Pill className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="font-extrabold text-sm sm:text-base leading-tight">
-                      {language === 'hi' ? '💊 अपनी दवाइयां लें (दैनिक खुराक)' : '💊 Go Get Your Medicine (Take Scheduled Doses Now)'}
+                    <p className="font-bold text-base leading-tight">
+                      {language === 'hi' ? '💊 अपनी निर्धारित दवाइयां लें' : '💊 Take Scheduled Medications Now'}
                     </p>
-                    <span className="text-[11px] text-emerald-100 font-medium">
-                      {language === 'hi' ? 'निर्धारित दवाइयों की जांच करें और टिक करें' : 'View daily schedule and mark today’s doses as taken'}
+                    <span className="text-xs text-[#FDF1EB] font-normal mt-0.5 block">
+                      {language === 'hi' ? 'दवाइयों की सूची देखें और टिक मार्क करें' : 'View daily schedule and mark today’s doses as taken'}
                     </span>
                   </div>
                 </div>
@@ -147,22 +144,22 @@ export const WorkoutCompletedCelebrationModal: React.FC<WorkoutCompletedCelebrat
               </button>
             )}
 
-            {/* Go to Routine Tasks CTA Button */}
+            {/* Go to Routine Tasks CTA Button: Forest Green */}
             {onGoToRoutine && (
               <button
                 onClick={onGoToRoutine}
-                className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-sky-700 hover:from-indigo-700 hover:to-sky-800 text-white font-black text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-between cursor-pointer active:scale-98 group"
+                className="w-full p-3.5 rounded-2xl bg-[#28573E] hover:bg-[#1E4430] text-white font-['Sora'] font-bold text-sm shadow-xs hover:shadow-sm transition-all flex items-center justify-between cursor-pointer active:scale-[0.98] group"
               >
                 <div className="flex items-center gap-3 text-left">
                   <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                     <CalendarCheck className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-extrabold text-xs sm:text-sm leading-tight">
+                    <p className="font-bold text-sm leading-tight">
                       {language === 'hi' ? '📋 दैनिक दिनचर्या कार्य देखें' : '📋 Check Daily Routine Tasks'}
                     </p>
-                    <span className="text-[10px] text-indigo-100 font-medium">
-                      {language === 'hi' ? 'पानी पीना, टहलना और स्वास्थ्य कार्य' : 'Hydration, walking, wellness and rest tasks'}
+                    <span className="text-xs text-[#CCE2D4] font-normal">
+                      {language === 'hi' ? 'पानी पीना, टहलना और विश्राम कार्य' : 'Hydration, walking, gentle rest and wellness tasks'}
                     </span>
                   </div>
                 </div>
@@ -174,12 +171,12 @@ export const WorkoutCompletedCelebrationModal: React.FC<WorkoutCompletedCelebrat
           </div>
 
           {/* Exercises Completed Recap */}
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-slate-700">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-xs font-['Sora'] font-bold uppercase tracking-wider text-[#1F2421]">
               <span>{language === 'hi' ? `पूर्ण किए गए अभ्यास (${completedGameIds.length})` : `Completed Routine (${completedGameIds.length} Exercises)`}</span>
-              <span className="text-emerald-700 font-bold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>100% Adherence</span>
+              <span className="text-[#28573E] font-bold flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4 text-[#28573E]" />
+                <span>{language === 'hi' ? '१००% अनुपालन' : '100% Adherence'}</span>
               </span>
             </div>
 
@@ -193,25 +190,25 @@ export const WorkoutCompletedCelebrationModal: React.FC<WorkoutCompletedCelebrat
                 return (
                   <div 
                     key={`${gameId}-${idx}`} 
-                    className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs font-bold"
+                    className="p-3.5 rounded-2xl bg-[#F4F0EA] border border-[#E5DFD5] flex items-center justify-between text-xs font-bold"
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-[#EDF5F0] text-[#28573E] flex items-center justify-center shrink-0 border border-[#CCE2D4]">
+                        <CheckCircle2 className="w-4 h-4 text-[#28573E]" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-slate-900 font-extrabold truncate">
+                        <p className="font-['Sora'] text-sm font-bold text-[#1F2421] truncate">
                           {title}
                         </p>
-                        <span className="text-[10px] text-slate-400 uppercase font-black">
+                        <span className="text-[11px] text-[#636B65] uppercase font-bold">
                           {meta?.domainLabel[language] || 'Cognitive Training'}
                         </span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-black text-[11px]">
-                        {acc}% Accuracy
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#EDF5F0] text-[#28573E] border border-[#CCE2D4] font-['Sora'] font-bold text-xs">
+                        {acc}% {language === 'hi' ? 'सटीकता' : 'Accuracy'}
                       </span>
                     </div>
                   </div>
@@ -220,32 +217,24 @@ export const WorkoutCompletedCelebrationModal: React.FC<WorkoutCompletedCelebrat
             </div>
           </div>
 
-          {/* Neuroplastic Calibration Alert */}
-          <div className="p-3.5 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-between text-xs font-bold text-purple-950">
+          {/* Neuroplastic Calibration Status */}
+          <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] flex items-center justify-between text-xs font-medium text-[#38403A]">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-purple-600" />
-              <span>{language === 'hi' ? 'सत्र की रिपोर्ट देखभालकर्ता कंसोल में दर्ज की गई' : 'Session Logged to Attending Caregiver Console'}</span>
+              <Sparkles className="w-4 h-4 text-[#C05634]" />
+              <span>{language === 'hi' ? 'सत्र की रिपोर्ट देखभालकर्ता कंसोल में स्वतः दर्ज' : 'Session Telemetry Synced to Caregiver Console'}</span>
             </div>
-            <span className="text-[10px] uppercase font-black bg-purple-200 text-purple-900 px-2 py-0.5 rounded-full">
-              OASIS-2 Calibrated
+            <span className="text-[11px] uppercase font-bold bg-[#EDF5F0] text-[#28573E] px-2.5 py-0.5 rounded-full border border-[#CCE2D4]">
+              {language === 'hi' ? 'OASIS-2 कैलिब्रेटेड' : 'OASIS-2 Calibrated'}
             </span>
           </div>
 
-          {/* Secondary Footer Actions */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
-            <button
-              onClick={onViewReport}
-              className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 font-black text-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-97"
-            >
-              <FileText className="w-4 h-4 text-amber-700" />
-              <span>{language === 'hi' ? 'क्लिनिकल रिपोर्ट देखें' : 'View Clinical Session Report'}</span>
-            </button>
-
+          {/* Secondary Footer Action: Return to Patient Home */}
+          <div className="pt-1">
             <button
               onClick={onReturnHome}
-              className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-black text-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-97"
+              className="w-full h-13 rounded-2xl bg-[#F4F0EA] hover:bg-[#EDE7DE] border border-[#E5DFD5] text-[#1F2421] font-['Sora'] font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
             >
-              <Home className="w-4 h-4 text-slate-500" />
+              <Home className="w-4 h-4 text-[#636B65]" />
               <span>{language === 'hi' ? 'मुख्य पृष्ठ पर वापस' : 'Back to Home'}</span>
             </button>
           </div>

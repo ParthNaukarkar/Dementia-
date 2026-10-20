@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Brain,
   ArrowRight,
-  Sparkles,
   Volume2,
   VolumeX,
   Sliders,
@@ -12,12 +11,11 @@ import {
   Eye,
   CheckCircle,
   XCircle,
-  Download,
-  AlertTriangle,
   Lightbulb,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { SupportedLanguage } from '../../types/prescription';
+import { PatientGameCompletionView } from '../../components/games/PatientGameCompletionView';
 import { REAL_WORLD_ODD_ONE_OUT_PERSONAS } from './types';
 import type {
   OddOneOutDifficulty,
@@ -431,47 +429,6 @@ export const OddOneOut: React.FC<OddOneOutProps> = ({
     setIsSimulating(false);
   };
 
-  // CSV Telemetry Export
-  const exportTelemetryCsv = () => {
-    if (trialsTelemetry.length === 0) return;
-    const headers = [
-      'Trial',
-      'Tier',
-      'ItemsCount',
-      'OddItem',
-      'Selected',
-      'IsCorrect',
-      'DeliberationMs',
-      'RuleClue',
-      'SpotlightUsed',
-      'AutonomyScore',
-      'ThetaAfter',
-    ];
-    const rows = trialsTelemetry.map(t => [
-      t.trialIndex,
-      t.tierLevel,
-      t.totalItemsCount,
-      t.oddItemName,
-      t.selectedItemId,
-      t.isCorrect ? 1 : 0,
-      t.deliberationTimeMs,
-      t.ruleClueRevealed ? 1 : 0,
-      t.spotlightHintUsed ? 1 : 0,
-      t.autonomyScore,
-      t.thetaAfterTrial.toFixed(3),
-    ]);
-
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `smritiner_odd_one_out_telemetry_${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const finalSummary = useMemo(() => {
     if (gameState !== 'completed') return null;
     return engine.compileSessionSummary(trialsTelemetry);
@@ -515,89 +472,26 @@ export const OddOneOut: React.FC<OddOneOutProps> = ({
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // COMPLETED SCREEN
+  // COMPLETED SCREEN (WARM REASSURING PATIENT VIEW)
   // ───────────────────────────────────────────────────────────────────────────
   if (gameState === 'completed' && finalSummary) {
-    const ml = finalSummary.oasisClinicalClassification;
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center max-w-3xl mx-auto">
-        <div className="w-24 h-24 bg-emerald-100 rounded-3xl flex items-center justify-center mb-6 shadow-md">
-          <Sparkles className="w-12 h-12 text-emerald-600" />
-        </div>
-        <h2 className="text-3xl font-extrabold text-slate-800 mb-2">{t.completed}</h2>
-        <p className="text-lg text-slate-600 mb-8">
-          {t.scoreMsg(finalSummary.correctTrials, finalSummary.totalTrials)}
-        </p>
-
-        {/* Clinical Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full mb-8 text-left">
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              {t.thetaGauge}
-            </span>
-            <span className="text-2xl font-black text-indigo-600">{finalSummary.finalTheta.toFixed(2)}</span>
-          </div>
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              {t.autonomyGauge}
-            </span>
-            <span className="text-2xl font-black text-emerald-600">{finalSummary.autonomyScore}%</span>
-          </div>
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              {t.mocaAbstraction}
-            </span>
-            <span className="text-2xl font-black text-purple-600">
-              {finalSummary.estimatedMoCAAbstractionScore} / 5.0
-            </span>
-          </div>
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              {t.tremorFiltered}
-            </span>
-            <span className="text-2xl font-black text-amber-600">{finalSummary.tremorTapsFilteredTotal}</span>
-          </div>
-        </div>
-
-        {/* On-Device Edge ML Cognitive Classifier Staging */}
-        {ml && (
-          <div className="p-6 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border border-indigo-200 rounded-3xl w-full mb-8 text-left shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold text-indigo-700 tracking-wider uppercase flex items-center gap-1.5">
-                <Shield className="w-4 h-4" /> SmritiNER Edge ML Cognitive Staging
-              </span>
-              <span className="text-xs font-semibold px-2.5 py-1 bg-white rounded-full text-indigo-800 border border-indigo-200 shadow-sm">
-                {(ml.confidenceScore * 100).toFixed(1)}% Confidence
-              </span>
-            </div>
-            <h3 className="text-2xl font-black text-slate-900 mb-1">{ml.predictedClass}</h3>
-            <p className="text-sm text-slate-600 mb-3">
-              Estimated MoCA Range: <strong className="text-slate-800">{ml.estimatedMoCARange}</strong>
-            </p>
-            {ml.clinicalAlert && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <span>{ml.clinicalAlert}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="flex flex-wrap gap-4 justify-center">
-          <button
-            onClick={exportTelemetryCsv}
-            className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-6 rounded-xl transition-all flex items-center gap-2 border border-slate-300"
-          >
-            <Download className="w-5 h-5 text-indigo-600" /> {t.exportCsv}
-          </button>
-          <button
-            onClick={onExit}
-            className="bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all"
-          >
-            {t.exit}
-          </button>
-        </div>
-      </div>
+      <PatientGameCompletionView
+        language={language}
+        activityTitle={language === 'hi' ? 'अलग पहचानें' : 'Odd One Out'}
+        stats={[
+          {
+            label: language === 'hi' ? 'हल किए गए प्रश्न' : 'Puzzles Solved',
+            value: `${finalSummary.correctTrials} / ${finalSummary.totalTrials}`,
+          },
+          {
+            label: language === 'hi' ? 'सटीकता' : 'Accuracy',
+            value: `${finalSummary.accuracyPercentage}%`,
+          },
+        ]}
+        onRetry={handleStartGame}
+        onExit={onExit}
+      />
     );
   }
 
@@ -634,12 +528,12 @@ export const OddOneOut: React.FC<OddOneOutProps> = ({
           </div>
           <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-600">
             <Shield className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Autonomy:</span>
+            <span>{language === 'hi' ? 'स्वायत्तता:' : 'Autonomy:'}</span>
             <strong className="text-emerald-600 font-bold text-sm">{engine.compileSessionSummary(trialsTelemetry).autonomyScore}%</strong>
           </div>
           {engine.getTremorFilteredCount() > 0 && (
             <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-xs font-bold text-amber-800">
-              <span>Tremor Guard:</span>
+              <span>{language === 'hi' ? 'कंपन सुरक्षा:' : 'Tremor Guard:'}</span>
               <span>{engine.getTremorFilteredCount()}</span>
             </div>
           )}
@@ -654,7 +548,8 @@ export const OddOneOut: React.FC<OddOneOutProps> = ({
           <button
             onClick={() => setIsTestbedOpen(true)}
             className="p-2 text-slate-500 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-all"
-            aria-label="AI Testbed"
+            aria-label={t.aiTestbed}
+            title={t.aiTestbed}
           >
             <Sliders className="w-5 h-5 text-indigo-600" />
           </button>
@@ -788,7 +683,7 @@ export const OddOneOut: React.FC<OddOneOutProps> = ({
               {/* 9-Tier Selector */}
               <div className="mb-6">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
-                  Psychometric Tier (1 to 9)
+                  {language === 'hi' ? 'साइकोमेट्रिक टीयर (१ से ९)' : 'Psychometric Tier (1 to 9)'}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {ODD_ONE_OUT_TIERS.map(tier => (
@@ -807,7 +702,7 @@ export const OddOneOut: React.FC<OddOneOutProps> = ({
                           : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                       }`}
                     >
-                      Tier {tier.tierLevel} ({tier.choicesCount} items)
+                      {language === 'hi' ? `टीयर ${tier.tierLevel} (${tier.choicesCount} वस्तुएं)` : `Tier ${tier.tierLevel} (${tier.choicesCount} items)`}
                     </button>
                   ))}
                 </div>
@@ -816,7 +711,7 @@ export const OddOneOut: React.FC<OddOneOutProps> = ({
               {/* OASIS-2 Patient Personas */}
               <div className="mb-6">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
-                  OASIS-2 Real Patient Persona
+                  {language === 'hi' ? 'OASIS-2 वास्तविक मरीज व्यक्तित्व' : 'OASIS-2 Real Patient Persona'}
                 </label>
                 <div className="space-y-2">
                   {REAL_WORLD_ODD_ONE_OUT_PERSONAS.map(p => (
@@ -846,7 +741,7 @@ export const OddOneOut: React.FC<OddOneOutProps> = ({
                           </span>
                         </div>
                         <span className="text-[11px] text-slate-500 block">
-                          Age: {p.age} | MMSE: {p.mmse} | CDR: {p.cdr}
+                          {language === 'hi' ? `उम्र: ${p.age} | MMSE: ${p.mmse} | CDR: ${p.cdr}` : `Age: ${p.age} | MMSE: ${p.mmse} | CDR: ${p.cdr}`}
                         </span>
                       </div>
                     </div>
@@ -878,7 +773,7 @@ export const OddOneOut: React.FC<OddOneOutProps> = ({
               onClick={() => setIsTestbedOpen(false)}
               className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-all"
             >
-              Close Drawer
+              {language === 'hi' ? 'दराज बंद करें' : 'Close Drawer'}
             </button>
           </div>
         </div>

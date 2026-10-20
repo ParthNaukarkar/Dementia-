@@ -1,66 +1,216 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400..700;1,400..700&family=Sora:wght@400..800&display=swap');
 @import "tailwindcss";
 
+/* ==========================================================================
+   Keen Design System Tokens — Senior & Cognitive-Wellness Architecture
+   Audience: Adults 60+ and people living with dementia.
+   Foundations:
+   - Warm cream / ivory canvas (avoids glare & hospital sterility)
+   - Terracotta primary actions (warm, inviting, visible)
+   - Forest green secondary / reassurance (calming, organic, grounding)
+   - Sora display / numbers + Public Sans body (clear letterforms, 18px base)
+   - 56-64px accessible touch targets with unhurried transitions
+   ========================================================================== */
+
 :root {
-  --navy: #0d1f3c;
-  --navy-mid: #162844;
-  --navy-light: #1e3a5f;
-  --sky: #3b9eda;
-  --sky-light: #e8f4fd;
-  --sage: #4caf82;
-  --sage-light: #e8f7f0;
-  --amber: #f59c3a;
-  --amber-light: #fff4e6;
-  --rose-soft: #f87171;
-  --rose-light: #fff1f1;
-  --surface: #f8fafc;
-  --card: #ffffff;
-  --border: #e8edf5;
-  --text-primary: #0d1f3c;
-  --text-secondary: #4b5e7a;
-  --text-muted: #8a9bb5;
-  --radius-card: 20px;
-  --shadow-card: 0 2px 12px rgba(13,31,60,0.06), 0 1px 3px rgba(13,31,60,0.04);
-  --shadow-card-hover: 0 8px 24px rgba(13,31,60,0.10), 0 2px 6px rgba(13,31,60,0.06);
+  /* ---- Base neutrals (warm-toned, glare-free) ---- */
+  --color-bg:               #FAF8F5; /* warm cream page canvas */
+  --color-bg-alt:           #F4F0EA; /* warm ivory alt / subtle wells */
+  --color-surface:          #FFFFFF; /* card surfaces */
+  --color-surface-muted:    #EDE7DE; /* subtle neutral fills */
+  --color-border:           #E5DFD5; /* soft neutral borders */
+  --color-border-strong:    #D5CCC0; /* high-contrast dividers */
+
+  /* ---- Text (high-contrast, dark warm charcoal, no gray-on-gray) ---- */
+  --color-text:             #1F2421; /* headings / high-emphasis ink */
+  --color-text-body:        #38403A; /* standard body (18px) */
+  --color-text-muted:       #636B65; /* secondary subtext */
+  --color-text-inverse:     #FFFFFF;
+
+  /* ---- Primary Action: Terracotta (inviting, energizing, warm) ---- */
+  --color-primary:          #C05634;
+  --color-primary-hover:    #A64727;
+  --color-primary-active:   #8C381B;
+  --color-primary-subtle:   #FDF1EB;
+  --color-primary-border:   #F5D3C4;
+
+  /* ---- Secondary Action / Positive: Forest Green (calming, organic) ---- */
+  --color-secondary:        #28573E;
+  --color-secondary-hover:  #1E4430;
+  --color-secondary-active: #163625;
+  --color-secondary-subtle: #EDF5F0;
+  --color-secondary-border: #CCE2D4;
+
+  /* ---- Domain Accent System (Keen category color coding) ---- */
+  /* Memory: Plum / Mauve */
+  --color-memory:           #7A4E6C;
+  --color-memory-subtle:    #F6EFF4;
+  --color-memory-border:    #E6D2E1;
+
+  /* Attention & Focus: Slate / Sky Blue */
+  --color-focus:            #356784;
+  --color-focus-subtle:     #ECF3F7;
+  --color-focus-border:     #CFE0EB;
+
+  /* Speed & Motor Reaction: Terracotta */
+  --color-speed:            #C05634;
+  --color-speed-subtle:     #FDF1EB;
+  --color-speed-border:     #F5D3C4;
+
+  /* Language: Forest Green */
+  --color-language:         #28573E;
+  --color-language-subtle:  #EDF5F0;
+  --color-language-border:  #CCE2D4;
+
+  /* Executive Planning & Logic: Warm Gold / Amber */
+  --color-logic:            #A86F15;
+  --color-logic-subtle:     #FAF3E7;
+  --color-logic-border:     #F2E1C2;
+
+  /* ---- Typography Families ---- */
+  --font-display: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body:    'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* ---- Radius Tokens ---- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
+
+  /* ---- Warm-tinted gentle shadows ---- */
+  --shadow-keen-sm: 0 1px 3px rgba(40, 30, 20, 0.05);
+  --shadow-keen-md: 0 4px 14px rgba(40, 30, 20, 0.07);
+  --shadow-keen-lg: 0 10px 28px rgba(40, 30, 20, 0.09);
+
+  /* ---- Motion / Easings ---- */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-calm:   cubic-bezier(0.2, 0, 0, 1);
 }
 
 @layer base {
   html, body, #root {
-    height: 100%;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: var(--surface);
-    color: var(--text-primary);
+    min-height: 100%;
+    font-family: var(--font-body);
+    background-color: var(--color-bg);
+    color: var(--color-text-body);
+    font-size: 18px; /* Promoted base size for older adults (60+) */
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     touch-action: manipulation;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    color: var(--color-text);
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 }
 
 * { box-sizing: border-box; }
 
-/* Scrollbars */
-* { scrollbar-width: thin; scrollbar-color: #dbe5f0 transparent; }
-*::-webkit-scrollbar { width: 5px; height: 5px; }
-*::-webkit-scrollbar-thumb { background: #dbe5f0; border-radius: 10px; }
+/* Custom accessible scrollbar */
+* { scrollbar-width: thin; scrollbar-color: #D5CCC0 transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: #D5CCC0; border-radius: 9999px; }
 *::-webkit-scrollbar-track { background: transparent; }
 
-/* Typography helpers */
-.font-display { font-family: 'Manrope', sans-serif; }
+/* Focus styles for keyboard accessibility */
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
 
-/* Smooth transitions */
-button { transition: all 0.15s ease; }
+/* Keen interactive button feel: comfortable tactile bounce */
+.kn-button {
+  font-family: var(--font-display);
+  font-weight: 700;
+  border-radius: var(--radius-xl);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.16s var(--ease-bounce), background-color 0.15s ease, box-shadow 0.15s ease;
+}
 
-/* Dementia-friendly glowing pulse for subtle visual prompts */
-@keyframes soft-pulse {
+.kn-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.kn-button-primary {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  box-shadow: 0 2px 6px rgba(192, 86, 52, 0.25);
+}
+
+.kn-button-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  box-shadow: 0 4px 12px rgba(192, 86, 52, 0.35);
+}
+
+.kn-button-secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-text-inverse);
+  box-shadow: 0 2px 6px rgba(40, 87, 62, 0.25);
+}
+
+.kn-button-secondary:hover:not(:disabled) {
+  background-color: var(--color-secondary-hover);
+  box-shadow: 0 4px 12px rgba(40, 87, 62, 0.35);
+}
+
+.kn-button-outline {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border-strong);
+}
+
+.kn-button-outline:hover:not(:disabled) {
+  background-color: var(--color-bg-alt);
+  border-color: var(--color-text-body);
+}
+
+/* Keen Card surface */
+.kn-card {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-keen-sm);
+  transition: transform 0.2s var(--ease-bounce), box-shadow 0.2s var(--ease-calm), border-color 0.2s ease;
+}
+
+.kn-card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-keen-md);
+}
+
+/* Animations */
+@keyframes kn-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: kn-fade-in 0.24s var(--ease-calm) forwards;
+}
+
+/* Reassuring gentle breathing pulse */
+@keyframes kn-gentle-pulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4);
+    box-shadow: 0 0 0 0 rgba(192, 86, 52, 0.3);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 0 12px rgba(217, 119, 6, 0);
-    transform: scale(1.02);
+    box-shadow: 0 0 0 10px rgba(192, 86, 52, 0);
+    transform: scale(1.015);
   }
 }
 
 .animate-gentle-cue {
-  animation: soft-pulse 2.2s infinite ease-in-out;
+  animation: kn-gentle-pulse 2.4s infinite ease-in-out;
 }

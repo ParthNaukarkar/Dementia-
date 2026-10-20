@@ -9,85 +9,40 @@ export type SupportedLanguage = 'en' | 'hi';
 export class VernacularVoiceEngine {
   private currentAudio: HTMLAudioElement | null = null;
   private audioCtx: AudioContext | null = null;
-  private onSubtitleCallback?: (text: string, isPlaying: boolean) => void;
-
-  public setSubtitleCallback(callback: (text: string, isPlaying: boolean) => void) {
-    this.onSubtitleCallback = callback;
+  public setSubtitleCallback(_callback: (text: string, isPlaying: boolean) => void) {
+    // Subtitles disabled with voice
   }
 
   /**
    * Plays authentic pre-rendered native audio file from /audio/{lang}/{id}.mp3
    */
-  public playNativeAudio(id: string, lang: SupportedLanguage, subtitleText?: string): Promise<void> {
-    return new Promise((resolve) => {
-      // Stop currently playing audio
-      if (this.currentAudio) {
+  public playNativeAudio(_id: string, _lang: SupportedLanguage, _subtitleText?: string): Promise<void> {
+    // Spoken voice permanently disabled across games
+    if (this.currentAudio) {
+      try {
         this.currentAudio.pause();
         this.currentAudio.currentTime = 0;
-        this.currentAudio = null;
-      }
-
-      const audioSrc = `/audio/${lang}/${id}.mp3`;
-      const audio = new Audio(audioSrc);
-      this.currentAudio = audio;
-
-      if (subtitleText && this.onSubtitleCallback) {
-        this.onSubtitleCallback(subtitleText, true);
-      }
-
-      audio.onended = () => {
-        if (this.onSubtitleCallback) {
-          this.onSubtitleCallback('', false);
-        }
-        this.currentAudio = null;
-        resolve();
-      };
-
-      audio.onerror = () => {
-        // If file not found, fallback to Web Speech API
-        console.warn(`Local audio not found for ${audioSrc}, falling back to speech synthesis`);
-        if (subtitleText) {
-          this.speakFallback(subtitleText, lang);
-        }
-        resolve();
-      };
-
-      audio.play().catch((err) => {
-        console.warn('Audio play restricted by browser autoplay policy:', err);
-        if (subtitleText && this.onSubtitleCallback) {
-          this.onSubtitleCallback(subtitleText, true);
-          setTimeout(() => {
-            if (this.onSubtitleCallback) this.onSubtitleCallback('', false);
-          }, 3000);
-        }
-        resolve();
-      });
-    });
+      } catch {}
+      this.currentAudio = null;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
+    return Promise.resolve();
   }
 
   /**
    * Speaks general dynamic text if no static audio file is available
    */
-  public speakFallback(text: string, lang: SupportedLanguage) {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    if (lang === 'hi') utterance.lang = 'hi-IN';
-    else utterance.lang = 'en-IN';
-
-    utterance.rate = 0.82;
-    utterance.pitch = 1.05;
-
-    if (this.onSubtitleCallback) {
-      this.onSubtitleCallback(text, true);
+  public speakFallback(_text: string, _lang: SupportedLanguage) {
+    // Spoken voice permanently disabled
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
     }
-
-    utterance.onend = () => {
-      if (this.onSubtitleCallback) this.onSubtitleCallback('', false);
-    };
-
-    window.speechSynthesis.speak(utterance);
   }
 
   /**

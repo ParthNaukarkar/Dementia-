@@ -1,13 +1,11 @@
+import React from 'react';
 import { 
   Play, 
-  Flame, 
   Sparkles, 
-  ChevronRight, 
-  Brain, 
-  Sliders,
-  Lock,
-  CheckCircle2,
-  RotateCcw
+  RotateCcw,
+  Check,
+  ArrowRight,
+  AlertTriangle
 } from 'lucide-react';
 import type { SupportedLanguage, PatientPrescription, GameId } from '../../types/prescription';
 import type { PatientProfile, UserRole } from '../../types/auth';
@@ -26,381 +24,268 @@ interface PatientTodayHomeProps {
   onOpenPrescriptionModal: () => void;
   dayStreak?: number;
   showCognitiveIndex?: boolean;
+  onOpenSOS?: () => void;
 }
 
 export const PatientTodayHome: React.FC<PatientTodayHomeProps> = ({
   language,
   patient,
   prescription,
-  currentRole = 'patient',
-  caretakerName,
   isWorkoutCompletedToday = false,
   completedGameIds = [],
   onBeginWorkout,
   onLaunchGame,
-  onOpenPrescriptionModal,
-  dayStreak = 1,
-  showCognitiveIndex = false,
+  onOpenSOS,
 }) => {
   const prescribedSet = new Set(prescription.prescribedGameIds);
   const todayGames = GAME_CATALOG.filter(g => prescribedSet.has(g.id));
 
-  // Days of week for Lumosity Training History (S M T W T F S)
-  const daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-  const todayDayIndex = new Date().getDay(); // 0 = Sunday
+  // Determine the next game to play: first prescribed game that is not yet completed
+  const nextGame = todayGames.find(g => !completedGameIds.includes(g.id)) || todayGames[0];
+  const completedCount = todayGames.filter(g => completedGameIds.includes(g.id)).length;
+  const isHi = language === 'hi';
 
-  // Localized texts
-  const t: Record<string, Record<SupportedLanguage, string>> = {
-    workoutHeader: {
-      hi: 'आज का मानसिक अभ्यास (Day 1 of 7)',
-      en: 'Day 1 of 7 • Your Daily Workout',
-    },
-    workoutSub: {
-      hi: 'प्रत्येक खेल मस्तिष्क के एक अलग हिस्से को सक्रिय करता है। आइए अभ्यास करें।',
-      en: 'Each exercise works a different part of your thinking. Let\'s give them all a try.',
-    },
-    beginBtn: {
-      hi: 'शुरू करें (Begin)',
-      en: 'Begin Workout',
-    },
-    todayExercises: {
-      hi: 'आज के निर्धारित अभ्यास (Today\'s Exercises)',
-      en: 'Today\'s Exercises',
-    },
-    companionNote: {
-      hi: '💡 शांति से करें, कोई जल्दी नहीं है। अपने मन को सक्रिय रखें।',
-      en: '💡 Take all the time you need. There is no rush at all — enjoy every exercise.',
-    },
+  // Time of day greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    const firstName = patient?.name?.split(' ')[0] || (isHi ? 'मीरा' : 'Meera');
+    if (hour < 12) {
+      return isHi ? `सुप्रभात, ${firstName} जी` : `Good morning, ${firstName}`;
+    } else if (hour < 17) {
+      return isHi ? `नमस्ते, ${firstName} जी` : `Good afternoon, ${firstName}`;
+    } else {
+      return isHi ? `शुभ संध्या, ${firstName} जी` : `Good evening, ${firstName}`;
+    }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-16 animate-fadeIn">
+    <div className="max-w-4xl mx-auto space-y-10 pb-20 animate-fadeIn">
       
-      {/* LEFT COLUMN: Daily Workout Card + Rx Banner + Extra (7 Cols on desktop) */}
-      <div className="lg:col-span-8 space-y-6">
-        
-        {/* MAIN WORKOUT CARD (Exact Lumosity layout from Image 1) */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
-          
-          {/* Header row with Circular Head Ring + Title + Begin Button */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            
-            {/* Circular Head Graphic with Neuroplastic Ring */}
-            <div className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shrink-0 border-4 shadow-md transition-all ${
-              isWorkoutCompletedToday
-                ? 'bg-gradient-to-tr from-emerald-100 via-teal-50 to-emerald-200 border-emerald-500'
-                : 'bg-gradient-to-tr from-amber-100 via-orange-50 to-amber-200 border-amber-500'
-            }`}>
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white shadow-inner ${
-                isWorkoutCompletedToday
-                  ? 'bg-gradient-to-br from-emerald-500 to-teal-600'
-                  : 'bg-gradient-to-br from-amber-500 to-orange-600'
-              }`}>
-                {isWorkoutCompletedToday ? (
-                  <CheckCircle2 className="w-9 h-9" />
-                ) : (
-                  <Brain className="w-9 h-9" />
-                )}
-              </div>
-              {/* Flame Badge */}
-              <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-md border border-slate-200">
-                <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
-              </div>
-            </div>
+      {/* ─── 1. NATURAL, HUMAN GREETING (Sitting naturally on page, no boxes) ─── */}
+      <section className="space-y-2 pt-2">
+        <h1 className="font-['Sora'] text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-[#1F2421] tracking-tight leading-tight">
+          {getGreeting()}
+        </h1>
+        <p className="text-lg sm:text-xl text-[#636B65] font-normal leading-relaxed max-w-2xl">
+          {isWorkoutCompletedToday
+            ? (isHi 
+                ? 'आपने आज के सभी अभ्यास पूरे कर लिए हैं। बहुत बढ़िया प्रयास! आप जब चाहें दोबारा खेल सकते हैं।' 
+                : 'You have completed all your exercises for today. Wonderful effort! You can rest or replay any exercise whenever you like.')
+            : (isHi
+                ? 'आज के विचारशील और शांत अभ्यास आपके लिए तैयार हैं। कोई जल्दी नहीं है — अपनी गति से आनंद लें।'
+                : 'Your gentle daily cognitive practice is ready. Take all the time you need, with no rush or pressure.')}
+        </p>
+      </section>
 
-            {/* Title & Begin Button */}
-            <div className="flex-1 text-center sm:text-left space-y-3">
-              <div>
-                <span className={`text-xs font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border ${
-                  isWorkoutCompletedToday
-                    ? 'text-emerald-800 bg-emerald-50 border-emerald-300'
-                    : 'text-amber-700 bg-amber-50 border-amber-200'
-                }`}>
-                  {isWorkoutCompletedToday ? '✓ Daily Workout Completed!' : t.workoutHeader[language]}
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1.5">
-                  Welcome, {patient?.name?.split(' ')[0] || 'Dadu'}!
+      {/* ─── 2. CENTERPIECE: NEXT RECOMMENDED ACTIVITY ─────────────────────────── */}
+      <section>
+        {isWorkoutCompletedToday ? (
+          /* ALL COMPLETED STATE: Warm, Restful, Dignified */
+          <div className="bg-white rounded-3xl border border-[#CCE2D4] p-8 sm:p-10 shadow-xs relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+              <div className="space-y-3 max-w-xl">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EDF5F0] text-[#28573E] text-xs font-bold uppercase tracking-wider font-['Sora']">
+                  <Check className="w-4 h-4 text-[#28573E]" />
+                  <span>{isHi ? 'दैनिक अभ्यास पूर्ण' : 'Daily Practice Completed'}</span>
+                </div>
+                <h2 className="font-['Sora'] text-2xl sm:text-3xl font-bold text-[#1F2421]">
+                  {isHi ? 'आज का अभ्यास सफलता से संपन्न हुआ' : 'All done for today!'}
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1 leading-relaxed max-w-md">
-                  {isWorkoutCompletedToday
-                    ? 'Congratulations! You have finished all prescribed exercises today. You can replay the circuit anytime.'
-                    : t.workoutSub[language]}
+                <p className="text-[#636B65] text-base leading-relaxed">
+                  {isHi
+                    ? `आपने आज ${todayGames.length} अभ्यास पूरे किए हैं। अपने दिमाग को सक्रिय और तरोताज़ा रखना एक सुंदर आदत है।`
+                    : `You completed all ${todayGames.length} exercises today. Keeping your mind active and relaxed is wonderful for daily wellness.`}
                 </p>
               </div>
 
-              {/* Big Vibrant Begin Button (Image 1) */}
-              <div>
-                <button
-                  onClick={onBeginWorkout}
-                  className={`w-full sm:w-auto px-10 py-3.5 rounded-full text-white font-black text-base shadow-lg hover:shadow-xl transition-all cursor-pointer ring-2 active:scale-97 flex items-center justify-center gap-2 ${
-                    isWorkoutCompletedToday
-                      ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-700 ring-emerald-200'
-                      : 'bg-gradient-to-r from-orange-500 via-orange-600 to-amber-600 hover:from-orange-600 hover:to-amber-700 ring-orange-200'
-                  }`}
-                >
-                  {isWorkoutCompletedToday ? (
-                    <>
-                      <RotateCcw className="w-5 h-5 text-white" />
-                      <span>Replay Daily Workout ({todayGames.length} Games)</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-5 h-5 fill-white" />
-                      <span>{t.beginBtn[language]} ({todayGames.length} Games)</span>
-                    </>
-                  )}
-                </button>
+              <button
+                onClick={onBeginWorkout}
+                className="h-14 px-8 rounded-2xl bg-[#28573E] hover:bg-[#1E4430] text-white font-['Sora'] font-bold text-base transition-all duration-200 cursor-pointer shadow-xs active:scale-[0.98] flex items-center gap-2.5 shrink-0"
+              >
+                <RotateCcw className="w-5 h-5 text-white" />
+                <span>{isHi ? 'अभ्यास दोबारा खेलें' : 'Replay Practice'}</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* ACTIVE HERO ACTIVITY TILE */
+          <div className="bg-white rounded-3xl border border-[#E5DFD5] p-8 sm:p-11 shadow-xs space-y-8">
+            
+            {/* Header: Next Recommended Exercise */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F4F0EA] pb-5">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#C05634]" />
+                <span className="text-xs font-['Sora'] font-bold text-[#C05634] uppercase tracking-wider">
+                  {isHi ? 'आज का मुख्य अनुशंसित अभ्यास' : 'Recommended Next Exercise'}
+                </span>
               </div>
-            </div>
-
-          </div>
-
-          <hr className="border-slate-100" />
-
-          {/* AI Companion Caregiver Callout */}
-          <div className="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl flex items-center gap-3 text-amber-950 shadow-2xs">
-            <div className="w-8 h-8 rounded-xl bg-amber-400/80 text-amber-950 flex items-center justify-center font-black shrink-0">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <p className="text-xs font-bold leading-relaxed">
-              {t.companionNote[language]}
-            </p>
-          </div>
-
-          {/* Today's Exercises Section (Icons + Category pills) */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                {t.todayExercises[language]} ({todayGames.length} Prescribed)
-              </h4>
-
-              {/* Prescription Editing Security: STRICTLY CARETAKER ONLY */}
-              {currentRole === 'caretaker' ? (
-                <button
-                  onClick={onOpenPrescriptionModal}
-                  className="text-[11px] font-bold text-amber-700 hover:underline flex items-center gap-1 cursor-pointer bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200"
-                >
-                  <Sliders className="w-3 h-3" />
-                  <span>Prescribe Games (Caregiver)</span>
-                </button>
-              ) : (
-                <span 
-                  className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-full border border-slate-200 select-none"
-                  title="Only your authorized caregiver can modify your cognitive prescription"
-                >
-                  <Lock className="w-3 h-3 text-slate-400" />
-                  <span>Prescribed by {caretakerName || 'Caregiver'}</span>
+              {todayGames.length > 1 && (
+                <span className="text-xs font-semibold text-[#636B65]">
+                  {isHi 
+                    ? `कुल ${todayGames.length} में से ${completedCount} पूर्ण` 
+                    : `${completedCount} of ${todayGames.length} completed`}
                 </span>
               )}
             </div>
 
-            {/* List of Game Pills (Matching Image 1) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {todayGames.map((game) => {
-                const isGameDone = completedGameIds.includes(game.id);
+            {/* Next Game Details */}
+            {nextGame && (
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div className="space-y-3.5 max-w-xl">
+                  <h2 className="font-['Sora'] text-2xl sm:text-3xl font-extrabold text-[#1F2421] tracking-tight">
+                    {nextGame.title[language]}
+                  </h2>
+                  <p className="text-[#38403A] text-base sm:text-lg leading-relaxed">
+                    {nextGame.subtitle[language]}
+                  </p>
+                  <p className="text-sm text-[#636B65] leading-relaxed">
+                    {nextGame.description[language] || (isHi ? 'अपनी गति से खेलें, कोई समय सीमा नहीं है।' : 'Take your time, with no countdown or rush.')}
+                  </p>
+                </div>
 
-                return (
+                {/* Big Accessible Primary CTA Button (60px high, terracotta, tactile) */}
+                <div className="shrink-0 flex flex-col sm:flex-row md:flex-col items-start gap-3">
                   <button
-                    key={game.id}
-                    onClick={() => onLaunchGame(game.id)}
-                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between text-left group shadow-2xs ${
-                      isGameDone
-                        ? 'bg-emerald-50/40 border-emerald-300 hover:border-emerald-400'
-                        : 'bg-white border-slate-200 hover:border-amber-400 hover:bg-amber-50/50'
-                    }`}
+                    onClick={() => onLaunchGame(nextGame.id)}
+                    className="w-full sm:w-auto h-16 px-10 rounded-2xl bg-[#C05634] hover:bg-[#A64727] text-white font-['Sora'] font-bold text-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer active:scale-[0.98] flex items-center justify-center gap-3"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                        isGameDone
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-slate-100 group-hover:bg-amber-100 text-slate-700 group-hover:text-amber-800'
-                      }`}>
-                        {isGameDone ? <CheckCircle2 className="w-5 h-5 text-emerald-700" /> : <Brain className="w-5 h-5" />}
-                      </div>
-                      <div className="min-w-0">
-                        <p className={`font-extrabold text-sm truncate ${
-                          isGameDone ? 'text-emerald-950' : 'text-slate-800 group-hover:text-amber-900'
-                        }`}>
-                          {game.title[language]}
-                        </p>
-                        <p className="text-[10px] uppercase font-bold text-slate-400 group-hover:text-amber-700">
-                          {game.subtitle[language]}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0 ml-2">
-                      {isGameDone && (
-                        <span className="text-[10px] font-black uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">
-                          Done
-                        </span>
-                      )}
-                      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-amber-600 transition-transform group-hover:translate-x-0.5" />
-                    </div>
+                    <Play className="w-5 h-5 fill-white text-white" />
+                    <span>{isHi ? 'अभ्यास शुरू करें' : 'Begin Exercise'}</span>
                   </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Neuroplasticity unlock progress bar (Image 1) */}
-          <div className="pt-2">
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs font-bold text-slate-700">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-600" />
-                <span>Neuroplastic Calibration</span>
+                  <span className="text-xs text-[#636B65] font-medium self-center sm:self-start md:self-center">
+                    {isHi ? 'लगभग ३–४ मिनट • शांति से खेलें' : 'About 3–4 mins • No time pressure'}
+                  </span>
+                </div>
               </div>
-              <span className="text-amber-800 font-extrabold">Active (θ: +0.42)</span>
+            )}
+
+            {/* Reassuring Garden Note */}
+            <div className="pt-2">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] flex items-center gap-3.5 text-sm text-[#38403A]">
+                <div className="w-9 h-9 rounded-xl bg-white border border-[#E5DFD5] flex items-center justify-center text-[#28573E] shrink-0">
+                  <Sparkles className="w-4 h-4 text-[#28573E]" />
+                </div>
+                <p className="leading-relaxed font-medium">
+                  {isHi
+                    ? '💡 कोई भी उत्तर सही या गलत सीखने का हिस्सा है। आराम से बैठें और खेल का आनंद लें।'
+                    : '💡 Every exercise is designed for calm focus. Rest whenever you like — there are no penalties or timers.'}
+                </p>
+              </div>
             </div>
+
           </div>
+        )}
+      </section>
 
-        </div>
-
-      </div>
-
-      {/* RIGHT COLUMN: Training History + Current LPI (4 Cols on desktop) */}
-      <div className="lg:col-span-4 space-y-6">
-        
-        {/* TRAINING HISTORY CARD (Exact Lumosity calendar from Image 1) */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 sm:p-6 space-y-4">
+      {/* ─── 3. TODAY'S EXERCISE PLAYLIST (Clean & Natural, No Clutter) ─────────── */}
+      {todayGames.length > 1 && (
+        <section className="space-y-4 pt-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-800">
-              <Flame className="w-4 h-4 text-orange-500 fill-orange-500" />
-              <span>Training History</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-slate-400" />
+            <h3 className="font-['Sora'] text-xl font-bold text-[#1F2421]">
+              {isHi ? 'आज के अभ्यास' : "Today's Activities"}
+            </h3>
+            <span className="text-sm font-medium text-[#636B65]">
+              {isHi ? `${todayGames.length} अभ्यास निर्धारित` : `${todayGames.length} exercises planned`}
+            </span>
           </div>
 
-          {/* S M T W T F S Calendar Grid */}
-          <div className="grid grid-cols-7 gap-2 text-center pt-2">
-            {daysOfWeek.map((day, idx) => {
-              const isToday = idx === todayDayIndex;
-              const hasStreak = idx <= todayDayIndex && idx >= todayDayIndex - dayStreak + 1;
+          <div className="space-y-3">
+            {todayGames.map((game, index) => {
+              const isDone = completedGameIds.includes(game.id);
+              const isCurrentNext = !isDone && game.id === nextGame?.id;
 
               return (
-                <div key={idx} className="flex flex-col items-center gap-2">
-                  <span className={`text-xs font-black ${isToday ? 'text-amber-800 underline decoration-2' : 'text-slate-500'}`}>
-                    {day}
-                  </span>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                    hasStreak 
-                      ? 'bg-amber-100 border-2 border-orange-500 shadow-2xs' 
-                      : 'border border-slate-200 bg-slate-50'
-                  }`}>
-                    {hasStreak ? (
-                      <Flame className="w-4 h-4 text-orange-500 fill-orange-500" />
-                    ) : (
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                    )}
+                <div
+                  key={game.id}
+                  className={`p-5 sm:p-6 rounded-2xl border transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                    isDone
+                      ? 'bg-[#FAF8F5] border-[#E5DFD5] opacity-80'
+                      : isCurrentNext
+                      ? 'bg-white border-[#C05634] shadow-xs'
+                      : 'bg-white border-[#E5DFD5] hover:border-[#D5CCC0]'
+                  }`}
+                >
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
+                      isDone
+                        ? 'bg-[#EDF5F0] border-[#CCE2D4] text-[#28573E]'
+                        : isCurrentNext
+                        ? 'bg-[#FDF1EB] border-[#F5D3C4] text-[#C05634]'
+                        : 'bg-[#F4F0EA] border-[#E5DFD5] text-[#636B65]'
+                    }`}>
+                      {isDone ? (
+                        <Check className="w-6 h-6 text-[#28573E]" />
+                      ) : (
+                        <span className="font-['Sora'] font-bold text-base">{index + 1}</span>
+                      )}
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-['Sora'] font-bold text-base sm:text-lg text-[#1F2421] truncate">
+                          {game.title[language]}
+                        </h4>
+                        {isDone && (
+                          <span className="text-xs font-['Sora'] font-bold text-[#28573E] bg-[#EDF5F0] px-2.5 py-0.5 rounded-full border border-[#CCE2D4]">
+                            {isHi ? 'पूर्ण' : 'Completed'}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-[#636B65] mt-0.5 truncate">
+                        {game.subtitle[language]}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0 self-end sm:self-auto">
+                    <button
+                      onClick={() => onLaunchGame(game.id)}
+                      className={`h-11 px-5 rounded-xl font-['Sora'] font-bold text-sm transition-all duration-150 cursor-pointer flex items-center gap-2 ${
+                        isDone
+                          ? 'bg-white hover:bg-[#F4F0EA] text-[#38403A] border border-[#E5DFD5]'
+                          : isCurrentNext
+                          ? 'bg-[#C05634] hover:bg-[#A64727] text-white shadow-2xs'
+                          : 'bg-white hover:bg-[#FAF8F5] text-[#1F2421] border border-[#E5DFD5]'
+                      }`}
+                    >
+                      <span>{isDone ? (isHi ? 'पुनः खेलें' : 'Replay') : (isHi ? 'खेलें' : 'Play')}</span>
+                      {!isDone && <ArrowRight className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
               );
             })}
           </div>
+        </section>
+      )}
 
-          <p className="text-[11px] text-center text-slate-500 font-semibold pt-1">
-            🔥 {dayStreak} Day Cognitive Streak Active
-          </p>
+      {/* ─── 4. EMERGENCY & DISTRESS REASSURANCE CARD ─── */}
+      <section className="bg-red-50/70 border-2 border-red-200/80 rounded-3xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <AlertTriangle className="w-7 h-7" />
+          </div>
+          <div>
+            <h3 className="font-['Sora'] font-black text-xl text-[#1F2421]">
+              {isHi ? 'तत्काल सहायता या आपातकाल?' : 'Need Immediate Help or Feeling Distressed?'}
+            </h3>
+            <p className="text-sm text-[#636B65] font-medium mt-0.5">
+              {isHi
+                ? 'यदि आप असहज या चिंतित महसूस कर रहे हैं, तो तुरंत सहायता प्राप्त करें।'
+                : 'If you feel unwell, anxious, or disoriented, tap here to reach your caregiver or emergency services.'}
+            </p>
+          </div>
         </div>
 
-        {/* COGNITIVE PERFORMANCE INDEX (Shown in Caregiver Portal, hidden in Patient Portal) */}
-        {showCognitiveIndex ? (
-          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 sm:p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                  Cognitive Index
-                </h4>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Neuropsychological domains
-                </p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </div>
-
-            {/* Domain Bars */}
-            <div className="space-y-3 pt-1">
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>Memory</span>
-                  <span className="font-extrabold text-amber-700">959</span>
-                </div>
-                <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-amber-500" style={{ width: '85%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>Flexibility (Executive)</span>
-                  <span className="font-extrabold text-orange-700">813</span>
-                </div>
-                <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-orange-500" style={{ width: '74%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>Attention</span>
-                  <span className="font-extrabold text-blue-700">768</span>
-                </div>
-                <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-blue-500" style={{ width: '68%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>Spatial</span>
-                  <span className="font-extrabold text-emerald-700">692</span>
-                </div>
-                <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-emerald-500" style={{ width: '62%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>Processing Speed</span>
-                  <span className="font-extrabold text-purple-700">620</span>
-                </div>
-                <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-purple-500" style={{ width: '56%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>Financial / Math</span>
-                  <span className="font-extrabold text-slate-700">472</span>
-                </div>
-                <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-amber-400" style={{ width: '42%' }} />
-                </div>
-              </div>
-            </div>
-
-            <p className="text-[10px] text-slate-400 text-center font-medium pt-2">
-              Calibrated against Washington University OASIS-2 longitudinal cohort
-            </p>
-          </div>
-        ) : (
-          <div className="bg-gradient-to-br from-purple-50/80 to-indigo-50/80 rounded-3xl border border-purple-200/80 p-5 sm:p-6 space-y-3 shadow-xs">
-            <div className="flex items-center gap-2 text-purple-900 font-extrabold text-xs uppercase tracking-wider">
-              <Sparkles className="w-4 h-4 text-purple-600" />
-              <span>Daily Thought</span>
-            </div>
-            <p className="text-xs text-purple-950 font-medium leading-relaxed">
-              "Regular gentle practice keeps the mind active and joyful. Enjoy each step at your own pace today."
-            </p>
-            <div className="pt-2 text-[11px] text-purple-700 font-semibold">
-              Supervised with love by {caretakerName || 'Anita Joshi'}
-            </div>
-          </div>
+        {onOpenSOS && (
+          <button
+            onClick={onOpenSOS}
+            className="h-14 px-8 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-['Sora'] font-black text-base transition-all shadow-md hover:shadow-lg cursor-pointer shrink-0 flex items-center justify-center gap-2.5 active:scale-98"
+          >
+            <span>{isHi ? 'आपातकालीन सहायता (SOS)' : 'Open SOS Emergency'}</span>
+          </button>
         )}
-
-      </div>
+      </section>
 
     </div>
   );

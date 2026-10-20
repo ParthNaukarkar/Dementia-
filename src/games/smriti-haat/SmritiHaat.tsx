@@ -4,22 +4,19 @@ import {
   Eye, 
   CheckCircle2, 
   Volume2, 
-  RotateCcw, 
   Sparkles, 
   Brain, 
   ArrowRight,
-  ShieldCheck,
   Check,
   Sliders,
-  History
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { SmritiHaatEngine, type GamePhase } from './engine';
 import type { SmritiHaatProps, RoundTelemetry, SessionSummaryTelemetry } from './types';
 import { vernacularVoice } from '../../engine/vernacular-voice';
-import { CognitiveClassifier, type CognitiveClassificationResult } from '../../engine/cognitive-classifier';
 import type { LatencyStage } from '../../engine/latency-timer';
 import { AdaptiveAssistanceEngine, type AssistanceProfileConfig } from '../../engine/adaptive-assistance';
+import { PatientGameCompletionView } from '../../components/games/PatientGameCompletionView';
 
 // Multilingual audio and UI string dictionaries (Large, high-clarity phrasing)
 const STRINGS: Record<string, any> = {
@@ -37,7 +34,7 @@ const STRINGS: Record<string, any> = {
     feedbackCorrect: 'বৰ ধুনীয়া! আপুনি সকলো শুদ্ধকৈ মনত ৰাখিলে!',
     feedbackPartial: 'বহুত ভাল চেষ্টা! আপোনাৰ মনত বহুখিনি আছে!',
     nextRound: 'পৰৱৰ্তী ৰাউণ্ড (Next Round)',
-    finishGame: 'ফলাফল চাওক (View Report)',
+    finishGame: 'অনুশীলন সমাপ্ত কৰক (Complete Exercise)',
     aiAdapting: 'AI অভিযোজন: আপোনাৰ সুবিধাৰ বাবে স্তৰ নিৰ্ধাৰণ কৰা হৈছে',
     selectedBadge: 'বাছি লোৱা হ\'ল',
     encouragement: 'ধীৰে ধীৰে কৰক, একো খৰখেদা নাই। আপুনি বৰ ভালকৈ কৰিছে।',
@@ -56,7 +53,7 @@ const STRINGS: Record<string, any> = {
     feedbackCorrect: 'খুব চমৎকার! আপনি সব সঠিক মনে রেখেছেন!',
     feedbackPartial: 'খুব ভালো চেষ্টা! আপনার স্মৃতি দারুণ!',
     nextRound: 'পরবর্তী রাউন্ড (Next Round)',
-    finishGame: 'ফলাফল দেখুন (View Report)',
+    finishGame: 'অনুশীলন সম্পন্ন করুন (Complete Exercise)',
     aiAdapting: 'AI অভিযোজন: আপনার সুবিধার জন্য স্তর সমন্বয় করা হয়েছে',
     selectedBadge: 'বেছে নেওয়া হয়েছে',
     encouragement: 'ধীরে ধীরে করুন, কোনো তাড়া নেই। আপনি খুব ভালো করছেন।',
@@ -75,7 +72,7 @@ const STRINGS: Record<string, any> = {
     feedbackCorrect: 'बहुत बढ़िया! आपने सभी वस्तुएं सही याद रखीं!',
     feedbackPartial: 'बहुत अच्छा प्रयास! आपकी याददाश्त सराहनीय है!',
     nextRound: 'अगला राउंड (Next Round)',
-    finishGame: 'परिणाम देखें (View Report)',
+    finishGame: 'अभ्यास पूर्ण करें (Complete Exercise)',
     aiAdapting: 'AI अनुकूलन: आपकी सुविधा के लिए स्तर समायोजित किया गया है',
     selectedBadge: 'चुना गया',
     encouragement: 'आराम से करिए, कोई जल्दी नहीं है। आप बहुत अच्छा कर रहे हैं।',
@@ -94,7 +91,7 @@ const STRINGS: Record<string, any> = {
     feedbackCorrect: 'Wonderful! You remembered everything accurately!',
     feedbackPartial: 'Great effort! Your memory is strong!',
     nextRound: 'Next Round',
-    finishGame: 'View Clinical Report',
+    finishGame: 'Complete Exercise',
     aiAdapting: 'AI Adaptation: Calibrating difficulty for your comfort',
     selectedBadge: 'Selected',
     encouragement: 'Take your time, there is no hurry at all. You are doing wonderfully.',
@@ -134,44 +131,10 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
   const [assistanceProfileConfig, setAssistanceProfileConfig] = useState<AssistanceProfileConfig>(() =>
     AdaptiveAssistanceEngine.deriveAssistanceProfile({ theta: initialTheta })
   );
-  const [savedSessions, setSavedSessions] = useState<SessionSummaryTelemetry[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('smriti_haat_sessions') || '[]');
-    } catch {
-      return [];
-    }
-  });
-
   const recallStartTimeRef = useRef<number>(0);
   const lastTapTimeRef = useRef<number>(0);
   const lastTapIdRef = useRef<string>('');
   const t = STRINGS[language] || STRINGS.en;
-
-  // ML Evaluation computed from session summary using OASIS-2 model
-  const mlEvaluation = useMemo<CognitiveClassificationResult | null>(() => {
-    if (!sessionSummary) return null;
-    const latencies = sessionSummary.rounds.map(r => r.latencyMs);
-    const meanLat = sessionSummary.averageLatencyMs;
-    const variance = latencies.length > 1
-      ? Math.round(Math.sqrt(latencies.reduce((sum, val) => sum + Math.pow(val - meanLat, 2), 0) / latencies.length))
-      : 1200;
-    const perseverationRate = sessionSummary.rounds.length > 0
-      ? sessionSummary.perseverationErrors / sessionSummary.rounds.length
-      : 0;
-    const hesitationCount = sessionSummary.rounds.filter(r => r.hesitationMs > 0).length;
-    const hesitationRatio = sessionSummary.rounds.length > 0
-      ? hesitationCount / sessionSummary.rounds.length
-      : 0;
-
-    return CognitiveClassifier.classify({
-      meanLatencyMs: sessionSummary.averageLatencyMs,
-      latencyVarianceMs: variance,
-      accuracyPct: sessionSummary.accuracyPercentage,
-      perseverationRate: Number(perseverationRate.toFixed(2)),
-      hesitationRatio: Number(hesitationRatio.toFixed(2)),
-      tremorJitterIndex: 0.08,
-    });
-  }, [sessionSummary]);
 
   // Unified Deliberation Engine: Controls 5-Stage Live Assistance during RECALL_PHASE
   useEffect(() => {
@@ -397,7 +360,6 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
         const existing: SessionSummaryTelemetry[] = JSON.parse(localStorage.getItem('smriti_haat_sessions') || '[]');
         const updated = [summary, ...existing.filter(s => s.completedAt !== summary.completedAt)].slice(0, 10);
         localStorage.setItem('smriti_haat_sessions', JSON.stringify(updated));
-        setSavedSessions(updated);
       } catch (err) {
         console.warn('LocalStorage save error', err);
       }
@@ -449,7 +411,6 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
       const existing: SessionSummaryTelemetry[] = JSON.parse(localStorage.getItem('smriti_haat_sessions') || '[]');
       const updated = [summary, ...existing.filter(s => s.completedAt !== summary.completedAt)].slice(0, 10);
       localStorage.setItem('smriti_haat_sessions', JSON.stringify(updated));
-      setSavedSessions(updated);
     } catch (err) {
       console.warn('LocalStorage save error', err);
     }
@@ -518,33 +479,33 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
             <button
               onClick={handleCaregiverEndEarly}
               className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-extrabold text-xs md:text-sm rounded-xl flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all active:scale-95"
-              title="Save progress and gracefully conclude session without fatiguing the elder"
+              title={language === 'hi' ? 'प्रगति सहेजें और सत्र समाप्त करें' : 'Save progress and gracefully conclude session without fatiguing the elder'}
             >
-              <span>Save & Rest (End Early)</span>
+              <span>{language === 'hi' ? 'सहेजें और विश्राम करें (सत्र समाप्त)' : 'Save & Rest (End Early)'}</span>
             </button>
           )}
 
           <button
             onClick={() => setShowJudgeControls(!showJudgeControls)}
             className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-black text-xs md:text-sm rounded-xl flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all active:scale-95"
-            title="Inspect AI adaptive difficulty & test live features"
+            title={language === 'hi' ? 'AI अनुकूली कठिनाई देखें और सुविधाओं का परीक्षण करें' : 'Inspect AI adaptive difficulty & test live features'}
           >
             <Sliders className="w-3.5 h-3.5 text-amber-700" />
-            <span>AI Testbed</span>
+            <span>{language === 'hi' ? 'AI क्लिनिकल टेस्टबेड' : 'AI Testbed'}</span>
           </button>
 
           <button
             onClick={handleTriggerEncouragement}
             className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 font-black text-xs md:text-sm rounded-xl flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 transition-all"
-            title="Trigger gentle voice prompt now"
+            title={language === 'hi' ? 'सहानुभूतिपूर्ण आवाज संकेत दें' : 'Trigger gentle voice prompt now'}
           >
             <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Voice Cue 🔊</span>
+            <span>{language === 'hi' ? 'ध्वनि संकेत 🔊' : 'Voice Cue 🔊'}</span>
           </button>
 
           <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl text-xs md:text-sm font-black text-slate-700 shadow-2xs">
             <Brain className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-            <span>Ability (θ): <strong>{engine.getTheta() > 0 ? `+${engine.getTheta()}` : engine.getTheta()}</strong></span>
+            <span>{language === 'hi' ? 'क्षमता (θ):' : 'Ability (θ):'} <strong>{engine.getTheta() > 0 ? `+${engine.getTheta()}` : engine.getTheta()}</strong></span>
           </div>
         </div>
       </div>
@@ -555,7 +516,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
           <div className="flex items-center justify-between border-b border-white/10 pb-2">
             <div className="flex items-center gap-2 text-xs font-black tracking-widest text-amber-400 uppercase">
               <Sliders className="w-4 h-4" />
-              <span>National Clinical AI Inspector &amp; Test Controls</span>
+              <span>{language === 'hi' ? 'क्लिनिकल AI विश्लेषक एवं टेस्ट नियंत्रण' : 'National Clinical AI Inspector & Test Controls'}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full">
@@ -575,23 +536,23 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
                   ? 'bg-emerald-600/90 hover:bg-emerald-600 text-white border-emerald-400 font-extrabold'
                   : 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300 font-black'
               }`}
-              title="Toggle between spacious clinical pacing for real patients and rapid pacing for fast judge evaluation"
+              title="Toggle pacing"
             >
-              <span>{demoPacing === 'clinical' ? '🌿 Pacing: Calm Clinical (16s Voice ➔ 28s Blur)' : '⚡ Pacing: Rapid Pitch (4s Voice ➔ 8s Blur)'}</span>
+              <span>{demoPacing === 'clinical' ? (language === 'hi' ? '🌿 गति: शांत क्लिनिकल (16s ध्वनि ➔ 28s धुंधला)' : '🌿 Pacing: Calm Clinical (16s Voice ➔ 28s Blur)') : (language === 'hi' ? '⚡ गति: त्वरित पिच (4s ध्वनि ➔ 8s धुंधला)' : '⚡ Pacing: Rapid Pitch (4s Voice ➔ 8s Blur)')}</span>
             </button>
             <button
               onClick={handleSimulateDeliberationOverload}
               className="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5 transition-all active:scale-95"
-              title="Instantly triggers distractor blur & removal for demo"
+              title="Instantly triggers distractor blur"
             >
-              <span>⚡ Test Distractor Blur Now</span>
+              <span>{language === 'hi' ? '⚡ विकर्षण धुंधलापन जांचें' : '⚡ Test Distractor Blur Now'}</span>
             </button>
             <button
               onClick={handleTestBeacon}
               className="px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5 transition-all active:scale-95"
-              title="Instantly triggers target beacon hint pulse"
+              title="Instantly triggers target beacon"
             >
-              <span>💡 Test Beacon Hint Now</span>
+              <span>{language === 'hi' ? '💡 बीकन संकेत जांचें' : '💡 Test Beacon Hint Now'}</span>
             </button>
             <button
               onClick={() => handleForceTier('gentle_1_item')}
@@ -601,7 +562,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
                   : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
               }`}
             >
-              <span>Tier 0: 1-Item Mode (θ = -1.5)</span>
+              <span>{language === 'hi' ? 'टीयर ०: १-वस्तु मोड (θ = -1.5)' : 'Tier 0: 1-Item Mode (θ = -1.5)'}</span>
             </button>
             <button
               onClick={() => handleForceTier('moderate_assist')}
@@ -611,7 +572,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
                   : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
               }`}
             >
-              <span>Tier 1: 2-Item Mode (θ = 0.5)</span>
+              <span>{language === 'hi' ? 'टीयर १: २-वस्तु मोड (θ = 0.5)' : 'Tier 1: 2-Item Mode (θ = 0.5)'}</span>
             </button>
             <button
               onClick={() => handleForceTier('independent')}
@@ -621,7 +582,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
                   : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
               }`}
             >
-              <span>Tier 2: 3-Item Mode (θ = 1.8)</span>
+              <span>{language === 'hi' ? 'टीयर २: ३-वस्तु मोड (θ = 1.8)' : 'Tier 2: 3-Item Mode (θ = 1.8)'}</span>
             </button>
           </div>
         </div>
@@ -681,7 +642,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
                   </span>
                   <div className="mt-3 flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-100/80 px-3 py-1 rounded-full">
                     <Volume2 className="w-3.5 h-3.5" />
-                    <span>Tap card to listen</span>
+                    <span>{language === 'hi' ? 'सुनने के लिए कार्ड छुएं' : 'Tap card to listen'}</span>
                   </div>
                 </div>
               ))}
@@ -697,7 +658,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
               <span>{t.readyToCover}</span>
             </button>
             <p className="text-sm text-slate-500 font-semibold mt-2">
-              No rush! Take your time to remember the items above, then tap when ready.
+              {language === 'hi' ? 'कोई जल्दबाजी नहीं! ऊपर दी गई वस्तुओं को आराम से याद करें, फिर तैयार होने पर टैप करें।' : 'No rush! Take your time to remember the items above, then tap when ready.'}
             </p>
           </div>
         </div>
@@ -715,7 +676,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
             {t.concealHeading}
           </h3>
           <p className="text-base text-slate-600 font-semibold">
-            Holding in memory... The recall choices are appearing now!
+            {language === 'hi' ? 'स्मृति में संजोया जा रहा है... विकल्प अभी प्रकट हो रहे हैं!' : 'Holding in memory... The recall choices are appearing now!'}
           </p>
         </div>
       )}
@@ -733,7 +694,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
               <Sparkles className="w-6 h-6 text-emerald-600 shrink-0" />
               <div className="flex-1">
                 <span className="text-xs uppercase font-black tracking-widest text-emerald-700 block">
-                  AI Live Dynamic Adaptation Active
+                  {language === 'hi' ? 'AI लाइव डायनामिक अनुकूलन सक्रिय' : 'AI Live Dynamic Adaptation Active'}
                 </span>
                 <span className="font-extrabold text-base md:text-lg">
                   {autoAssistAlert}
@@ -746,14 +707,14 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
           <div className="max-w-2xl mx-auto flex items-center justify-between text-xs font-bold text-slate-600 bg-slate-100/90 px-5 py-2.5 rounded-2xl border border-slate-200 shadow-2xs">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-              <span>Deliberation Time: <strong className="text-amber-900 text-sm font-black">{deliberationSeconds}s</strong></span>
+              <span>{language === 'hi' ? 'चिंतन समय: ' : 'Deliberation Time: '}<strong className="text-amber-900 text-sm font-black">{deliberationSeconds}s</strong></span>
             </div>
             <span className="uppercase tracking-wider text-[11px] font-black text-amber-900 bg-amber-200/80 px-3 py-1 rounded-full border border-amber-300">
-              {latencyStage === 'NORMAL_DELIBERATION' && 'Stage 1: Peaceful Thinking'}
-              {latencyStage === 'VERNACULAR_PROMPT' && 'Stage 2: Voice Reassurance'}
-              {latencyStage === 'COGNITIVE_OVERLOAD' && !hasTargetBeacon && 'Stage 3: Distractor Blurred & Removed'}
-              {hasTargetBeacon && latencyStage !== 'SOFT_AUTO_ASSIST' && 'Stage 4: Target Beacon Hint'}
-              {latencyStage === 'SOFT_AUTO_ASSIST' && 'Stage 5: Soft Auto-Assist'}
+              {latencyStage === 'NORMAL_DELIBERATION' && (language === 'hi' ? 'चरण १: शांत चिंतन' : 'Stage 1: Peaceful Thinking')}
+              {latencyStage === 'VERNACULAR_PROMPT' && (language === 'hi' ? 'चरण २: ध्वनि आश्वासन' : 'Stage 2: Voice Reassurance')}
+              {latencyStage === 'COGNITIVE_OVERLOAD' && !hasTargetBeacon && (language === 'hi' ? 'चरण ३: विकर्षण धुंधला किया गया' : 'Stage 3: Distractor Blurred & Removed')}
+              {hasTargetBeacon && latencyStage !== 'SOFT_AUTO_ASSIST' && (language === 'hi' ? 'चरण ४: बीकन संकेत' : 'Stage 4: Target Beacon Hint')}
+              {latencyStage === 'SOFT_AUTO_ASSIST' && (language === 'hi' ? 'चरण ५: सौम्य स्वतः सहायता' : 'Stage 5: Soft Auto-Assist')}
             </span>
           </div>
 
@@ -824,7 +785,7 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
                   {shouldBeaconGlow && (
                     <div className="absolute top-3 left-3 bg-emerald-600 text-white text-[11px] font-black uppercase px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
                       <Sparkles className="w-3.5 h-3.5" />
-                      <span>Gentle Hint</span>
+                      <span>{language === 'hi' ? 'सौम्य संकेत' : 'Gentle Hint'}</span>
                     </div>
                   )}
 
@@ -882,11 +843,11 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
                 : latestRoundTelemetry.isFullyCorrect ? t.feedbackCorrect : t.feedbackPartial}
             </h3>
             <p className="text-base text-slate-600 font-semibold mt-2">
-              Time Taken: <strong>{(latestRoundTelemetry.latencyMs / 1000).toFixed(1)}s</strong> • 
+              {language === 'hi' ? 'लिया गया समय: ' : 'Time Taken: '}<strong>{(latestRoundTelemetry.latencyMs / 1000).toFixed(1)}s</strong> • 
               {latestRoundTelemetry.wasAutoAssisted ? (
-                <span className="text-amber-800 font-bold ml-1">AI Guided (Not scored to protect dignity)</span>
+                <span className="text-amber-800 font-bold ml-1">{language === 'hi' ? 'AI निर्देशित (गरिमा सुरक्षा हेतु स्कोर नहीं किया गया)' : 'AI Guided (Not scored to protect dignity)'}</span>
               ) : (
-                <span> Correct: <strong>{latestRoundTelemetry.correctCount} of {difficulty.itemsToMemorize}</strong></span>
+                <span> {language === 'hi' ? 'सही: ' : 'Correct: '}<strong>{latestRoundTelemetry.correctCount} {language === 'hi' ? 'में से' : 'of'} {difficulty.itemsToMemorize}</strong></span>
               )}
             </p>
           </div>
@@ -896,17 +857,17 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-amber-200">
               <div className="flex items-center gap-2 font-black text-amber-950 text-base md:text-lg">
                 <Brain className="w-6 h-6 text-amber-700" />
-                <span>AI Dynamic Difficulty Calibration</span>
+                <span>{language === 'hi' ? 'AI गतिशील कठिनाई अंशांकन' : 'AI Dynamic Difficulty Calibration'}</span>
               </div>
               <span className="text-xs font-black px-3 py-1 bg-amber-200/80 text-amber-900 rounded-full">
-                Updated Ability (θ): {latestRoundTelemetry.thetaAfterRound > 0 ? `+${latestRoundTelemetry.thetaAfterRound}` : latestRoundTelemetry.thetaAfterRound}
+                {language === 'hi' ? 'अद्यतन क्षमता (θ): ' : 'Updated Ability (θ): '}{latestRoundTelemetry.thetaAfterRound > 0 ? `+${latestRoundTelemetry.thetaAfterRound}` : latestRoundTelemetry.thetaAfterRound}
               </span>
             </div>
 
             {/* Detailed Clinical Rationale */}
             <div className="p-4 bg-white/90 rounded-2xl border border-amber-200 shadow-2xs">
               <p className="text-xs font-bold text-amber-800 uppercase tracking-widest mb-1">
-                Clinical Adaptation Rationale:
+                {language === 'hi' ? 'नैदानिक ​​अनुकूलन तर्क:' : 'Clinical Adaptation Rationale:'}
               </p>
               <p className="text-slate-800 font-bold text-sm md:text-base leading-relaxed">
                 {latestRoundTelemetry.adaptationRationale}
@@ -916,27 +877,35 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
             {/* Comparison Grid: Old vs New difficulty */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center pt-1">
               <div className="bg-white/80 p-3 rounded-2xl border border-amber-200">
-                <span className="text-[11px] font-bold text-slate-500 uppercase block">Items to Recall</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase block">
+                  {language === 'hi' ? 'याद रखने योग्य' : 'Items to Recall'}
+                </span>
                 <span className="text-lg font-black text-slate-900">
                   {latestRoundTelemetry.difficulty.itemsToMemorize} ➔ <strong className="text-amber-700">{latestRoundTelemetry.nextDifficulty.itemsToMemorize}</strong>
                 </span>
               </div>
               <div className="bg-white/80 p-3 rounded-2xl border border-amber-200">
-                <span className="text-[11px] font-bold text-slate-500 uppercase block">Grid Choices</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase block">
+                  {language === 'hi' ? 'ग्रिड विकल्प' : 'Grid Choices'}
+                </span>
                 <span className="text-lg font-black text-slate-900">
                   {latestRoundTelemetry.difficulty.gridSize === '1x2' ? '2' : latestRoundTelemetry.difficulty.gridSize === '2x2' ? '4' : '6'} ➔ <strong className="text-amber-700">{latestRoundTelemetry.nextDifficulty.gridSize === '1x2' ? '2' : latestRoundTelemetry.nextDifficulty.gridSize === '2x2' ? '4' : '6'}</strong>
                 </span>
               </div>
               <div className="bg-white/80 p-3 rounded-2xl border border-amber-200">
-                <span className="text-[11px] font-bold text-slate-500 uppercase block">Deliberation</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase block">
+                  {language === 'hi' ? 'चिंतन समय' : 'Deliberation'}
+                </span>
                 <span className="text-lg font-black text-slate-900">
                   {(latestRoundTelemetry.latencyMs / 1000).toFixed(1)}s
                 </span>
               </div>
               <div className="bg-white/80 p-3 rounded-2xl border border-amber-200">
-                <span className="text-[11px] font-bold text-slate-500 uppercase block">Mid-Round Assist</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase block">
+                  {language === 'hi' ? 'मध्य सहायता' : 'Mid-Round Assist'}
+                </span>
                 <span className={`text-base font-black ${latestRoundTelemetry.eliminatedDistractors.length > 0 ? 'text-rose-600' : 'text-slate-700'}`}>
-                  {latestRoundTelemetry.eliminatedDistractors.length > 0 ? '1 Removed' : 'None'}
+                  {latestRoundTelemetry.eliminatedDistractors.length > 0 ? (language === 'hi' ? '१ हटाया गया' : '1 Removed') : (language === 'hi' ? 'कोई नहीं' : 'None')}
                 </span>
               </div>
             </div>
@@ -953,188 +922,35 @@ export const SmritiHaat: React.FC<SmritiHaatProps> = ({
       )}
 
       {/* ============================================================ */}
-      {/* PHASE 5: SESSION COMPLETE & CLINICAL REPORT                  */}
+      {/* PHASE 5: WARM REASSURING COMPLETION VIEW (NO CLINICAL DIAGNOSTICS) */}
       {/* ============================================================ */}
       {phase === 'SESSION_COMPLETE' && sessionSummary && (
-        <div className="py-8 space-y-8 max-w-3xl mx-auto">
-          <div className="text-center">
-            <div className="inline-flex p-4 rounded-3xl bg-emerald-100 text-emerald-700 mb-3 border-2 border-emerald-300">
-              <ShieldCheck className="w-10 h-10" />
-            </div>
-            <h3 className="text-3xl font-black text-slate-900">
-              Session Complete • Clinical Evaluation
-            </h3>
-            <p className="text-base text-slate-600 font-semibold mt-1">
-              Smriti Haat (Visual & Spatial Working Memory Domain)
-            </p>
-          </div>
-
-          {/* Early Conclusion Notice for Caregiver Dignity */}
-          {sessionSummary.caregiverEndedEarly && (
-            <div className="bg-sky-50 border-2 border-sky-400 p-4 px-6 rounded-2xl text-sky-950 font-bold text-sm flex items-center gap-3 shadow-xs">
-              <Sparkles className="w-5 h-5 text-sky-600 shrink-0" />
-              <span>Session gracefully concluded early to protect elder comfort. Clinical assessment evaluated across {sessionSummary.totalRounds} completed round{sessionSummary.totalRounds > 1 ? 's' : ''}.</span>
-            </div>
-          )}
-
-          {/* AI Auto-Assist Clinical Scaffolding Audit Banner */}
-          {sessionSummary.autoAssistedRounds !== undefined && sessionSummary.autoAssistedRounds > 0 && (
-            <div className="bg-amber-50 border-2 border-amber-400 p-4 px-6 rounded-2xl text-amber-950 font-bold text-sm flex items-center gap-3 shadow-xs">
-              <Brain className="w-6 h-6 text-amber-600 shrink-0" />
-              <span>
-                <strong>Clinical Integrity Audit:</strong> {sessionSummary.autoAssistedRounds} of {sessionSummary.totalRounds} round(s) were guided by AI auto-assist to prevent patient distress. These automated selections were <strong>NOT credited to patient recall accuracy</strong>.
-              </span>
-            </div>
-          )}
-
-          {/* Score Summary Card */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <div className="bg-slate-50 p-4 rounded-3xl border-2 border-slate-200 text-center">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Accuracy</span>
-              <p className="text-3xl font-black text-slate-900 mt-1">{sessionSummary.accuracyPercentage}%</p>
-            </div>
-            <div className="bg-slate-50 p-4 rounded-3xl border-2 border-slate-200 text-center">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Median Speed</span>
-              <p className="text-3xl font-black text-slate-900 mt-1">{(sessionSummary.medianLatencyMs / 1000).toFixed(1)}s</p>
-            </div>
-            <div className="bg-slate-50 p-4 rounded-3xl border-2 border-slate-200 text-center">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Speed Profile</span>
-              <p className="text-xs md:text-sm font-black text-slate-800 mt-2 uppercase tracking-wide">
-                {sessionSummary.processingSpeedProfile ? sessionSummary.processingSpeedProfile.replace('_', ' ') : 'Normal'}
-              </p>
-            </div>
-            <div className="bg-slate-50 p-4 rounded-3xl border-2 border-slate-200 text-center">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">AI Ability (θ)</span>
-              <p className="text-3xl font-black text-emerald-700 mt-1">
-                {sessionSummary.finalTheta > 0 ? `+${sessionSummary.finalTheta}` : sessionSummary.finalTheta}
-              </p>
-            </div>
-            <div className="bg-amber-50 p-4 rounded-3xl border-2 border-amber-400 text-center shadow-md">
-              <span className="text-xs font-bold text-amber-900 uppercase tracking-wider">MoCA Memory</span>
-              <p className="text-3xl font-black text-amber-950 mt-1">{sessionSummary.estimatedMoCAMemoryScore} / 5</p>
-            </div>
-          </div>
-
-          {/* Machine Learning Diagnosis Card (Trained on OASIS-2 Longitudinal Data) */}
-          {mlEvaluation && (
-            <div className={`p-6 rounded-3xl border-2 shadow-md text-left transition-all ${
-              mlEvaluation.clinicalTier === 'NORMAL'
-                ? 'bg-emerald-50/80 border-emerald-300 text-emerald-950'
-                : mlEvaluation.clinicalTier === 'MCI'
-                ? 'bg-amber-50/80 border-amber-300 text-amber-950'
-                : 'bg-rose-50/80 border-rose-300 text-rose-950'
-            }`}>
-              <div className="flex items-center justify-between pb-3 border-b border-black/10">
-                <div className="flex items-center gap-2 font-black text-xs md:text-sm uppercase tracking-wider">
-                  <Brain className="w-5 h-5 text-amber-700" />
-                  <span>On-Device Edge ML Diagnosis (OASIS-2 Model)</span>
-                </div>
-                <span className="text-xs font-bold px-3 py-1 bg-white/80 rounded-full border border-black/10">
-                  Confidence: <strong>{(mlEvaluation.confidenceScore * 100).toFixed(1)}%</strong>
-                </span>
-              </div>
-
-              <div className="mt-3">
-                <h4 className="text-xl md:text-2xl font-black">
-                  {mlEvaluation.predictedClass}
-                </h4>
-                <p className="text-xs md:text-sm text-slate-600 mt-0.5">
-                  Clinical Benchmark Range: <strong>{mlEvaluation.estimatedMoCARange}</strong>
-                </p>
-                {mlEvaluation.clinicalAlert && (
-                  <p className="text-xs md:text-sm font-semibold mt-2 p-3 bg-white/90 rounded-xl border border-black/5">
-                    💡 <strong>Clinical Guidance:</strong> {mlEvaluation.clinicalAlert}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Offline Longitudinal Clinical History (100% Offline LocalStorage) */}
-          {savedSessions.length > 0 && (
-            <div className="p-6 bg-slate-50 border-2 border-slate-200 rounded-3xl text-left space-y-4 shadow-sm">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-                <div className="flex items-center gap-2 font-black text-slate-800 text-sm md:text-base">
-                  <History className="w-5 h-5 text-amber-700" />
-                  <span>Offline Clinical History ({savedSessions.length} Past Sessions Stored)</span>
-                </div>
-                <span className="text-xs font-extrabold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300">
-                  100% Offline Encrypted LocalStorage
-                </span>
-              </div>
-
-              <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-                {savedSessions.map((s, idx) => (
-                  <div
-                    key={s.completedAt || idx}
-                    className="p-3.5 bg-white rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs md:text-sm font-semibold hover:border-amber-400 transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="w-7 h-7 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center font-black text-xs">
-                        #{savedSessions.length - idx}
-                      </span>
-                      <div>
-                        <span className="font-black text-slate-800 block">
-                          {new Date(s.completedAt).toLocaleDateString(undefined, {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                        <span className="text-[11px] text-slate-500 font-bold">
-                          {s.totalRounds} Rounds • Median Speed: {(s.medianLatencyMs / 1000).toFixed(1)}s
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 font-black">
-                      <span className="text-slate-700">
-                        Accuracy: <strong className="text-amber-700">{s.accuracyPercentage}%</strong>
-                      </span>
-                      <span className="text-emerald-700">
-                        θ: {s.finalTheta > 0 ? `+${s.finalTheta}` : s.finalTheta}
-                      </span>
-                      <span className="bg-amber-100 text-amber-900 px-2.5 py-1 rounded-lg border border-amber-300 text-xs">
-                        MoCA: {s.estimatedMoCAMemoryScore}/5
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Replay or Exit */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-2">
-            <button
-              onClick={() => {
-                const newEng = new SmritiHaatEngine(initialTheta, totalRounds);
-                setPhase(newEng.getPhase());
-                setRoundNumber(newEng.getRoundNumber());
-                setTargets(newEng.getTargets());
-                setRecallOptions(newEng.getRecallOptions());
-                setSelectedIds([]);
-                setDifficulty(newEng.getDifficulty());
-                setLatestRoundTelemetry(null);
-                setSessionSummary(null);
-              }}
-              className="flex-1 py-5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-lg rounded-2xl flex items-center justify-center gap-2 cursor-pointer border-2 border-slate-300"
-            >
-              <RotateCcw className="w-5 h-5" />
-              <span>Play Again</span>
-            </button>
-
-            {onExit && (
-              <button
-                onClick={onExit}
-                className="flex-1 py-5 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-lg rounded-2xl shadow-xl cursor-pointer"
-              >
-                Back to Dashboard
-              </button>
-            )}
-          </div>
-        </div>
+        <PatientGameCompletionView
+          language={language}
+          activityTitle={language === 'hi' ? 'स्मृति हाट' : 'Smriti Haat'}
+          stats={[
+            {
+              label: language === 'hi' ? 'सटीक राउंड' : 'Successful Rounds',
+              value: `${sessionSummary.totalCorrect} / ${sessionSummary.totalRounds}`,
+            },
+            {
+              label: language === 'hi' ? 'सटीकता' : 'Accuracy',
+              value: `${sessionSummary.accuracyPercentage}%`,
+            },
+          ]}
+          onRetry={() => {
+            const newEng = new SmritiHaatEngine(initialTheta, totalRounds);
+            setPhase(newEng.getPhase());
+            setRoundNumber(newEng.getRoundNumber());
+            setTargets(newEng.getTargets());
+            setRecallOptions(newEng.getRecallOptions());
+            setSelectedIds([]);
+            setDifficulty(newEng.getDifficulty());
+            setLatestRoundTelemetry(null);
+            setSessionSummary(null);
+          }}
+          onExit={onExit}
+        />
       )}
     </div>
   );

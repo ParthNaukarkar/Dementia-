@@ -73,13 +73,13 @@ export const LumositySidebar: React.FC<LumositySidebarProps> = ({
       <div>
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white shadow-sm font-black text-lg">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-teal-400 shadow-sm font-black text-lg">
               <HeartHandshake className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-xl tracking-tight text-slate-900">
-                  Neuro<span className="text-amber-600">Saathi</span>
+                  Neuro<span className="text-teal-600">Saathi</span>
                 </span>
               </div>
               <span className="text-[10px] uppercase font-extrabold tracking-widest text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded-sm border border-emerald-200">
@@ -101,12 +101,12 @@ export const LumositySidebar: React.FC<LumositySidebarProps> = ({
                 onClick={() => onTabChange(item.id)}
                 className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-sm font-extrabold transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-amber-50/90 text-amber-950 shadow-xs border border-amber-200/80'
+                    ? 'bg-teal-50/90 text-teal-950 shadow-2xs border border-teal-200/80'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-amber-600' : 'text-slate-400'}`} />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-teal-600' : 'text-slate-400'}`} />
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
@@ -127,9 +127,9 @@ export const LumositySidebar: React.FC<LumositySidebarProps> = ({
         <div className="flex items-center justify-between bg-white p-2.5 rounded-2xl border border-slate-200 shadow-2xs">
           <div className="flex items-center gap-2">
             <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-white ${
-              currentRole === 'caretaker' ? 'bg-purple-600' : 'bg-amber-600'
+              currentRole === 'caretaker' ? 'bg-slate-900' : 'bg-teal-600'
             }`}>
-              {currentRole === 'caretaker' ? <Shield className="w-4 h-4" /> : <User className="w-4 h-4" />}
+              {currentRole === 'caretaker' ? <Shield className="w-4 h-4 text-teal-400" /> : <User className="w-4 h-4" />}
             </div>
             <div className="text-left">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -143,7 +143,7 @@ export const LumositySidebar: React.FC<LumositySidebarProps> = ({
 
           <button
             onClick={onToggleRole}
-            className="text-[11px] font-extrabold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+            className="text-[11px] font-extrabold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2 py-1 rounded-lg transition-colors cursor-pointer"
             title="Switch between Patient and Caregiver view"
           >
             Switch
@@ -155,7 +155,7 @@ export const LumositySidebar: React.FC<LumositySidebarProps> = ({
           <span>Patient: {activePatient?.name ? activePatient.name.split(' ')[0] : 'None'}</span>
           <button
             onClick={onOpenAuthModal}
-            className="text-amber-700 hover:underline cursor-pointer"
+            className="text-teal-700 hover:underline cursor-pointer font-bold"
           >
             + Manage
           </button>

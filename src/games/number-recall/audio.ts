@@ -158,7 +158,7 @@ class NumberRecallAudio {
     } catch {}
   }
 
-  private static readonly DIGIT_WORDS: Record<SupportedLanguage, Record<string, string>> = {
+  public static readonly DIGIT_WORDS: Record<SupportedLanguage, Record<string, string>> = {
     hi: { '0': 'शून्य', '1': 'एक', '2': 'दो', '3': 'तीन', '4': 'चार', '5': 'पाँच', '6': 'छह', '7': 'सात', '8': 'आठ', '9': 'नौ' },
     en: { '0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four', '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine' },
   };
@@ -177,72 +177,28 @@ class NumberRecallAudio {
   /**
    * Speaks an individual digit in the chosen language at the given pacing rate.
    */
-  public speakDigit(digit: string, lang: SupportedLanguage, rate: number = 0.85) {
-    if (this.isMuted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-    try {
-      window.speechSynthesis.cancel();
-      const word = NumberRecallAudio.DIGIT_WORDS[lang]?.[digit] || digit;
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.rate = Math.max(0.65, Math.min(1.1, rate));
-      utterance.pitch = 1.0;
-
-      const langMap: Record<SupportedLanguage, string> = {
-        hi: 'hi-IN',
-        en: 'en-US',
-      };
-      utterance.lang = langMap[lang] || 'en-US';
-
-      window.speechSynthesis.speak(utterance);
-    } catch {}
+  public speakDigit(_digit: string, _lang: SupportedLanguage, _rate: number = 0.85) {
+    // Spoken voice permanently disabled
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
   }
 
   /**
    * Speaks full guidance prompts.
    */
   public speakGuidance(
-    type: 'study' | 'recall_forward' | 'recall_backward' | 'correct' | 'try_again',
-    lang: SupportedLanguage
+    _type: 'study' | 'recall_forward' | 'recall_backward' | 'correct' | 'try_again',
+    _lang: SupportedLanguage
   ) {
-    if (this.isMuted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-    const scripts: Record<string, Record<SupportedLanguage, string>> = {
-      study: {
-        hi: 'अंकों को ध्यान से देखें।',
-        en: 'Memorize the numbers carefully.',
-      },
-      recall_forward: {
-        hi: 'अब उसी क्रम में अंक दर्ज करें।',
-        en: 'Now enter the numbers in forward order.',
-      },
-      recall_backward: {
-        hi: 'सावधान! अब उल्टे क्रम में अंक दर्ज करें।',
-        en: 'Attention! Now enter the numbers in reverse order.',
-      },
-      correct: {
-        hi: 'बहुत बढ़िया! बिल्कुल सही।',
-        en: 'Excellent! Perfectly remembered.',
-      },
-      try_again: {
-        hi: 'कोई बात नहीं, अगला प्रयास करें।',
-        en: 'No worries, let us try the next sequence.',
-      },
-    };
-
-    try {
-      window.speechSynthesis.cancel();
-      const text = scripts[type]?.[lang] || scripts[type]?.en;
-      if (!text) return;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.85;
-
-      const langMap: Record<SupportedLanguage, string> = {
-        hi: 'hi-IN',
-        en: 'en-US',
-      };
-      utterance.lang = langMap[lang] || 'en-US';
-      window.speechSynthesis.speak(utterance);
-    } catch {}
+    // Spoken voice permanently disabled
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
   }
 }
 

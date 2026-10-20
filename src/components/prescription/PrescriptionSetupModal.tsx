@@ -143,24 +143,24 @@ export const PrescriptionSetupModal: React.FC<PrescriptionSetupModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-fadeIn">
-      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-amber-100 overflow-hidden my-auto">
+      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto">
         
         {/* Modal Header */}
-        <div className="p-5 sm:p-6 bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 text-white flex items-start justify-between">
+        <div className="p-5 sm:p-6 bg-slate-900 text-white border-b border-slate-800 flex items-start justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shadow-inner shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-teal-400 shadow-inner shrink-0">
               <Brain className="w-7 h-7" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl sm:text-2xl font-black tracking-tight">{t.title[language]}</h2>
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">{t.title[language]}</h2>
                 {isFirstTimeSetup && (
-                  <span className="text-[10px] uppercase font-extrabold bg-amber-400 text-amber-950 px-2 py-0.5 rounded-md">
-                    Initial Setup
+                  <span className="text-[10px] uppercase font-extrabold bg-teal-500/20 text-teal-300 border border-teal-500/40 px-2 py-0.5 rounded-md">
+                    {language === 'hi' ? 'प्रारंभिक सेटअप' : 'Initial Setup'}
                   </span>
                 )}
               </div>
-              <p className="text-xs sm:text-sm text-amber-100/90 mt-1 max-w-xl">
+              <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
                 {t.subtitle[language]}
               </p>
             </div>
@@ -169,8 +169,8 @@ export const PrescriptionSetupModal: React.FC<PrescriptionSetupModalProps> = ({
           {!isFirstTimeSetup && (
             <button
               onClick={onClose}
-              className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0 ml-2"
-              title="Close"
+              className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0 ml-2"
+              title={language === 'hi' ? 'बंद करें' : 'Close'}
             >
               <X className="w-5 h-5" />
             </button>
@@ -183,7 +183,7 @@ export const PrescriptionSetupModal: React.FC<PrescriptionSetupModalProps> = ({
           {/* Section 1: Presets */}
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-              <Sliders className="w-4 h-4 text-amber-600" />
+              <Sliders className="w-4 h-4 text-teal-600" />
               <span>{t.presetsHeader[language]}</span>
             </div>
 
@@ -196,7 +196,7 @@ export const PrescriptionSetupModal: React.FC<PrescriptionSetupModalProps> = ({
                     onClick={() => handleSelectPreset(key)}
                     className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer relative flex flex-col justify-between ${
                       isSelected
-                        ? 'border-amber-600 bg-amber-50/80 shadow-md ring-2 ring-amber-200'
+                        ? 'border-teal-600 bg-teal-50/80 shadow-md ring-2 ring-teal-200'
                         : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80'
                     }`}
                   >
@@ -205,7 +205,7 @@ export const PrescriptionSetupModal: React.FC<PrescriptionSetupModalProps> = ({
                         {preset.label[language]}
                       </h4>
                       <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all shrink-0 ${
-                        isSelected ? 'bg-amber-600 border-amber-600 text-white' : 'border-slate-300 bg-white'
+                        isSelected ? 'bg-teal-600 border-teal-600 text-white' : 'border-slate-300 bg-white'
                       }`}>
                         {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                       </div>
@@ -213,9 +213,9 @@ export const PrescriptionSetupModal: React.FC<PrescriptionSetupModalProps> = ({
                     <p className="text-xs text-slate-600 mt-2 line-clamp-2">
                       {preset.description[language]}
                     </p>
-                    <div className="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] font-bold text-amber-800">
-                      <span>{preset.gameIds.length} Exercises</span>
-                      <span>~{preset.gameIds.length * 3} mins daily</span>
+                    <div className="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] font-bold text-teal-900">
+                      <span>{preset.gameIds.length} {language === 'hi' ? 'व्यायाम' : 'Exercises'}</span>
+                      <span>~{preset.gameIds.length * 3} {language === 'hi' ? 'मिनट दैनिक' : 'mins daily'}</span>
                     </div>
                   </button>
                 );
@@ -230,8 +230,8 @@ export const PrescriptionSetupModal: React.FC<PrescriptionSetupModalProps> = ({
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 <span>{t.gamesHeader[language]}</span>
               </div>
-              <span className="text-amber-800 font-extrabold lowercase">
-                {selectedGameIds.length} / 10 active
+              <span className="text-teal-800 font-extrabold lowercase">
+                {language === 'hi' ? `${selectedGameIds.length} / 10 सक्रिय` : `${selectedGameIds.length} / 10 active`}
               </span>
             </div>
 
@@ -245,14 +245,14 @@ export const PrescriptionSetupModal: React.FC<PrescriptionSetupModalProps> = ({
                     onClick={() => handleToggleGame(game.id)}
                     className={`p-3.5 sm:p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-3.5 select-none ${
                       isSelected
-                        ? 'border-amber-500 bg-white shadow-xs ring-1 ring-amber-200'
+                        ? 'border-teal-600 bg-white shadow-xs ring-1 ring-teal-200'
                         : 'border-slate-200 bg-slate-100/60 opacity-60 hover:opacity-100 hover:bg-white'
                     }`}
                   >
                     {/* Custom Checkbox */}
                     <div className={`mt-1 w-6 h-6 rounded-lg flex items-center justify-center border-2 transition-all shrink-0 ${
                       isSelected
-                        ? 'bg-amber-600 border-amber-600 text-white'
+                        ? 'bg-teal-600 border-teal-600 text-white'
                         : 'border-slate-300 bg-white'
                     }`}>
                       {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
@@ -261,7 +261,7 @@ export const PrescriptionSetupModal: React.FC<PrescriptionSetupModalProps> = ({
                     {/* Game Details */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center shrink-0">
                           {renderGameIcon(game.iconType)}
                         </div>
                         <h4 className="font-extrabold text-sm text-slate-900 truncate">
@@ -278,7 +278,7 @@ export const PrescriptionSetupModal: React.FC<PrescriptionSetupModalProps> = ({
                           {game.clinicalStandard.split('•')[0].trim()}
                         </span>
                         <span className="text-[10px] font-semibold text-slate-500">
-                          ~{game.estimatedMinutes}m
+                          ~{game.estimatedMinutes}{language === 'hi' ? ' मि.' : 'm'}
                         </span>
                       </div>
                     </div>
@@ -298,7 +298,7 @@ export const PrescriptionSetupModal: React.FC<PrescriptionSetupModalProps> = ({
               <span>{selectedGameIds.length} {t.exercisesCount[language]}</span>
             </div>
             <span className="text-slate-300">•</span>
-            <span>{t.dailyEstimate[language]} <strong>{totalMinutes} mins</strong></span>
+            <span>{t.dailyEstimate[language]} <strong>{totalMinutes} {language === 'hi' ? 'मिनट' : 'mins'}</strong></span>
           </div>
 
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
@@ -307,15 +307,15 @@ export const PrescriptionSetupModal: React.FC<PrescriptionSetupModalProps> = ({
                 onClick={onClose}
                 className="px-5 py-3 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer text-sm"
               >
-                Cancel
+                {language === 'hi' ? 'रद्द करें' : 'Cancel'}
               </button>
             )}
 
             <button
               onClick={handleSave}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-black text-sm sm:text-base shadow-lg hover:shadow-xl transition-all cursor-pointer ring-2 ring-amber-300"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-black text-sm sm:text-base shadow-lg hover:shadow-xl transition-all cursor-pointer ring-2 ring-teal-200"
             >
-              <Sparkles className="w-5 h-5 text-amber-200" />
+              <Sparkles className="w-5 h-5 text-teal-200" />
               <span>{t.saveBtn[language]}</span>
             </button>
           </div>

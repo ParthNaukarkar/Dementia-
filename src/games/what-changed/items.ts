@@ -15,12 +15,12 @@ export const WHAT_CHANGED_CATALOG: CatalogItem[] = [
   {
     id: 'japi',
     names: {
-      as: 'বৰ জাপি (Japi)',
-      bn: 'জাপি টুপি (Japi)',
-      hi: 'पारंपरिक जापी (Japi)',
-      en: 'Traditional Japi Hat',
+      as: 'পাগুৰী (Pagri)',
+      bn: 'পাগড়ি (Pagri)',
+      hi: 'पारंपरिक पगड़ी (Pagri)',
+      en: 'Heritage Indian Pagri',
     },
-    icon: '👒',
+    icon: '👑',
     category: 'craft',
     defaultColorBg: 'bg-amber-100 border-amber-400 text-amber-950',
     alternateColors: [
@@ -32,10 +32,10 @@ export const WHAT_CHANGED_CATALOG: CatalogItem[] = [
   {
     id: 'gamusa',
     names: {
-      as: 'ফুলাম গামোচা (Gamusa)',
-      bn: 'গামোছা (Gamusa)',
-      hi: 'गामोसा (Gamusa)',
-      en: 'Assam Gamusa',
+      as: 'ৰেচমী ওৰণি (Dupatta)',
+      bn: 'রেশমি ওড়না (Dupatta)',
+      hi: 'रेशमी दुपट्टा (Dupatta)',
+      en: 'Indian Silk Dupatta',
     },
     icon: '🧣',
     category: 'textile',
@@ -48,10 +48,10 @@ export const WHAT_CHANGED_CATALOG: CatalogItem[] = [
   {
     id: 'xorai',
     names: {
-      as: 'পিতলৰ শৰাই (Xorai)',
-      bn: 'পিতলের সরাই (Xorai)',
-      hi: 'पीतल की सराई (Xorai)',
-      en: 'Brass Xorai Offering Stand',
+      as: 'পূজাৰ পিতলৰ থালী (Puja Thali)',
+      bn: 'পূজার পিতলের থালা (Puja Thali)',
+      hi: 'पूजा की पीतल थाली (Puja Thali)',
+      en: 'Brass Puja Thali',
     },
     icon: '🏆',
     category: 'craft',
@@ -64,10 +64,10 @@ export const WHAT_CHANGED_CATALOG: CatalogItem[] = [
   {
     id: 'dhol',
     names: {
-      as: 'বিহু ঢোল (Bihu Dhol)',
-      bn: 'ঢোল (Dhol)',
-      hi: 'बिहू ढोल (Bihu Dhol)',
-      en: 'Bihu Dhol Drum',
+      as: 'পৰম্পৰাগত ঢোলক (Dholak)',
+      bn: 'ঐতিহ্যবাহী ঢোলক (Dholak)',
+      hi: 'पारंपरिक ढोलक (Dholak)',
+      en: 'Indian Folk Dholak',
     },
     icon: '🥁',
     category: 'instrument',
@@ -80,10 +80,10 @@ export const WHAT_CHANGED_CATALOG: CatalogItem[] = [
   {
     id: 'pepa',
     names: {
-      as: 'ম’হৰ শিঙৰ পেঁপা (Pepa)',
-      bn: 'শিং পেঁপা (Pepa)',
-      hi: 'पेपा बाजा (Pepa)',
-      en: 'Buffalo Horn Pepa',
+      as: 'সুৰীয়া সানাই (Shehnai)',
+      bn: 'সানাই বাদ্য (Shehnai)',
+      hi: 'शहनाई बाजा (Shehnai)',
+      en: 'Classical Shehnai Horn',
     },
     icon: '🎺',
     category: 'instrument',
@@ -95,10 +95,10 @@ export const WHAT_CHANGED_CATALOG: CatalogItem[] = [
   {
     id: 'tea-cup',
     names: {
-      as: 'অসম চাহ কাপ (Assam Tea)',
-      bn: 'চা কাপ (Tea Cup)',
-      hi: 'चाय का प्याला (Tea Cup)',
-      en: 'Clay Tea Cup',
+      as: 'মাটিৰ ভাঁড়ৰ চাহ (Kulhad Chai)',
+      bn: 'মাটির ভাঁড়ের চা (Kulhad Chai)',
+      hi: 'कुल्हड़ मसाला चाय (Kulhad Chai)',
+      en: 'Clay Kulhad Chai Cup',
     },
     icon: '🍵',
     category: 'household',
@@ -173,10 +173,10 @@ export const WHAT_CHANGED_CATALOG: CatalogItem[] = [
   {
     id: 'orange',
     names: {
-      as: 'ডাম্বুক সুমথিৰা (Orange)',
-      bn: 'কমলা লেবু (Orange)',
-      hi: 'दाम्बुक संतरा (Orange)',
-      en: 'Sweet Orange',
+      as: 'মিঠা সুমথিৰা (Nagpur Orange)',
+      bn: 'নাগপুরি মিষ্টি কমলা (Nagpur Orange)',
+      hi: 'नागपुरी रसीला संतरा (Nagpur Orange)',
+      en: 'Nagpur Sweet Orange',
     },
     icon: '🍊',
     category: 'produce',
@@ -310,10 +310,10 @@ export const WHAT_CHANGED_CATALOG: CatalogItem[] = [
   {
     id: 'paan',
     names: {
-      as: 'তামোল-পাণ (Tamul Paan)',
-      bn: 'পান-সুপারি (Paan)',
-      hi: 'पान-सुपारी (Paan)',
-      en: 'Assam Betel Leaf',
+      as: 'মিঠা তামোল-পাণ (Paan)',
+      bn: 'সুমিষ্ট পান-সুপারি (Paan)',
+      hi: 'बनारसी मीठा पान (Paan)',
+      en: 'Banarasi Sweet Paan',
     },
     icon: '🍃',
     category: 'produce',

@@ -192,29 +192,12 @@ export class WhereAmIAudioSynthesizer {
   /**
    * Accessible Web Speech API Text-to-Speech Guidance
    */
-  public speakGuidance(text: string, lang: SupportedLanguage): void {
-    if (this.isMuted || typeof window === 'undefined' || !window.speechSynthesis) return;
-    try {
-      window.speechSynthesis.cancel(); // Stop any pending utterance
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.85; // Geriatric gentle pace
-      utterance.pitch = 1.0;
-
-      const langMap: Record<SupportedLanguage, string> = {
-        hi: 'hi-IN',
-        en: 'en-IN',
-      };
-      utterance.lang = langMap[lang] || 'en-IN';
-
-      const voices = window.speechSynthesis.getVoices();
-      const matched = voices.find(v => v.lang.toLowerCase().startsWith(utterance.lang.slice(0, 2).toLowerCase()));
-      if (matched) {
-        utterance.voice = matched;
-      }
-
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      // Speech synthesis unsupported
+  public speakGuidance(_text: string, _lang: SupportedLanguage): void {
+    // Spoken voice permanently disabled
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
     }
   }
 }

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Brain,
   ArrowRight,
-  Sparkles,
   Activity,
   Award,
   ShieldAlert,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { SupportedLanguage } from '../../types/prescription';
+import { PatientGameCompletionView } from '../../components/games/PatientGameCompletionView';
 import type {
   PatternRecallDifficulty,
   PatternRecallGeneratedTrial,
@@ -627,20 +627,36 @@ export const PatternRecall: React.FC<PatternRecallProps> = ({
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full mb-8 max-w-xl">
           <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-3 text-center">
-            <span className="text-xs text-indigo-600 font-semibold uppercase tracking-wider block">গ্ৰিড সীমা</span>
-            <span className="text-lg font-bold text-slate-800">2x2 to 5x5</span>
+            <span className="text-xs text-indigo-600 font-semibold uppercase tracking-wider block">
+              {language === 'hi' ? 'ग्रिड सीमा' : 'Grid Range'}
+            </span>
+            <span className="text-lg font-bold text-slate-800">
+              {language === 'hi' ? '२x२ से ५x५' : '2x2 to 5x5'}
+            </span>
           </div>
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-center">
-            <span className="text-xs text-amber-600 font-semibold uppercase tracking-wider block">স্থানিক চানেকি</span>
-            <span className="text-lg font-bold text-slate-800">2 to 6 Tiles</span>
+            <span className="text-xs text-amber-600 font-semibold uppercase tracking-wider block">
+              {language === 'hi' ? 'स्थानिक पैटर्न' : 'Spatial Pattern'}
+            </span>
+            <span className="text-lg font-bold text-slate-800">
+              {language === 'hi' ? '२ से ६ टाइलें' : '2 to 6 Tiles'}
+            </span>
           </div>
           <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-center">
-            <span className="text-xs text-emerald-600 font-semibold uppercase tracking-wider block">কম্পন ফিল্টাৰ</span>
-            <span className="text-lg font-bold text-slate-800">400ms Guard</span>
+            <span className="text-xs text-emerald-600 font-semibold uppercase tracking-wider block">
+              {language === 'hi' ? 'कंपन फ़िल्टर' : 'Tremor Filter'}
+            </span>
+            <span className="text-lg font-bold text-slate-800">
+              {language === 'hi' ? '४००ms सुरक्षा' : '400ms Guard'}
+            </span>
           </div>
           <div className="bg-purple-50 border border-purple-200 rounded-2xl p-3 text-center">
-            <span className="text-xs text-purple-600 font-semibold uppercase tracking-wider block">সহায়ক সংকেত</span>
-            <span className="text-lg font-bold text-slate-800">Peek & Beacon</span>
+            <span className="text-xs text-purple-600 font-semibold uppercase tracking-wider block">
+              {language === 'hi' ? 'सहायक संकेत' : 'Assistance Hints'}
+            </span>
+            <span className="text-lg font-bold text-slate-800">
+              {language === 'hi' ? 'झलक और बीकन' : 'Peek & Beacon'}
+            </span>
           </div>
         </div>
 
@@ -666,110 +682,29 @@ export const PatternRecall: React.FC<PatternRecallProps> = ({
     );
   }
 
-  // --- RENDER COMPLETED ---
+  // --- RENDER COMPLETED (WARM REASSURING PATIENT VIEW) ---
   if (gameState === 'completed') {
     const summary = engine.compileSessionSummary(trialsTelemetry);
-    const correctCount = summary.correctTrials;
-    const totalCount = summary.totalTrials;
 
     return (
-      <div className="flex flex-col items-center justify-center min-h-[65vh] p-6 text-center max-w-3xl mx-auto">
-        <div className="w-24 h-24 bg-emerald-100 rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-emerald-200">
-          <Sparkles className="w-12 h-12 text-emerald-600" />
-        </div>
-        <h2 className="text-3xl font-bold text-slate-800 mb-2">{t.completed}</h2>
-        <p className="text-lg text-slate-600 mb-8">{t.scoreMsg(correctCount, totalCount)}</p>
-
-        {/* Comprehensive Clinical Summary Dashboard */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full mb-8 text-left">
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-indigo-600 mb-1">
-              <Award className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">{t.thetaGauge}</span>
-            </div>
-            <span className="text-2xl font-bold text-slate-800">{summary.finalTheta.toFixed(2)}</span>
-            <span className="text-xs text-slate-500 block">Bayesian 2PL Latent</span>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-emerald-600 mb-1">
-              <Brain className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">{t.mocaVisuospatial}</span>
-            </div>
-            <span className="text-2xl font-bold text-slate-800">{summary.estimatedMoCAVisuospatialScore}/5.0</span>
-            <span className="text-xs text-slate-500 block">Visuospatial Index</span>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-amber-600 mb-1">
-              <Eye className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">{t.maxSpan}</span>
-            </div>
-            <span className="text-2xl font-bold text-slate-800">{summary.maxSpatialSpanRecalled} Tiles</span>
-            <span className="text-xs text-slate-500 block">CANTAB Spatial Span</span>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-rose-600 mb-1">
-              <ShieldAlert className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">{t.tremorFiltered}</span>
-            </div>
-            <span className="text-2xl font-bold text-slate-800">{summary.tremorTapsFilteredTotal}</span>
-            <span className="text-xs text-slate-500 block">400ms Debounce</span>
-          </div>
-        </div>
-
-        {/* Clinical Classification & Autonomy Badge */}
-        <div className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-8 text-left">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-indigo-600" />
-              <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider">{t.staging}</h4>
-            </div>
-            <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">
-              {summary.oasisClinicalClassification?.clinicalTier || 'NORMAL'}
-            </span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-600">
-            <div>
-              <span className="font-semibold text-slate-700 block">স্থানিক স্মৃতি (Phenotype):</span>
-              {summary.visuospatialRetentionStatus}
-            </div>
-            <div>
-              <span className="font-semibold text-slate-700 block">কাৰ্যকৰী গতি (Visuomotor):</span>
-              {summary.visuomotorExecutionProfile}
-            </div>
-            <div>
-              <span className="font-semibold text-slate-700 block">আত্মনিৰ্ভৰশীলতা (Autonomy):</span>
-              {summary.autonomyScore}% (পিক: {summary.totalPeeksUsed}, বিকন: {summary.totalBeaconsUsed})
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <button
-            onClick={onExit}
-            className="bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all"
-          >
-            {t.exit}
-          </button>
-          <button
-            onClick={handleExportCsv}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-6 rounded-xl transition-all shadow-sm flex items-center gap-2"
-          >
-            {t.exportCsv}
-          </button>
-          <button
-            onClick={() => setIsTestbedOpen(true)}
-            className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-3 px-6 rounded-xl transition-all border border-slate-300 flex items-center gap-2"
-          >
-            <Sliders className="w-4 h-4 text-indigo-600" />
-            {t.aiTestbed}
-          </button>
-        </div>
-
-        {renderTestbedDrawer()}
-      </div>
+      <PatientGameCompletionView
+        language={language}
+        activityTitle={language === 'hi' ? 'पैटर्न स्मरण' : 'Pattern Recall'}
+        stats={[
+          {
+            label: language === 'hi' ? 'पूरे किए गए पैटर्न' : 'Patterns Remembered',
+            value: `${summary.correctTrials} / ${summary.totalTrials}`,
+          },
+          {
+            label: language === 'hi' ? 'सटीकता' : 'Accuracy',
+            value: `${summary.accuracyPercentage}%`,
+          },
+        ]}
+        onRetry={() => {
+          setGameState('intro');
+        }}
+        onExit={onExit}
+      />
     );
   }
 
@@ -979,36 +914,44 @@ export const PatternRecall: React.FC<PatternRecallProps> = ({
             {/* Caregiver Presets */}
             <div className="mb-6">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">
-                সহায়ক প্ৰিচেট (Scaffolding Presets)
+                {language === 'hi' ? 'सहायक प्रीसेट (स्केफोल्डिंग)' : 'Scaffolding Presets'}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => applyAssistancePreset('autonomy')}
                   className="p-2.5 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-xl text-xs font-medium text-slate-700 text-left"
                 >
-                  <span className="font-bold block text-indigo-600">Full Autonomy</span>
-                  Tier 8 (4x4, 5 Tiles, No Peeks)
+                  <span className="font-bold block text-indigo-600">
+                    {language === 'hi' ? 'पूर्ण स्वायत्तता' : 'Full Autonomy'}
+                  </span>
+                  {language === 'hi' ? 'टीयर ८ (४x४, ५ टाइलें, कोई झलक नहीं)' : 'Tier 8 (4x4, 5 Tiles, No Peeks)'}
                 </button>
                 <button
                   onClick={() => applyAssistancePreset('support')}
                   className="p-2.5 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-xl text-xs font-medium text-slate-700 text-left"
                 >
-                  <span className="font-bold block text-emerald-600">Gentle Support</span>
-                  Tier 5 (3x3, 4 Tiles, 1 Peek)
+                  <span className="font-bold block text-emerald-600">
+                    {language === 'hi' ? 'हल्का सहयोग' : 'Gentle Support'}
+                  </span>
+                  {language === 'hi' ? 'टीयर ५ (३x३, ४ टाइलें, १ झलक)' : 'Tier 5 (3x3, 4 Tiles, 1 Peek)'}
                 </button>
                 <button
                   onClick={() => applyAssistancePreset('scaffolding')}
                   className="p-2.5 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-xl text-xs font-medium text-slate-700 text-left"
                 >
-                  <span className="font-bold block text-amber-600">High Scaffolding</span>
-                  Tier 3 (3x3, 3 Tiles, 2 Peeks)
+                  <span className="font-bold block text-amber-600">
+                    {language === 'hi' ? 'उच्च स्केफोल्डिंग' : 'High Scaffolding'}
+                  </span>
+                  {language === 'hi' ? 'टीयर ३ (३x३, ३ टाइलें, २ झलक)' : 'Tier 3 (3x3, 3 Tiles, 2 Peeks)'}
                 </button>
                 <button
                   onClick={() => applyAssistancePreset('floor')}
                   className="p-2.5 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-xl text-xs font-medium text-slate-700 text-left"
                 >
-                  <span className="font-bold block text-rose-600">Palliative Floor</span>
-                  Tier 1 (2x2, 2 Tiles, 5s Display)
+                  <span className="font-bold block text-rose-600">
+                    {language === 'hi' ? 'उपशामक न्यूनतम' : 'Palliative Floor'}
+                  </span>
+                  {language === 'hi' ? 'टीयर १ (२x२, २ टाइलें, ५s प्रदर्शन)' : 'Tier 1 (2x2, 2 Tiles, 5s Display)'}
                 </button>
               </div>
             </div>
@@ -1017,9 +960,11 @@ export const PatternRecall: React.FC<PatternRecallProps> = ({
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  মনোমিতিক স্তৰ বাছনি (1 to 9)
+                  {language === 'hi' ? 'साइकोमेट्रिक स्तर चयन (१ से ९)' : 'Psychometric Tier Selection (1 to 9)'}
                 </label>
-                <span className="text-xs font-bold text-indigo-600">Tier {currentDifficulty.tierLevel}</span>
+                <span className="text-xs font-bold text-indigo-600">
+                  {language === 'hi' ? `टीयर ${currentDifficulty.tierLevel}` : `Tier ${currentDifficulty.tierLevel}`}
+                </span>
               </div>
               <input
                 type="range"
@@ -1064,7 +1009,9 @@ export const PatternRecall: React.FC<PatternRecallProps> = ({
               </select>
 
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 text-xs text-slate-600">
-                <span className="font-semibold block text-slate-700 mb-1">ক্লিনিকেল পৰ্যবেক্ষণ:</span>
+                <span className="font-semibold block text-slate-700 mb-1">
+                  {language === 'hi' ? 'नैदानिक अवलोकन:' : 'Clinical Observation:'}
+                </span>
                 {selectedPersona.clinicalNotes[language]}
               </div>
 
@@ -1074,7 +1021,7 @@ export const PatternRecall: React.FC<PatternRecallProps> = ({
                 className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2.5 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2"
               >
                 <Activity className="w-4 h-4" />
-                <span>{isSimulating ? 'অনুকৰণ চলি আছে...' : t.runSimulation}</span>
+                <span>{isSimulating ? (language === 'hi' ? 'सिमुलेशन जारी है...' : 'Simulating...') : t.runSimulation}</span>
               </button>
             </div>
 
@@ -1102,7 +1049,7 @@ export const PatternRecall: React.FC<PatternRecallProps> = ({
               onClick={() => setIsTestbedOpen(false)}
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-5 rounded-xl text-xs transition-colors"
             >
-              বন্ধ কৰক
+              {language === 'hi' ? 'दराज बंद करें' : 'Close Drawer'}
             </button>
           </div>
         </div>

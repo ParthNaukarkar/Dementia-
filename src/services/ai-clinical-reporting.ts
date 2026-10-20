@@ -300,7 +300,7 @@ export class AIClinicalReportingService {
             },
           };
 
-          const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${cleanKey}`;
+          const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent`;
           const res = await fetch(url, {
             method: 'POST',
             headers: { 

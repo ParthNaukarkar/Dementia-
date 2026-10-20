@@ -17,6 +17,7 @@ export interface TranslationSchema {
 
   // Navigation Items
   dashboard: string;
+  reports: string;
   cognitiveGames: string;
   medications: string;
   dailyRoutine: string;
@@ -147,6 +148,24 @@ export interface TranslationSchema {
   welcomeBack: string;
   loginAsPatient: string;
   loginAsCaregiver: string;
+
+  // Additional Telemetry, Modals & Testbeds
+  caregiverView: string;
+  cloudAiEngine: string;
+  configureCloudAi: string;
+  stableTrend: string;
+  allDosesTaken: string;
+  dosesPending: string;
+  circadianSyncActive: string;
+  requiringAttention: string;
+  lastAlert: string;
+  liveTelemetryHeader: string;
+  configureCloudLlm: string;
+  aiTestbed: string;
+  close: string;
+  takenToday: string;
+  tapToConfirmMed: string;
+  plannedActivities: string;
 }
 
 export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record<string, TranslationSchema> = {
@@ -163,6 +182,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     navigation: 'Navigation',
 
     dashboard: 'Dashboard',
+    reports: 'Reports',
     cognitiveGames: 'Cognitive Games',
     medications: 'Medications',
     dailyRoutine: 'Daily Routine',
@@ -285,6 +305,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     welcomeBack: 'Welcome to NeuroSaathi',
     loginAsPatient: 'Log In as Patient (Meera Joshi)',
     loginAsCaregiver: 'Log In as Caregiver (Anita Joshi)',
+
+    caregiverView: 'Caregiver View',
+    cloudAiEngine: 'Cloud AI Engine',
+    configureCloudAi: 'Configure Cloud AI',
+    stableTrend: 'Stable Trend',
+    allDosesTaken: 'All doses taken on schedule',
+    dosesPending: 'dose pending',
+    circadianSyncActive: 'Circadian sync: Active',
+    requiringAttention: 'Requiring Attention',
+    lastAlert: 'Last alert',
+    liveTelemetryHeader: 'Live AI Telemetry & Mathematical Kinematics Engine',
+    configureCloudLlm: 'Configure Cloud LLM',
+    aiTestbed: 'AI Clinical Testbed',
+    close: 'Close',
+    takenToday: 'Taken Today',
+    tapToConfirmMed: 'Tap each medicine after taking it.',
+    plannedActivities: 'Your planned activities for today.',
   },
 
   // ─── ASSAMESE ────────────────────────────────────────────────────────────
@@ -300,6 +337,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     navigation: 'তালিকা (Navigation)',
 
     dashboard: 'ডেচবৰ্ড (Dashboard)',
+    reports: 'প্ৰতিবেদনসমূহ (Reports)',
     cognitiveGames: 'জ্ঞানমূলক খেল (Cognitive Games)',
     medications: 'ঔষধসমূহ (Medications)',
     dailyRoutine: 'দৈনন্দিন নিয়ম (Daily Routine)',
@@ -422,6 +460,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     welcomeBack: 'নিউৰোসাথীলৈ স্বাগতম',
     loginAsPatient: 'ৰোগী হিচাপে প্ৰৱেশ (মীৰা যোশী)',
     loginAsCaregiver: 'যত্নশীল হিচাপে প্ৰৱেশ (অনিতা যোশী)',
+
+    caregiverView: 'যত্নশীল দৃশ্য (Caregiver View)',
+    cloudAiEngine: 'ক্লাউড AI ইঞ্জিন',
+    configureCloudAi: 'ক্লাউড AI সংৰূপণ কৰক',
+    stableTrend: 'স্থিৰ প্ৰৱণতা',
+    allDosesTaken: 'সকলো ঔষধ সময়মতে গ্ৰহণ কৰা হৈছে',
+    dosesPending: 'বাকী আছে',
+    circadianSyncActive: 'দৈনিক সংযোগ: সক্ৰিয়',
+    requiringAttention: 'মনোযোগৰ প্ৰয়োজন',
+    lastAlert: 'অন্তিম সতৰ্কতা',
+    liveTelemetryHeader: 'পোনপটীয়া AI টেলিমেট্ৰী আৰু গাণিতিক গতিশীলতা ইঞ্জিন',
+    configureCloudLlm: 'ক্লাউড LLM সংৰূপণ কৰক',
+    aiTestbed: 'AI ক্লিনিকেল পৰীক্ষাগাৰ',
+    close: 'বন্ধ কৰক',
+    takenToday: 'আজি গ্ৰহণ কৰা হৈছে',
+    tapToConfirmMed: 'ঔষধ খোৱাৰ পিছত ইয়াত স্পৰ্শ কৰক।',
+    plannedActivities: 'আজিৰ বাবে পৰিকল্পিত কামসমূহ।',
   },
 
   // ─── BENGALI ─────────────────────────────────────────────────────────────
@@ -437,6 +492,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     navigation: 'মেনু তালিকা',
 
     dashboard: 'ড্যাশবোর্ড (Dashboard)',
+    reports: 'রিপোর্টসমূহ (Reports)',
     cognitiveGames: 'জ্ঞানমূলক খেলা (Cognitive Games)',
     medications: 'ওষুধের তালিকা (Medications)',
     dailyRoutine: 'দৈনন্দিন রুটিন (Daily Routine)',
@@ -559,6 +615,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     welcomeBack: 'নিউরোসাথীতে স্বাগতম',
     loginAsPatient: 'রোগী হিসেবে প্রবেশ (মীরা জোশী)',
     loginAsCaregiver: 'কেয়ারগিভার হিসেবে প্রবেশ (অনিতা জোশী)',
+
+    caregiverView: 'কেয়ারগিভার ভিউ (Caregiver View)',
+    cloudAiEngine: 'ক্লাউড AI ইঞ্জিন',
+    configureCloudAi: 'ক্লাউড AI কনফিগার করুন',
+    stableTrend: 'স্থিতিশীল প্রবণতা',
+    allDosesTaken: 'সব ওষুধ সময়মতো নেওয়া হয়েছে',
+    dosesPending: 'বাকি আছে',
+    circadianSyncActive: 'দৈনিক সিঙ্ক: সক্রিয়',
+    requiringAttention: 'মনোযোগ প্রয়োজন',
+    lastAlert: 'সর্বশেষ সতর্কতা',
+    liveTelemetryHeader: 'লাইভ AI টেলিমেট্রি ও গাণিতিক গতিশীলতা ইঞ্জিন',
+    configureCloudLlm: 'ক্লাউড LLM কনফিগার করুন',
+    aiTestbed: 'AI ক্লিনিকাল টেস্টবেড',
+    close: 'বন্ধ করুন',
+    takenToday: 'আজ নেওয়া হয়েছে',
+    tapToConfirmMed: 'ওষুধ খাওয়ার পর এখানে স্পর্শ করুন।',
+    plannedActivities: 'আজকের নির্ধারিত কাজসমূহ।',
   },
 
   // ─── HINDI ───────────────────────────────────────────────────────────────
@@ -574,6 +647,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     navigation: 'नेविगेशन',
 
     dashboard: 'डैशबोर्ड (Dashboard)',
+    reports: 'रिपोर्ट्स (Reports)',
     cognitiveGames: 'संज्ञानात्मक खेल (Cognitive Games)',
     medications: 'दवाइयां (Medications)',
     dailyRoutine: 'दैनिक दिनचर्या (Daily Routine)',
@@ -696,6 +770,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> & Record
     welcomeBack: 'न्यूरोसाथी में आपका स्वागत है',
     loginAsPatient: 'मरीज के रूप में प्रवेश (मीरा जोशी)',
     loginAsCaregiver: 'देखभालकर्ता के रूप में प्रवेश (अनीता जोशी)',
+
+    caregiverView: 'देखभालकर्ता दृश्य (Caregiver View)',
+    cloudAiEngine: 'क्लाउड AI इंजन (Cloud AI)',
+    configureCloudAi: 'क्लाउड AI कॉन्फ़िगर करें',
+    stableTrend: 'स्थिर प्रवृत्ति (Stable Trend)',
+    allDosesTaken: 'सभी दवाएं समय पर ली गईं',
+    dosesPending: 'खुराक लंबित',
+    circadianSyncActive: 'दैनिक तालमेल: सक्रिय',
+    requiringAttention: 'ध्यान देने योग्य',
+    lastAlert: 'अंतिम अलर्ट',
+    liveTelemetryHeader: 'लाइव AI टेलीमेट्री एवं गणितीय गतिज इंजन',
+    configureCloudLlm: 'क्लाउड LLM कॉन्फ़िगर करें',
+    aiTestbed: 'AI क्लिनिकल टेस्टबेड',
+    close: 'बंद करें',
+    takenToday: 'आज ली गई',
+    tapToConfirmMed: 'दवा लेने के बाद उस पर टैप करें।',
+    plannedActivities: 'आज के लिए आपकी निर्धारित गतिविधियां।',
   }
 };
 

@@ -33,6 +33,7 @@ import { PUZZLE_IMAGES } from './images-catalog';
 import { JigsawPraxisEngine } from './engine';
 import { jigsawAudio } from './audio';
 import { AdaptiveAssistanceEngine } from '../../engine/adaptive-assistance';
+import { PatientGameCompletionView } from '../../components/games/PatientGameCompletionView';
 
 /**
  * High-precision Piece Slice Renderer.
@@ -245,7 +246,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
     viewSummary: {
       as: 'ফলাফল চাওক ➔',
       bn: 'ফলাফল দেখুন ➔',
-      hi: 'পরিणाम देखें ➔',
+      hi: 'परिणाम देखें ➔',
       en: 'View Clinical Summary ➔',
     },
     exit: {
@@ -253,6 +254,246 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
       bn: 'প্রস্থান',
       hi: 'बाहर जाएं',
       en: 'Exit',
+    },
+    testbedTitle: {
+      as: 'WAIS-IV ব্লক ডিজাইন আৰু স্থানিক সমন্বয় AI টেষ্টবেড',
+      bn: 'WAIS-IV ব্লক ডিজাইন ও স্থানিক সমন্বয় AI টেস্টবেড',
+      hi: 'WAIS-IV ब्लॉक डिजाइन एवं पार्श्विका अक्षमता AI टेस्टबेड',
+      en: 'National AI Testbed: WAIS-IV Block Design & Parietal Visuomotor Praxis',
+    },
+    simulateRapid: {
+      as: '⚡ দ্ৰুত প্ৰবাহ অনুকৰণ (ট্ৰে’ কোণ ঘূৰাওক)',
+      bn: '⚡ দ্রুত প্রবাহ সিমুলেশন (ট্রে কোণ ঘোরান)',
+      hi: '⚡ तीव्र प्रवाह सिमुलेशन (ट्रे कोण बदलें)',
+      en: '⚡ Simulate Rapid Flow (Perturb Tray Angles)',
+    },
+    simulateHesitation: {
+      as: '🛡️ দ্বিধা অনুকৰণ (ট্ৰে’ পোন কৰক 0°)',
+      bn: '🛡️ দ্বিধা সিমুলেশন (ট্রে সোজা করুন 0°)',
+      hi: '🛡️ झिझक सिमुलेशन (ट्रे 0° पर संरेखित करें)',
+      en: '🛡️ Simulate Hesitation (Auto-Align Tray 0°)',
+    },
+    testAutoAssist: {
+      as: '💡 মৰ্যাদাপূৰ্ণ স্বতঃ-সহায় পৰীক্ষা',
+      bn: '💡 মর্যাদাপূর্ণ স্বতঃ-সহায়তা পরীক্ষা',
+      hi: '💡 गरिमा ऑटो-असिस्ट परीक्षण',
+      en: '💡 Test Dignity Auto-Assist Glide',
+    },
+    testVoicePrompt: {
+      as: '🔊 স্থানীয় মাতৰ সংকেত পৰীক্ষা',
+      bn: '🔊 স্থানীয় কণ্ঠস্বর ইঙ্গিত পরীক্ষা',
+      hi: '🔊 स्थानीय आवाज संकेत परीक्षण',
+      en: '🔊 Test Vernacular Voice Prompt',
+    },
+    ghostGuideLabel: {
+      as: 'সহায়িকা ছবি',
+      bn: 'সহায়িকা ছবি',
+      hi: 'सहायक चित्र',
+      en: 'Ghost Guide',
+    },
+    trayStraightens: {
+      as: 'ট্ৰে’ পোন কৰাৰ অনুৰোধ',
+      bn: 'ট্রে সোজা করার অনুরোধ',
+      hi: 'ट्रे सीधा करने के अनुरोध',
+      en: 'Tray Straightens',
+    },
+    manualScrambles: {
+      as: 'মেনুৱেল স্ক্ৰেম্বুল',
+      bn: 'ম্যানুয়াল স্ক্র্যাম্বল',
+      hi: 'मैन्युअल स्क्रेम्बल',
+      en: 'Manual Scrambles',
+    },
+    executiveFilter: {
+      as: 'কাৰ্যবাহী ফিল্টাৰ',
+      bn: 'কার্যনির্বাহী ফিল্টার',
+      hi: 'कार्यकारी फिल्टर',
+      en: 'Executive Filter',
+    },
+    aiSettingsRationale: {
+      as: '⚙️ AI ছেটিংছ অভিযোজন যুক্তি:',
+      bn: '⚙️ AI সেটিংস অভিযোজন যুক্তি:',
+      hi: '⚙️ AI सेटिंग्स अनुकूलन तर्क:',
+      en: '⚙️ AI Settings Adaptation Rationale:',
+    },
+    latentAbility: {
+      as: 'সুপ্ত ক্ষমতা (θ)',
+      bn: 'সুপ্ত ক্ষমতা (θ)',
+      hi: 'अव्यक्त क्षमता (θ)',
+      en: 'Latent Ability (θ)',
+    },
+    parietalSynthesis: {
+      as: 'পেৰাইটেল সংশ্লেষণ',
+      bn: 'প্যারাইটাল সংশ্লেষণ',
+      hi: 'पार्श्विका संश्लेषण',
+      en: 'Parietal Synthesis',
+    },
+    rotationalErrors: {
+      as: 'ঘূৰ্ণন ত্ৰুটি',
+      bn: 'ঘূর্ণন ত্রুটি',
+      hi: 'घूर्णन त्रुटियां',
+      en: 'Rotational Errors',
+    },
+    tremorDebounce: {
+      as: 'কম্পন ফিল্টাৰ',
+      bn: 'কম্পন ফিল্টার',
+      hi: 'कंपन फिल्टर',
+      en: 'Tremor Debounce',
+    },
+    deliberation: {
+      as: 'চিন্তা-ভাৱনাৰ সময়',
+      bn: 'চিন্তা-ভাবনার সময়',
+      hi: 'विचार-विमर्श समय',
+      en: 'Deliberation',
+    },
+    tapArtwork: {
+      as: 'লগে লগে লোড কৰিবলৈ যিকোনো ছবিত স্পৰ্শ কৰক',
+      bn: 'সাথে সাথে লোড করতে যেকোনো ছবিতে স্পর্শ করুন',
+      hi: 'लोड करने के लिए किसी भी चित्र को टैप करें',
+      en: 'Tap any artwork to load immediately',
+    },
+    liveAIAnalysis: {
+      as: 'প্ৰত্যক্ষ AI প্ৰজ্ঞান-মটৰ বিশ্লেষণ',
+      bn: 'লাইভ AI জ্ঞানীয়-মোটর বিশ্লেষণ',
+      hi: 'लाइव AI संज्ञानात्मक-मोटर विश्लेषण',
+      en: 'Live AI Cognitive-Motor Analysis',
+    },
+    noPiecesFilter: {
+      as: 'এই বিভাগৰ ফিল্টাৰত কোনো টুকুৰা নাই।',
+      bn: 'এই বিভাগের ফিল্টারে কোনো টুকরো নেই।',
+      hi: 'इस श्रेणी फिल्टर में कोई टुकड़ा नहीं है।',
+      en: 'No pieces in this category filter.',
+    },
+    showAllPieces: {
+      as: 'সকলো টুকুৰা দেখুৱাওক',
+      bn: 'সব টুকরো দেখান',
+      hi: 'सभी टुकड़े दिखाएं',
+      en: 'Show All Pieces',
+    },
+    allPiecesAssembled: {
+      as: 'সকলো টুকুৰা গ্ৰিডত সংযোগ কৰা হ’ল!',
+      bn: 'সব টুকরো গ্রিডে জোড়া হয়েছে!',
+      hi: 'सभी टुकड़े ग्रिड में जुड़ गए!',
+      en: 'All pieces assembled into grid!',
+    },
+    parietalStimulation: {
+      as: 'পেৰাইটেল দৃষ্টি-মটৰ উদ্দীপনা',
+      bn: 'প্যারাইটাল দৃষ্টি-মোটর উদ্দীপনা',
+      hi: 'पार्श्विका दृश्य-मोटर उत्तेजना',
+      en: 'Parietal Visuomotor Stimulation',
+    },
+    clinicalAnalysisTitle: {
+      as: 'দৃষ্টি-নিৰ্মাণমূলক কাৰ্যকৰী চিকিৎসা বিশ্লেষণ',
+      bn: 'দৃষ্টি-নির্মাণমূলক কার্যকরী ক্লিনিক্যাল বিশ্লেষণ',
+      hi: 'दृश्य-रचनात्मक क्रियात्मकता नैदानिक विश्लेषण',
+      en: 'Visuoconstructional Praxis Clinical Analysis',
+    },
+    clinicalSubtitle: {
+      as: 'মানক WAIS-IV ব্লক ডিজাইন আৰু CERAD দৃষ্টি-মটৰ মূল্যায়ন',
+      bn: 'মানসম্মত WAIS-IV ব্লক ডিজাইন ও CERAD দৃষ্টি-মোটর মূল্যায়ন',
+      hi: 'मानकीकृत WAIS-IV ब्लॉक डिजाइन एवं CERAD दृश्य-मोटर मूल्यांकन',
+      en: 'Standardized WAIS-IV Block Design & CERAD Visuomotor Assessment',
+    },
+    waisPraxis: {
+      as: 'WAIS-IV প্ৰেক্সিছ',
+      bn: 'WAIS-IV প্র্যাক্সিস',
+      hi: 'WAIS-IV प्रैक्सिस',
+      en: 'WAIS-IV Praxis',
+    },
+    standardPraxis: {
+      as: 'মানক প্ৰেক্সিছ',
+      bn: 'মানক প্র্যাক্সিস',
+      hi: 'मानक प्रैक्सिस',
+      en: 'Standard Praxis',
+    },
+    ceradIndex: {
+      as: 'CERAD সূচক',
+      bn: 'CERAD সূচক',
+      hi: 'CERAD सूचकांक',
+      en: 'CERAD Index',
+    },
+    visuomotorScore: {
+      as: 'দৃষ্টি-মটৰ স্ক’ৰ',
+      bn: 'দৃষ্টি-মোটর স্কোর',
+      hi: 'दृश्य-मोटर स्कोर',
+      en: 'Visuomotor Score',
+    },
+    autonomyRating: {
+      as: 'স্বায়ত্তশাসন ৰেটিং',
+      bn: 'স্বায়ত্তশাসন রেটিং',
+      hi: 'स्वायत्तता रेटिंग',
+      en: 'Autonomy Rating',
+    },
+    parietalFunction: {
+      as: 'পেৰাইটেল কাৰ্যপ্ৰণালী',
+      bn: 'প্যারাইটাল কার্যপ্রণালী',
+      hi: 'पार्श्विका कार्यप्रणाली',
+      en: 'Parietal Function',
+    },
+    coordinateMapping: {
+      as: 'স্থানাংক মানচিত্ৰণ',
+      bn: 'স্থানাঙ্ক ম্যাপিং',
+      hi: 'निर्देशांक मानचित्रण',
+      en: 'Coordinate Mapping',
+    },
+    tremorGuard: {
+      as: 'কম্পন ফিল্টাৰ গাৰ্ড',
+      bn: 'কম্পন ফিল্টার গার্ড',
+      hi: 'कंपन फिल्टर गार्ड',
+      en: 'Tremor Guard',
+    },
+    motorProfile: {
+      as: 'মটৰ প্ৰফাইল',
+      bn: 'মোটর প্রোফাইল',
+      hi: 'मोटर प्रोफाइल',
+      en: 'Motor Profile',
+    },
+    tactileTrajectory: {
+      as: 'স্পৰ্শ গতিপথ',
+      bn: 'স্পর্শ গতিপথ',
+      hi: 'स्पर्श प्रक्षेपवक्र',
+      en: 'Tactile Trajectory',
+    },
+    straightenRequests: {
+      as: 'পোন কৰাৰ অনুৰোধ',
+      bn: 'সোজা করার অনুরোধ',
+      hi: 'सीधा करने के अनुरोध',
+      en: 'Straighten Requests',
+    },
+    autonomyStrategyProfile: {
+      as: 'ৰোগী স্বায়ত্তশাসন আৰু সহায়িকা কৌশল প্ৰফাইল',
+      bn: 'রোগী স্বায়ত্তশাসন ও সহায়িকা কৌশল প্রোফাইল',
+      hi: 'रोगी स्वायत्तता एवं मचान रणनीति प्रोफाइल',
+      en: 'Patient Autonomy & Scaffolding Strategy Profile',
+    },
+    visualReference: {
+      as: 'দৃষ্টিগোচৰ প্ৰসংগ',
+      bn: 'দৃষ্টিগোচর প্রসঙ্গ',
+      hi: 'दृश्य संदर्भ',
+      en: 'Visual Reference',
+    },
+    rotationalScaffolding: {
+      as: 'ঘূৰ্ণন সহায়িকা',
+      bn: 'ঘূর্ণন সহায়িকা',
+      hi: 'घूर्णन मचान',
+      en: 'Rotational Scaffolding',
+    },
+    executiveStrategy: {
+      as: 'কাৰ্যবাহী কৌশল',
+      bn: 'কার্যনির্বাহী কৌশল',
+      hi: 'कार्यकारी रणनीति',
+      en: 'Executive Strategy',
+    },
+    aiDiagnosticSummary: {
+      as: 'AI চিকিৎসা নিদানিক সাৰাংশ',
+      bn: 'AI ক্লিনিক্যাল ডায়াগনস্টিক সারাংশ',
+      hi: 'AI नैदानिक सारांश',
+      en: 'AI Clinical Diagnostic Summary',
+    },
+    returnToDashboard: {
+      as: 'ডেচব’ৰ্ডলৈ উভতি যাওক',
+      bn: 'ড্যাশবোর্ডে ফিরে যান',
+      hi: 'डैशबोर्ड पर लौटें',
+      en: 'Return to Dashboard',
     },
   };
 
@@ -839,17 +1080,17 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                 ? 'bg-amber-500 text-white border-amber-600 shadow-md ring-2 ring-amber-300'
                 : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
             }`}
-            title="Inspect AI dynamic variables & test live clinical features"
+            title={language === 'hi' ? 'AI गतिशील चर देखें और क्लिनिकल सुविधाओं का परीक्षण करें' : 'Inspect AI dynamic variables & test live clinical features'}
           >
             <Sliders className="w-3.5 h-3.5" />
-            <span>AI Testbed</span>
+            <span>{language === 'hi' ? 'AI क्लिनिकल टेस्टबेड' : 'AI Testbed'}</span>
             {showTestbed ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
 
           {/* Ability Theta Pill */}
           <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-black text-slate-700 shadow-2xs">
             <Brain className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-            <span>Ability (θ): <strong>{engine.getTheta() >= 0 ? `+${engine.getTheta().toFixed(2)}` : engine.getTheta().toFixed(2)}</strong></span>
+            <span>{language === 'hi' ? 'क्षमता (θ):' : 'Ability (θ):'} <strong>{engine.getTheta() >= 0 ? `+${engine.getTheta().toFixed(2)}` : engine.getTheta().toFixed(2)}</strong></span>
           </div>
 
           {/* Gallery Artwork Picker */}
@@ -931,7 +1172,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
           <div className="flex items-center justify-between border-b border-white/10 pb-3 flex-wrap gap-2">
             <div className="flex items-center gap-2 text-xs font-black tracking-widest text-amber-400 uppercase">
               <Sliders className="w-4 h-4" />
-              <span>National Visuoconstructional Praxis AI Inspector &amp; Testbed</span>
+              <span>{language === 'hi' ? 'विज़ुओकंस्ट्रक्शनल प्रैक्सिस AI विश्लेषक एवं टेस्टबेड' : 'National Visuoconstructional Praxis AI Inspector & Testbed'}</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-1 rounded-lg">
@@ -964,7 +1205,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                 title="Simulates rapid patient flow: dynamically perturbs tray piece angles to 90°/180°/270°"
               >
                 <Zap className="w-3.5 h-3.5 text-amber-300" />
-                <span>⚡ Simulate Rapid Flow (Perturb Tray Angles)</span>
+                <span>{t.simulateRapid[language]}</span>
               </button>
 
               <button
@@ -973,7 +1214,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                 title="Simulates hesitation: auto-aligns all tray pieces upright to 0°"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-200" />
-                <span>🛡️ Simulate Hesitation (Auto-Align Tray 0°)</span>
+                <span>{t.simulateHesitation[language]}</span>
               </button>
 
               <button
@@ -982,7 +1223,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                 title="Fires dignity auto-assist pulse"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>💡 Test Dignity Auto-Assist Glide</span>
+                <span>{t.testAutoAssist[language]}</span>
               </button>
 
               <button
@@ -990,7 +1231,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                 className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5 transition-all active:scale-95"
               >
                 <Volume2 className="w-3.5 h-3.5 text-amber-300" />
-                <span>🔊 Test Vernacular Voice Prompt</span>
+                <span>{t.testVoicePrompt[language]}</span>
               </button>
             </div>
           </div>
@@ -1044,7 +1285,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                <span className="text-[10px] text-slate-400 block uppercase font-bold">Ghost Guide</span>
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">{t.ghostGuideLabel[language]}</span>
                 <span className={`font-black text-xs flex items-center gap-1 mt-0.5 ${!isGhostVisible ? 'text-emerald-400' : 'text-amber-300'}`}>
                   {!isGhostVisible ? 'OFF (+0.75 IRT Bonus)' : `ON (${Math.round(difficulty.ghostOpacity * 100)}% Guide)`}
                 </span>
@@ -1054,7 +1295,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
               </div>
 
               <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                <span className="text-[10px] text-slate-400 block uppercase font-bold">Tray Straightens</span>
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">{t.trayStraightens[language]}</span>
                 <span className={`font-black text-xs flex items-center gap-1 mt-0.5 ${manualStraightenCount > 0 ? 'text-indigo-300' : 'text-slate-200'}`}>
                   {manualStraightenCount} Request(s)
                 </span>
@@ -1064,7 +1305,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
               </div>
 
               <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                <span className="text-[10px] text-slate-400 block uppercase font-bold">Manual Scrambles</span>
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">{t.manualScrambles[language]}</span>
                 <span className={`font-black text-xs flex items-center gap-1 mt-0.5 ${manualScrambleCount > 0 ? 'text-emerald-400' : 'text-slate-200'}`}>
                   {manualScrambleCount} Provocation(s)
                 </span>
@@ -1074,7 +1315,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
               </div>
 
               <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                <span className="text-[10px] text-slate-400 block uppercase font-bold">Executive Filter</span>
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">{t.executiveFilter[language]}</span>
                 <span className="font-black text-xs text-amber-300 capitalize mt-0.5 block">
                   {trayCategoryFilter} pieces
                 </span>
@@ -1086,7 +1327,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
 
             {lastSettingsImpactRationale && (
               <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-[11px] text-amber-200 leading-relaxed">
-                <strong>⚙️ AI Settings Adaptation Rationale:</strong> {lastSettingsImpactRationale}
+                <strong>{t.aiSettingsRationale[language]}</strong> {lastSettingsImpactRationale}
               </div>
             )}
           </div>
@@ -1094,25 +1335,25 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
           {/* Section D: Live Real-Time Diagnostics Telemetry Bar */}
           <div className="pt-2 border-t border-white/10 grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono text-xs">
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Latent Ability (θ)</span>
+              <span className="text-slate-400 block text-[10px] uppercase">{t.latentAbility[language]}</span>
               <strong className="text-base text-amber-300">{engine.getTheta() >= 0 ? `+${engine.getTheta().toFixed(2)}` : engine.getTheta().toFixed(2)}</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Parietal Synthesis</span>
+              <span className="text-slate-400 block text-[10px] uppercase">{t.parietalSynthesis[language]}</span>
               <strong className="text-base text-emerald-300">
                 {Math.max(10, Math.min(100, Math.round(100 - (rotationalErrorsCount * 18) - (misplacements * 8))))}%
               </strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Rotational Errors</span>
+              <span className="text-slate-400 block text-[10px] uppercase">{t.rotationalErrors[language]}</span>
               <strong className="text-base text-rose-300">{rotationalErrorsCount}</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Tremor Debounce</span>
+              <span className="text-slate-400 block text-[10px] uppercase">{t.tremorDebounce[language]}</span>
               <strong className="text-base text-cyan-300">{engine.getTremorFilteredCount()} taps filtered</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Deliberation</span>
+              <span className="text-slate-400 block text-[10px] uppercase">{t.deliberation[language]}</span>
               <strong className="text-base text-purple-300">{elapsedSeconds}s elapsed</strong>
             </div>
           </div>
@@ -1127,7 +1368,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             <h4 className="text-xs font-black uppercase text-slate-800">
               Cultural Artworks Gallery ({PUZZLE_IMAGES.length} Available)
             </h4>
-            <span className="text-[11px] text-slate-500">Tap any artwork to load immediately</span>
+            <span className="text-[11px] text-slate-500">{t.tapArtwork[language]}</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1162,7 +1403,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-1">
-                <span>Live AI Cognitive-Motor Analysis</span>
+                <span>{t.liveAIAnalysis[language]}</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
               </span>
 
@@ -1172,18 +1413,18 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                   ? 'bg-emerald-100 text-emerald-900 border-emerald-300' 
                   : 'bg-amber-100 text-amber-900 border-amber-300'
               }`}>
-                {!isGhostVisible ? '★ Unassisted Ghost (+Bonus)' : 'Ghost Scaffolding'}
+                {!isGhostVisible ? (language === 'hi' ? '★ बिना सहायता भूत चित्र (+बोनस)' : '★ Unassisted Ghost (+Bonus)') : (language === 'hi' ? 'भूत चित्र मचान' : 'Ghost Scaffolding')}
               </span>
 
               {engine.getPatientPrefersUpright() && (
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase border bg-indigo-100 text-indigo-900 border-indigo-300">
-                  0° Upright Locked by Patient
+                  {language === 'hi' ? 'मरीज द्वारा 0° सीधा लॉक किया गया' : '0° Upright Locked by Patient'}
                 </span>
               )}
 
               {isMuted && (
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase border bg-rose-100 text-rose-800 border-rose-200">
-                  Audio Muted
+                  {language === 'hi' ? 'ऑडियो म्यूट' : 'Audio Muted'}
                 </span>
               )}
             </div>
@@ -1450,7 +1691,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
                   {/* Selected Pill Badge */}
                   {isSelected && (
                     <div className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-black uppercase shadow-xs">
-                      Selected
+                      {language === 'hi' ? 'चयनित' : 'Selected'}
                     </div>
                   )}
                 </div>
@@ -1460,12 +1701,12 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             {/* When Tray Filter Returns Empty */}
             {unplacedPieces.length === 0 && pieces.some(p => !p.isLocked) && (
               <div className="col-span-full py-8 text-center text-slate-400">
-                <p className="text-xs font-bold">No pieces in this category filter.</p>
+                <p className="text-xs font-bold">{t.noPiecesFilter[language]}</p>
                 <button
                   onClick={() => setTrayCategoryFilter('all')}
                   className="mt-1 text-xs text-amber-700 font-bold underline cursor-pointer"
                 >
-                  Show All Pieces
+                  {t.showAllPieces[language]}
                 </button>
               </div>
             )}
@@ -1474,7 +1715,7 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
             {pieces.filter(p => !p.isLocked).length === 0 && (
               <div className="col-span-full flex flex-col items-center justify-center p-8 text-center text-slate-400">
                 <CheckCircle2 className="w-10 h-10 text-emerald-500 mb-2" />
-                <p className="text-sm font-bold text-slate-700">All pieces assembled into grid!</p>
+                <p className="text-sm font-bold text-slate-700">{t.allPiecesAssembled[language]}</p>
               </div>
             )}
           </div>
@@ -1483,10 +1724,12 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
           <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 text-xs text-amber-900/90 space-y-1">
             <div className="flex items-center gap-1.5 font-black text-amber-950">
               <Brain className="w-4 h-4 text-amber-700 shrink-0" />
-              <span>Parietal Visuomotor Stimulation</span>
+              <span>{t.parietalStimulation[language]}</span>
             </div>
             <p className="text-[11px] leading-relaxed text-amber-900/80">
-              Fine-grained titration dynamically challenges mental rotation (Shepard-Metzler paradigm) while 400ms motor debouncing filters involuntary tremors.
+              {language === 'hi'
+                ? 'सूक्ष्म अनुमापन मानसिक घूर्णन को चुनौती देता है जबकि 400ms मोटर डिबाउंस अनैच्छिक कंपन को फिल्टर करता है।'
+                : 'Fine-grained titration dynamically challenges mental rotation (Shepard-Metzler paradigm) while 400ms motor debouncing filters involuntary tremors.'}
             </p>
           </div>
 
@@ -1505,7 +1748,9 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
               {t.completedPuzzleTitle[language]}
             </h3>
             <p className="text-xs text-emerald-800 font-medium mt-1">
-              Solved in {elapsedSeconds}s with {misplacements} attempt(s) and {rotationsUsed} rotation(s).
+              {language === 'hi' 
+                ? `${elapsedSeconds} सेकंड में हल किया (${misplacements} प्रयास, ${rotationsUsed} घूर्णन)।` 
+                : `Solved in ${elapsedSeconds}s with ${misplacements} attempt(s) and ${rotationsUsed} rotation(s).`}
             </p>
           </div>
 
@@ -1519,167 +1764,23 @@ export const JigsawPuzzle: React.FC<JigsawPuzzleProps> = ({
         </div>
       )}
 
-      {/* 7. COMPREHENSIVE CLINICAL ANALYSIS MODAL */}
+      {/* 7. WARM SENIOR-FRIENDLY COMPLETION VIEW (NO CLINICAL DIAGNOSTICS) */}
       {isSessionFinished && (
-        <div className="p-8 rounded-3xl bg-white border-2 border-slate-300 shadow-2xl space-y-6 animate-fadeIn">
-          
-          <div className="text-center space-y-1.5">
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center mx-auto text-3xl shadow-md">
-              🏆
-            </div>
-            <h3 className="text-2xl font-black text-slate-900">
-              Visuoconstructional Praxis Clinical Analysis
-            </h3>
-            <p className="text-xs text-slate-500 font-medium">
-              Standardized WAIS-IV Block Design & CERAD Visuomotor Assessment
-            </p>
-          </div>
-
-          {(() => {
-            const summary = engine.compileSessionSummary(sessionTrials);
-            return (
-              <>
-                {/* Comprehensive Clinical Metrics Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
-                  
-                  {/* 1. WAIS-IV Block Design Score */}
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">WAIS-IV Praxis</span>
-                    <p className="text-xl font-black text-slate-900 mt-0.5">
-                      {summary.spatialPraxisScore} / 5
-                    </p>
-                    <span className="text-[11px] text-emerald-700 font-semibold">Standard Praxis</span>
-                  </div>
-
-                  {/* 2. CERAD Praxis Scale */}
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">CERAD Index</span>
-                    <p className="text-xl font-black text-amber-700 mt-0.5">
-                      {summary.estimatedCERADPraxisScore} / 14
-                    </p>
-                    <span className="text-[11px] text-slate-500 font-semibold">Visuomotor Score</span>
-                  </div>
-
-                  {/* 3. Latent Ability Theta */}
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Latent Ability θ</span>
-                    <p className="text-xl font-black text-indigo-700 mt-0.5">
-                      {summary.finalTheta >= 0 ? '+' : ''}{summary.finalTheta.toFixed(2)}
-                    </p>
-                    <span className="text-[11px] text-indigo-600 font-semibold">2PL IRT Calibration</span>
-                  </div>
-
-                  {/* 4. Patient Autonomy Rating */}
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Autonomy Rating</span>
-                    <p className="text-xs font-black text-slate-900 mt-1 uppercase">
-                      {summary.patientSettingsAutonomyRating.replace(/_/g, ' ')}
-                    </p>
-                    <span className="text-[11px] text-emerald-600 font-semibold">
-                      {100 - summary.ghostGuideReliancePercentage}% Ghost Independence
-                    </span>
-                  </div>
-
-                  {/* 5. Right Parietal Function */}
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Parietal Function</span>
-                    <p className="text-sm font-black text-slate-900 mt-1 capitalize">
-                      {summary.parietalPraxisRating.replace(/_/g, ' ')}
-                    </p>
-                    <span className="text-[11px] text-slate-500 font-semibold">Coordinate Mapping</span>
-                  </div>
-
-                  {/* 6. Tremor Filtration Audit */}
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Tremor Guard</span>
-                    <p className="text-xl font-black text-emerald-700 mt-0.5">
-                      {summary.tremorTapsFilteredCount} Filtered
-                    </p>
-                    <span className="text-[11px] text-emerald-600 font-semibold">400ms Debounce</span>
-                  </div>
-
-                  {/* 7. Visuomotor Trajectory Profile */}
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Motor Profile</span>
-                    <p className="text-sm font-black text-slate-900 mt-1 capitalize">
-                      {summary.visuomotorProfile.replace(/_/g, ' ')}
-                    </p>
-                    <span className="text-[11px] text-slate-500 font-semibold">Tactile Trajectory</span>
-                  </div>
-
-                  {/* 8. Orientation Scaffolding Requests */}
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Straighten Requests</span>
-                    <p className="text-xl font-black text-indigo-700 mt-0.5">
-                      {summary.totalManualStraightens}
-                    </p>
-                    <span className="text-[11px] text-indigo-600 font-semibold">
-                      {summary.totalManualScrambles} Manual Scrambles
-                    </span>
-                  </div>
-
-                </div>
-
-                {/* Patient Autonomy & Scaffolding Strategy Analysis Card */}
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-slate-50 border border-indigo-200 text-left space-y-2.5">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div className="flex items-center gap-2 font-black text-xs text-indigo-950 uppercase">
-                      <Sliders className="w-4 h-4 text-indigo-600" />
-                      <span>Patient Autonomy & Scaffolding Strategy Profile</span>
-                    </div>
-                    <span className="text-[11px] font-black uppercase px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-300">
-                      Rating: {summary.patientSettingsAutonomyRating.replace(/_/g, ' ')}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-                    <div className="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs space-y-1">
-                      <span className="text-[10px] font-black text-slate-400 uppercase block">Visual Reference</span>
-                      <p className="text-slate-800 font-medium leading-relaxed">
-                        {summary.settingsAnalysisReport.ghostGuideIndependence}
-                      </p>
-                    </div>
-
-                    <div className="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs space-y-1">
-                      <span className="text-[10px] font-black text-slate-400 uppercase block">Rotational Scaffolding</span>
-                      <p className="text-slate-800 font-medium leading-relaxed">
-                        {summary.settingsAnalysisReport.rotationalAssistanceReliance}
-                      </p>
-                    </div>
-
-                    <div className="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs space-y-1">
-                      <span className="text-[10px] font-black text-slate-400 uppercase block">Executive Strategy</span>
-                      <p className="text-slate-800 font-medium leading-relaxed">
-                        {summary.settingsAnalysisReport.executiveChunkingStrategy}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* AI Clinical Diagnostic Synthesis */}
-                <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-left space-y-1">
-                  <div className="flex items-center gap-2 font-black text-xs text-amber-950 uppercase">
-                    <Brain className="w-4 h-4 text-amber-700" />
-                    <span>AI Clinical Diagnostic Summary</span>
-                  </div>
-                  <p className="text-xs text-amber-900/90 leading-relaxed">
-                    Patient completed <strong>{summary.totalPuzzles} puzzles</strong> with an accuracy rate of <strong>{summary.accuracyPercentage}%</strong>.
-                    Average construction solve time: <strong>{summary.meanSolveTimeSeconds}s</strong>.
-                    The AI evaluated {summary.totalRotationalErrors} rotational error(s) and executed {summary.totalAIDynamicInterventions} dynamic tray reorientations.
-                    Settings analysis confirmed <strong>{100 - summary.ghostGuideReliancePercentage}% unassisted ghost-free solving</strong> and <strong>{summary.totalManualStraightens} manual straightening request(s)</strong>, directly integrated into the calibrated ability level θ ({summary.finalTheta >= 0 ? '+' : ''}{summary.finalTheta.toFixed(2)}).
-                  </p>
-                </div>
-              </>
-            );
-          })()}
-
-          <button
-            onClick={onExit}
-            className="w-full sm:w-auto px-10 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm shadow-md transition-all cursor-pointer"
-          >
-            Return to Dashboard
-          </button>
-        </div>
+        <PatientGameCompletionView
+          language={language}
+          activityTitle={language === 'hi' ? 'जिगसॉ पहेली' : 'Jigsaw Puzzle'}
+          stats={[
+            {
+              label: language === 'hi' ? 'हल की गई पहेलियां' : 'Puzzles Solved',
+              value: `${totalPuzzles} / ${totalPuzzles}`,
+            },
+            {
+              label: language === 'hi' ? 'सफलता दर' : 'Completion Rate',
+              value: '100%',
+            },
+          ]}
+          onExit={onExit}
+        />
       )}
 
     </div>

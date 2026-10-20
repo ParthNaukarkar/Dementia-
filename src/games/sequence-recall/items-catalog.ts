@@ -4,10 +4,10 @@ export const SEQUENCE_ITEMS: SequenceItem[] = [
   {
     id: 'dhol',
     names: {
-      as: 'ঢোল (Dhol)',
-      bn: 'ঢোল (Dhol)',
-      hi: 'ढोल (Dhol)',
-      en: 'Drum (Dhol)'
+      as: 'ঢোলক (Dholak)',
+      bn: 'ঢোলক (Dholak)',
+      hi: 'ढोलक (Dholak)',
+      en: 'Folk Drum (Dholak)'
     },
     category: 'instrument',
     color: 'text-amber-700',
@@ -20,10 +20,10 @@ export const SEQUENCE_ITEMS: SequenceItem[] = [
   {
     id: 'japi',
     names: {
-      as: 'জাপি (Japi)',
-      bn: 'জাপি (Japi)',
-      hi: 'जापी (Japi)',
-      en: 'Sun Hat (Japi)'
+      as: 'পাগুৰী (Pagri)',
+      bn: 'পাগড়ি (Pagri)',
+      hi: 'पगड़ी (Pagri)',
+      en: 'Heritage Turban (Pagri)'
     },
     category: 'cultural',
     color: 'text-yellow-700',
@@ -36,10 +36,10 @@ export const SEQUENCE_ITEMS: SequenceItem[] = [
   {
     id: 'pepa',
     names: {
-      as: 'পেঁপা (Pepa)',
-      bn: 'পেঁপা (Pepa)',
-      hi: 'पेंपा (Pepa)',
-      en: 'Horn (Pepa)'
+      as: 'পৱিত্ৰ শংখ (Shankha)',
+      bn: 'পবিত্র শাঁখ (Shankha)',
+      hi: 'पावन शंख (Shankha)',
+      en: 'Sacred Conch (Shankha)'
     },
     category: 'instrument',
     color: 'text-rose-700',
@@ -52,10 +52,10 @@ export const SEQUENCE_ITEMS: SequenceItem[] = [
   {
     id: 'xorai',
     names: {
-      as: 'শৰাই (Xorai)',
-      bn: 'শরাই (Xorai)',
-      hi: 'शराई (Xorai)',
-      en: 'Bell-metal Vessel (Xorai)'
+      as: 'পিতলৰ ঘণ্টা (Temple Bell)',
+      bn: 'মন্দিরের ঘণ্টা (Temple Bell)',
+      hi: 'मंदिर की घंटी (Temple Bell)',
+      en: 'Temple Bronze Bell'
     },
     category: 'cultural',
     color: 'text-purple-700',
@@ -68,10 +68,10 @@ export const SEQUENCE_ITEMS: SequenceItem[] = [
   {
     id: 'toka',
     names: {
-      as: 'টকা (Toka)',
-      bn: 'টকা (Toka)',
-      hi: 'टोका (Toka)',
-      en: 'Bamboo Clapper (Toka)'
+      as: 'মঞ্জিৰা (Manjira)',
+      bn: 'করতাল (Kartal)',
+      hi: 'मंजीरा (Manjira)',
+      en: 'Folk Cymbals (Manjira)'
     },
     category: 'instrument',
     color: 'text-emerald-700',
@@ -84,10 +84,10 @@ export const SEQUENCE_ITEMS: SequenceItem[] = [
   {
     id: 'bansuri',
     names: {
-      as: 'বাঁহী (Bansuri)',
-      bn: 'বাঁশি (Bansuri)',
-      hi: 'बांसुरी (Bansuri)',
-      en: 'Flute (Bansuri)'
+      as: 'সুৰীয়া বাঁহী (Bansuri)',
+      bn: 'মধুর বাঁশি (Bansuri)',
+      hi: 'मधुर बांसुरी (Bansuri)',
+      en: 'Classical Flute (Bansuri)'
     },
     category: 'instrument',
     color: 'text-sky-700',
@@ -100,10 +100,10 @@ export const SEQUENCE_ITEMS: SequenceItem[] = [
   {
     id: 'kamal',
     names: {
-      as: 'পদ্ম (Kamal)',
-      bn: 'পদ্ম (Kamal)',
-      hi: 'कमल (Kamal)',
-      en: 'Lotus Flower'
+      as: 'পৱিত্ৰ পদুম (Lotus)',
+      bn: 'পবিত্র পদ্ম (Lotus)',
+      hi: 'पवित्र कमल (Lotus)',
+      en: 'Sacred Lotus'
     },
     category: 'nature',
     color: 'text-pink-700',
@@ -116,10 +116,10 @@ export const SEQUENCE_ITEMS: SequenceItem[] = [
   {
     id: 'diya',
     names: {
-      as: 'চাকি (Diya)',
-      bn: 'প্রদীপ (Diya)',
-      hi: 'दीया (Diya)',
-      en: 'Oil Lamp (Diya)'
+      as: 'মাটিৰ চাকি (Diya)',
+      bn: 'মাটির প্রদীপ (Diya)',
+      hi: 'पावन दीया (Diya)',
+      en: 'Earthen Lamp (Diya)'
     },
     category: 'cultural',
     color: 'text-orange-700',

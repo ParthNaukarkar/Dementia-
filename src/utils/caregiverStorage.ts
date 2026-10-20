@@ -222,3 +222,77 @@ export function deleteStoredReport(patientId: string, reportId: string): void {
   const updated = current.filter(r => r.id !== reportId);
   saveStoredReports(patientId, updated);
 }
+
+// ─── SOS ALERTS STORAGE ────────────────────────────────────────────────────────
+
+const SOS_ALERTS_KEY = 'smriti_patient_sos_alerts_v1';
+
+export interface CaregiverSOSAlertItem {
+  id: string;
+  patientId: string;
+  patientName: string;
+  caretakerName: string;
+  timestamp: number;
+  timeFormatted: string;
+  emergencyContact: string;
+  triggerType: 'CALL_CAREGIVER' | 'CALL_112' | 'CALL_108' | 'MANUAL_ALERT' | 'MODAL_OPEN' | string;
+  triggerLabel: string;
+  status: 'active' | 'resolved';
+  resolvedAt?: number;
+  resolvedTimeFormatted?: string;
+  notes?: string;
+}
+
+export function getStoredSOSAlerts(patientId: string): CaregiverSOSAlertItem[] {
+  try {
+    const raw = localStorage.getItem(`${SOS_ALERTS_KEY}_${patientId}`);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return [];
+}
+
+export function saveStoredSOSAlerts(patientId: string, alerts: CaregiverSOSAlertItem[]): void {
+  try {
+    localStorage.setItem(`${SOS_ALERTS_KEY}_${patientId}`, JSON.stringify(alerts));
+    window.dispatchEvent(new CustomEvent('smriti_sos_alerts_updated', { detail: { patientId, alerts } }));
+  } catch (e) {
+    console.error('Failed to save SOS alerts:', e);
+  }
+}
+
+export function addStoredSOSAlert(
+  patientId: string,
+  alert: Omit<CaregiverSOSAlertItem, 'id' | 'status'> & { id?: string; status?: 'active' | 'resolved' }
+): CaregiverSOSAlertItem {
+  const current = getStoredSOSAlerts(patientId);
+  const newAlert: CaregiverSOSAlertItem = {
+    ...alert,
+    id: alert.id || `sos_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    status: alert.status || 'active',
+  };
+  const updated = [newAlert, ...current.filter((a) => a.id !== newAlert.id)].slice(0, 30);
+  saveStoredSOSAlerts(patientId, updated);
+  return newAlert;
+}
+
+export function resolveStoredSOSAlert(patientId: string, alertId: string): void {
+  const current = getStoredSOSAlerts(patientId);
+  const now = Date.now();
+  const timeFormatted = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const updated = current.map((a) =>
+    a.id === alertId
+      ? { ...a, status: 'resolved' as const, resolvedAt: now, resolvedTimeFormatted: timeFormatted }
+      : a
+  );
+  saveStoredSOSAlerts(patientId, updated);
+}
+
+export function deleteStoredSOSAlert(patientId: string, alertId: string): void {
+  const current = getStoredSOSAlerts(patientId);
+  const updated = current.filter((a) => a.id !== alertId);
+  saveStoredSOSAlerts(patientId, updated);
+}
+
+export function clearAllStoredSOSAlerts(patientId: string): void {
+  saveStoredSOSAlerts(patientId, []);
+}

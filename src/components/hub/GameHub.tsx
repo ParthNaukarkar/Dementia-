@@ -77,10 +77,10 @@ export const GameHub: React.FC<GameHubProps> = ({
       en: 'Prescribed Daily Therapy',
     },
     allLabel: {
-      as: 'সকলো ৮ টা ক্লিনিকেল ব্যায়াম (All 8 Games)',
-      bn: 'সমস্ত ৮টি ক্লিনিক্যাল ব্যায়াম (All 8 Games)',
-      hi: 'सभी ८ न्यूरो-अभ्यास (All 8 Games)',
-      en: 'All 8 Clinical Exercises',
+      as: 'সকলো ১০ টা ক্লিনিকেল ব্যায়াম (All 10 Games)',
+      bn: 'সমস্ত ১০টি ক্লিনিক্যাল ব্যায়াম (All 10 Games)',
+      hi: 'सभी १० न्यूरो-अभ्यास (All 10 Games)',
+      en: 'All 10 Clinical Exercises',
     },
     changePlanBtn: {
       as: 'পৰিকল্পনা সলনি কৰক',
@@ -123,7 +123,7 @@ export const GameHub: React.FC<GameHubProps> = ({
             <div className="flex items-center gap-2 mb-2">
               <span className="text-[11px] font-black uppercase tracking-wider bg-white/20 text-white px-2.5 py-0.5 rounded-full border border-white/25 backdrop-blur-xs flex items-center gap-1.5">
                 <Brain className="w-3.5 h-3.5" />
-                <span>Active Care Protocol</span>
+                <span>{language === 'hi' ? 'सक्रिय केयर प्रोटोकॉल' : 'Active Care Protocol'}</span>
               </span>
               {currentPresetInfo && (
                 <span className="text-[11px] font-bold text-amber-200 truncate hidden sm:inline">
@@ -139,23 +139,29 @@ export const GameHub: React.FC<GameHubProps> = ({
             <p className="text-xs sm:text-sm text-amber-100/90 mt-2 font-medium leading-relaxed">
               {currentPresetInfo 
                 ? currentPresetInfo.description[language]
-                : 'Customized clinical suite tailored to patient cognitive profile.'}
+                : (language === 'hi' ? 'रोगी के संज्ञानात्मक प्रोफाइल के अनुरूप अनुकूलित क्लिनिकल सुइट।' : 'Customized clinical suite tailored to patient cognitive profile.')}
             </p>
 
             {/* Quick Metrics Bar */}
             <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-4 text-xs font-bold text-amber-100">
               <div className="flex items-center gap-1.5 bg-black/15 px-3 py-1.5 rounded-xl border border-white/10">
                 <Activity className="w-4 h-4 text-amber-300" />
-                <span><strong>{prescription.prescribedGameIds.length}</strong> Exercises Active</span>
+                <span>
+                  <strong>{prescription.prescribedGameIds.length}</strong> {language === 'hi' ? 'सक्रिय व्यायाम' : 'Exercises Active'}
+                </span>
               </div>
               <div className="flex items-center gap-1.5 bg-black/15 px-3 py-1.5 rounded-xl border border-white/10">
                 <Clock className="w-4 h-4 text-amber-300" />
-                <span>~<strong>{prescription.dailyGoalMinutes}</strong> mins Daily Therapy</span>
+                <span>
+                  ~<strong>{prescription.dailyGoalMinutes}</strong> {language === 'hi' ? 'मिनट दैनिक थेरेपी' : 'mins Daily Therapy'}
+                </span>
               </div>
               {lastSessionReport && (
                 <div className="flex items-center gap-1.5 bg-emerald-900/40 text-emerald-200 px-3 py-1.5 rounded-xl border border-emerald-500/30">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Last MoCA Memory: <strong>{lastSessionReport.estimatedMoCAMemoryScore}/5</strong></span>
+                  <span>
+                    {language === 'hi' ? 'अंतिम MoCA स्मृति:' : 'Last MoCA Memory:'} <strong>{lastSessionReport.estimatedMoCAMemoryScore}/5</strong>
+                  </span>
                 </div>
               )}
             </div>
@@ -208,13 +214,13 @@ export const GameHub: React.FC<GameHubProps> = ({
             <span className={`text-[10px] px-1.5 py-0.2 rounded-md ${
               filterMode === 'ALL_GAMES' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
             }`}>
-              8
+              10
             </span>
           </button>
         </div>
 
         <p className="text-xs text-slate-500 font-medium">
-          Dementia-calibrated digital therapeutics • 100% offline
+          {language === 'hi' ? 'डिमेंशिया-कैलिब्रेटेड डिजिटल थेराप्यूटिक्स • 100% ऑफ़लाइन' : 'Dementia-calibrated digital therapeutics • 100% offline'}
         </p>
       </div>
 
@@ -247,7 +253,7 @@ export const GameHub: React.FC<GameHubProps> = ({
                       {isPrescribed ? t.prescribedBadge[language] : t.optionalBadge[language]}
                     </span>
                     <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
-                      ~{game.estimatedMinutes} mins
+                      ~{game.estimatedMinutes} {language === 'hi' ? 'मिनट' : 'mins'}
                     </span>
                   </div>
 
@@ -279,10 +285,10 @@ export const GameHub: React.FC<GameHubProps> = ({
                 {/* Clinical Science Box */}
                 <div className="mt-4 p-3 rounded-2xl bg-amber-50/60 border border-amber-100 text-[11px] space-y-1">
                   <div className="text-slate-700">
-                    <strong className="text-amber-950 font-bold">Standard:</strong> {game.clinicalStandard}
+                    <strong className="text-amber-950 font-bold">{language === 'hi' ? 'मानक:' : 'Standard:'}</strong> {game.clinicalStandard}
                   </div>
                   <div className="text-slate-600 font-medium">
-                    <strong className="text-amber-950 font-bold">Target Brain:</strong> {game.targetBrainArea}
+                    <strong className="text-amber-950 font-bold">{language === 'hi' ? 'लक्षित मस्तिष्क क्षेत्र:' : 'Target Brain:'}</strong> {game.targetBrainArea}
                   </div>
                 </div>
 
@@ -291,7 +297,7 @@ export const GameHub: React.FC<GameHubProps> = ({
               {/* Action Button (Large Touch Target >= 52px for Tremor/Motor Safety) */}
               <div className="p-4 sm:p-5 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between gap-3">
                 <div className="text-[11px] font-bold text-slate-500 hidden sm:block">
-                  Parametric DDA Active
+                  {language === 'hi' ? 'पैरामीट्रिक DDA सक्रिय' : 'Parametric DDA Active'}
                 </div>
 
                 <button

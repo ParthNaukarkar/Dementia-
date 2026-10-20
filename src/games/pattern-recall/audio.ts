@@ -221,24 +221,12 @@ class PatternRecallAudio {
   /**
    * Accessible Web Speech API TTS voice guidance calibrated at 0.85 rate
    */
-  public speakGuidance(text: string, language: SupportedLanguage) {
-    if (this.muted) return;
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.85; // Geriatric cognitive accessibility
-
-      const langMap: Record<SupportedLanguage, string> = {
-        hi: 'hi-IN',
-        en: 'en-IN',
-      };
-      utterance.lang = langMap[language] || 'en-IN';
-
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      // Speech synthesis fallback
+  public speakGuidance(_text: string, _language: SupportedLanguage) {
+    // Spoken voice permanently disabled
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
     }
   }
 }

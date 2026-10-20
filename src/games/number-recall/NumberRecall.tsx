@@ -17,12 +17,12 @@ import {
   AlertCircle,
   Delete,
   CornerDownLeft,
-  Award,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { NumberRecallEngine, NUMBER_RECALL_TIERS } from './engine';
 import { numberRecallAudio } from './audio';
 import { AdaptiveAssistanceEngine } from '../../engine/adaptive-assistance';
+import { PatientGameCompletionView } from '../../components/games/PatientGameCompletionView';
 import type {
   NumberRecallProps,
   NumberRecallDifficulty,
@@ -196,6 +196,258 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
       bn: 'সহায়ক সংকেত (Watermark)',
       hi: 'सहायक वॉटरमार्क (Watermark)',
       en: 'Ghost Watermark',
+    },
+    testbedTitle: {
+      as: 'WAIS-IV ডিজিট স্পান আৰু কাৰ্যকৰী স্মৃতি AI টেষ্টবেড',
+      bn: 'WAIS-IV ডিজিট স্প্যান ও কার্যকরী স্মৃতি AI টেস্টবেড',
+      hi: 'WAIS-IV डिजिट स्पैन एवं वर्किंग मेमोरी AI टेस्टबेड',
+      en: 'National WAIS-IV Digit Span & Working Memory AI Testbed',
+    },
+    profileLabel: {
+      as: 'প্ৰফাইল:',
+      bn: 'প্রোফাইল:',
+      hi: 'प्रोफ़ाइल:',
+      en: 'Profile:',
+    },
+    tierLabel: {
+      as: 'স্তৰ',
+      bn: 'স্তর',
+      hi: 'स्तर',
+      en: 'Tier',
+    },
+    digitsLabel: {
+      as: 'অংক',
+      bn: 'অঙ্ক',
+      hi: 'अंक',
+      en: 'Digits',
+    },
+    displayLabel: {
+      as: 'প্ৰদৰ্শন:',
+      bn: 'প্রদর্শন:',
+      hi: 'प्रदर्शन:',
+      en: 'Display:',
+    },
+    latentAbility: {
+      as: 'সুপ্ত ক্ষমতা θ (2PL IRT)',
+      bn: 'সুপ্ত ক্ষমতা θ (2PL IRT)',
+      hi: 'अव्यक्त क्षमता θ (2PL IRT)',
+      en: 'Latent Ability θ (2PL IRT)',
+    },
+    abilityRange: {
+      as: 'পৰিসৰ [-3.0, +3.0]। গতিশীল আইটেম কাঠিন্য',
+      bn: 'পরিসর [-3.0, +3.0]। গতিশীল আইটেম কাঠিন্য',
+      hi: 'दायरा [-3.0, +3.0]। गतिशील आइटम कठिनाई',
+      en: 'Range [-3.0, +3.0]. Dynamic Item Difficulty',
+    },
+    waisScaled: {
+      as: 'WAIS-IV স্কেল সমতুল্য',
+      bn: 'WAIS-IV স্কেল সমতুল্য',
+      hi: 'WAIS-IV समतुल्य स्केल स्कोर',
+      en: 'WAIS-IV Scaled Equivalent',
+    },
+    waisNorm: {
+      as: 'বয়স-মানক শতাংশ। মধ্যমা = 10',
+      bn: 'বয়স-মানক শতাংশ। মধ্যমা = 10',
+      hi: 'आयु-मानकीकृत प्रतिशतक। माध्य = 10',
+      en: 'Age-normed percentile. Median = 10.',
+    },
+    scaffoldingStatus: {
+      as: 'সহায়িকা অৱস্থা (Scaffolding)',
+      bn: 'সহায়িকা অবস্থা (Scaffolding)',
+      hi: 'मचान स्थिति (Scaffolding)',
+      en: 'Scaffolding Status',
+    },
+    watermarkLabel: {
+      as: 'জলছাপ',
+      bn: 'জলছাপ',
+      hi: 'वॉटरमार्क',
+      en: 'Watermark',
+    },
+    unassistedBonus: {
+      as: 'বিনা সহায়তাত (+বোনাস)',
+      bn: 'বিনা সহায়তায় (+বোনাস)',
+      hi: 'असहयोगित (+बोनस)',
+      en: 'Unassisted (+Bonus)',
+    },
+    modeLabel: {
+      as: 'ধৰণ:',
+      bn: 'মোড:',
+      hi: 'मोड:',
+      en: 'Mode:',
+    },
+    tremorGuard: {
+      as: 'কম্পন ফিল্টাৰ গাৰ্ড',
+      bn: 'কম্পন ফিল্টার গার্ড',
+      hi: 'कंपन फिल्टर गार्ड',
+      en: 'Tremor Debounce Guard',
+    },
+    tapsLabel: {
+      as: 'টেপ',
+      bn: 'ট্যাপ',
+      hi: 'टैप्स',
+      en: 'Taps',
+    },
+    debounceShield: {
+      as: 'ঘড়ী ঢালৰ সৈতে 400ms ডিবউন্স',
+      bn: 'ঘড়ি ঢালের সাথে 400ms ডিবউন্স',
+      hi: 'घड़ी शील्ड के साथ 400ms डिबाउंस',
+      en: '400ms Debounce with Clock Skew Shield',
+    },
+    directTierOverride: {
+      as: 'প্ৰত্যক্ষ স্তৰ বলপূৰ্বক অভাৰৰাইড:',
+      bn: 'প্রত্যক্ষ স্তর বলপূর্বক ওভাররাইড:',
+      hi: 'प्रत्यक्ष न्यूनतम स्तर ओवरराइड:',
+      en: 'Direct Minimal Step Tier Force Override:',
+    },
+    simulateResponse: {
+      as: 'প্ৰতিক্ৰিয়া অনুকৰণ কৰক:',
+      bn: 'প্রতিক্রিয়া অনুকরণ করুন:',
+      hi: 'प्रतिक्रिया अनुकरण करें:',
+      en: 'Simulate Response:',
+    },
+    fillPerfect: {
+      as: '✓ নিখুঁত অনুক্ৰম পূৰণ কৰক',
+      bn: '✓ নিখুঁত অনুক্রম পূরণ করুন',
+      hi: '✓ पूर्ण अनुक्रम भरें',
+      en: '✓ Fill Perfect Sequence',
+    },
+    fillTransposition: {
+      as: '⇄ স্থানান্তৰণ ত্ৰুটি পূৰণ কৰক',
+      bn: '⇄ স্থানান্তর ত্রুটি পূরণ করুন',
+      hi: '⇄ स्थानांतरण त्रुटि भरें',
+      en: '⇄ Fill Transposition Error',
+    },
+    fillReversal: {
+      as: '✕ ওলোটা ব্যৰ্থতা পূৰণ কৰক',
+      bn: '✕ উল্টো ব্যর্থতা পূরণ করুন',
+      hi: '✕ उलटाव विफलता भरें',
+      en: '✕ Fill Reversal Failure',
+    },
+    aiBannerTitle: {
+      as: 'ৰাষ্ট্ৰীয় প্ৰকৃত সময় বায়োচিয়ান ডিডিএ আৰু স্বায়ত্তশাসন বিশ্লেষণ',
+      bn: 'জাতীয় রিয়েল-টাইম বায়েসিয়ান ডিডিএ ও স্বায়ত্তশাসন বিশ্লেষণ',
+      hi: 'राष्ट्रीय वास्तविक समय बायेसियन डीडीए और स्वायत्तता विश्लेषण',
+      en: 'National Real-Time Bayesian DDA & Autonomy Analysis',
+    },
+    targetLabel: {
+      as: 'লক্ষ্য:',
+      bn: 'লক্ষ্য:',
+      hi: 'लक्ष्य:',
+      en: 'Target:',
+    },
+    yourEntry: {
+      as: 'আপোনাৰ প্ৰবিষ্টি:',
+      bn: 'আপনার এন্ট্রি:',
+      hi: 'आपकी प्रविष्टि:',
+      en: 'Your entry:',
+    },
+    primacyLabel: {
+      as: 'প্ৰাথমিকতা (প্ৰথম অংকসমূহ)',
+      bn: 'প্রাথমিকতা (প্রথম অঙ্কসমূহ)',
+      hi: 'प्राथमिकता (पहले अंक)',
+      en: 'Primacy (First Digits)',
+    },
+    recencyLabel: {
+      as: 'সাম্প্ৰতিকতা (শেষৰ অংকসমূহ)',
+      bn: 'সাম্প্রতিকতা (শেষের অঙ্কসমূহ)',
+      hi: 'नवीनता (अंतिम अंक)',
+      en: 'Recency (Last Digits)',
+    },
+    retainedLabel: {
+      as: '✓ মনত ৰখা হ’ল',
+      bn: '✓ মনে রাখা হয়েছে',
+      hi: '✓ याद रखा',
+      en: '✓ Retained',
+    },
+    missedLabel: {
+      as: '✗ বাদ পৰিল',
+      bn: '✗ বাদ পড়েছে',
+      hi: '✗ छूट गया',
+      en: '✗ Missed',
+    },
+    summarySubtitle: {
+      as: 'WAIS-IV ডিজিট স্পান আৰু ডৰ্ছ’লেটাৰেল প্ৰিফ্রন্টেল ৱৰ্কিং মেমৰি প্ৰফাইল',
+      bn: 'WAIS-IV ডিজিট স্প্যান ও ডরসোলেটারাল প্রিফ্রন্টাল ওয়ার্কিং মেমরি প্রোফাইল',
+      hi: 'WAIS-IV डिजिट स्पैन एवं पृष्ठीय-पार्श्व प्रीफ्रंटल वर्किंग मेमोरी प्रोफाइल',
+      en: 'WAIS-IV Digit Span & Dorsolateral Prefrontal Working Memory Profile',
+    },
+    waisScaledScore: {
+      as: 'WAIS-IV স্কেল স্ক’ৰ',
+      bn: 'WAIS-IV স্কেল স্কোর',
+      hi: 'WAIS-IV स्केल स्कोर',
+      en: 'WAIS-IV Scaled Score',
+    },
+    medianOlderAdult: {
+      as: 'বয়োজ্যেষ্ঠ প্ৰাপ্তবয়স্ক ভিত্তিৰেখা: 10',
+      bn: 'বয়স্কদের ভিত্তিরেখা: 10',
+      hi: 'वरिष्ठ वयस्क आधार रेखा: 10',
+      en: 'Median older adult baseline: 10',
+    },
+    maxForwardSpan: {
+      as: 'সৰ্বাধিক সম্মুখ স্পান',
+      bn: 'সর্বোচ্চ সম্মুখ স্প্যান',
+      hi: 'अधिकतम सीधा स्पैन',
+      en: 'Max Forward Span',
+    },
+    phonologicalEchoic: {
+      as: 'ধ্বনিগত প্ৰতিধ্বনি স্পান',
+      bn: 'ধ্বনিগত প্রতিধ্বনি স্প্যান',
+      hi: 'ध्वन्यात्मक प्रतिध्वनि स्पैन',
+      en: 'Phonological echoic span',
+    },
+    maxBackwardSpan: {
+      as: 'সৰ্বাধিক ওলোটা স্পান',
+      bn: 'সর্বোচ্চ উল্টো স্প্যান',
+      hi: 'अधिकतम उल्टा स्पैन',
+      en: 'Max Backward Span',
+    },
+    dlpfcReversal: {
+      as: 'DLPFC মানসিক ওলোটোৱা',
+      bn: 'DLPFC মানসিক বিপরীতকরণ',
+      hi: 'DLPFC मानसिक उलटाव',
+      en: 'DLPFC mental reversal',
+    },
+    phonologicalLoop: {
+      as: 'ধ্বনিগত লুপ',
+      bn: 'ধ্বনিগত লুপ',
+      hi: 'ध्वन्यात्मक लूप',
+      en: 'Phonological Loop',
+    },
+    acousticRehearsal: {
+      as: 'ধ্বনিগত অনুশীলন ক্ষমতা',
+      bn: 'শ্রবণগত মহড়া ক্ষমতা',
+      hi: 'ध्वनिक अभ्यास क्षमता',
+      en: 'Acoustic rehearsal capacity',
+    },
+    prefrontalReversal: {
+      as: 'প্ৰিফ্রন্টেল ওলোটোৱা',
+      bn: 'প্রিফ্রন্টাল বিপরীতকরণ',
+      hi: 'प्रीफ्रंटल उलटाव',
+      en: 'Prefrontal Reversal',
+    },
+    workingMemoryManip: {
+      as: 'কাৰ্যকৰী স্মৃতি হস্তচালনা',
+      bn: 'কার্যকরী স্মৃতি পরিচালনা',
+      hi: 'कार्यकारी स्मृति प्रचालन',
+      en: 'Working memory manipulation',
+    },
+    settingsAutonomy: {
+      as: 'ছেটিংছ স্বায়ত্তশাসন',
+      bn: 'সেটিংস স্বায়ত্তশাসন',
+      hi: 'सेटिंग्स स्वायत्तता',
+      en: 'Settings Autonomy',
+    },
+    serialPositionAnalysis: {
+      as: 'ক্ৰমিক স্থিতি প্ৰভাৱ বিশ্লেষণ:',
+      bn: 'ক্রমিক অবস্থান প্রভাব বিশ্লেষণ:',
+      hi: 'श्रृंखला स्थिति प्रभाव विश्लेषण:',
+      en: 'Serial Position Effect Analysis:',
+    },
+    closeAndReturn: {
+      as: 'বন্ধ কৰক আৰু ডেচব’ৰ্ডলৈ উভতি যাওক',
+      bn: 'বন্ধ করুন এবং ড্যাশবোর্ডে ফিরে যান',
+      hi: 'बंद करें और डैशबोर्ड पर लौटें',
+      en: 'Close & Return to Dashboard',
     },
   };
 
@@ -727,17 +979,17 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
                 ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-300'
                 : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border-indigo-200'
             }`}
-            title="Inspect AI dynamic variables & test live clinical features"
+            title={language === 'hi' ? 'AI गतिशील चर देखें और क्लिनिकल सुविधाओं का परीक्षण करें' : 'Inspect AI dynamic variables & test live clinical features'}
           >
             <Sliders className="w-3.5 h-3.5" />
-            <span>AI Testbed</span>
+            <span>{language === 'hi' ? 'AI क्लिनिकल टेस्टबेड' : 'AI Testbed'}</span>
             {showTestbed ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
 
           {/* Ability Theta Pill */}
           <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-black text-slate-700 shadow-2xs">
             <Brain className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-            <span>Ability (θ): <strong>{engine.getTheta() >= 0 ? `+${engine.getTheta().toFixed(2)}` : engine.getTheta().toFixed(2)}</strong></span>
+            <span>{language === 'hi' ? 'क्षमता (θ):' : 'Ability (θ):'} <strong>{engine.getTheta() >= 0 ? `+${engine.getTheta().toFixed(2)}` : engine.getTheta().toFixed(2)}</strong></span>
           </div>
 
           {/* Ghost Watermark Toggle */}
@@ -746,10 +998,10 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
               const next = !isGhostWatermarkVisible;
               setIsGhostWatermarkVisible(next);
               if (!next) {
-                setFeedbackBanner('🧠 Unassisted Mode Active: Ghost Watermark OFF (+0.75 2PL IRT Ability Bonus)');
+                setFeedbackBanner(language === 'hi' ? '🧠 असहयोगित मोड सक्रिय: वॉटरमार्क बंद (+0.75 2PL IRT क्षमता बोनस)' : '🧠 Unassisted Mode Active: Ghost Watermark OFF (+0.75 2PL IRT Ability Bonus)');
                 setTimeout(() => setFeedbackBanner(null), 3500);
               } else {
-                setFeedbackBanner('👁️ Scaffolding Active: Ghost Watermark ON (Visual Guideline)');
+                setFeedbackBanner(language === 'hi' ? '👁️ मचान सक्रिय: वॉटरमार्क चालू (दृश्य दिशानिर्देश)' : '👁️ Scaffolding Active: Ghost Watermark ON (Visual Guideline)');
                 setTimeout(() => setFeedbackBanner(null), 3000);
               }
             }}
@@ -810,17 +1062,17 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
           <div className="flex items-center justify-between border-b border-white/10 pb-3 flex-wrap gap-2">
             <div className="flex items-center gap-2 text-xs font-black tracking-widest text-indigo-400 uppercase">
               <Sliders className="w-4 h-4" />
-              <span>National WAIS-IV Digit Span &amp; Working Memory AI Testbed</span>
+              <span>{t.testbedTitle[language] || t.testbedTitle.en}</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-black uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-1 rounded-lg">
-                Profile: {liveAssistanceProfile.displayName[language] || liveAssistanceProfile.displayName.en} ({liveAssistanceProfile.assistTimeoutMs / 1000}s)
+                {t.profileLabel[language]} {liveAssistanceProfile.displayName[language] || liveAssistanceProfile.displayName.en} ({liveAssistanceProfile.assistTimeoutMs / 1000}s)
               </span>
               <span className="text-[11px] font-mono bg-white/10 px-2.5 py-1 rounded-lg text-indigo-200">
-                Tier {difficulty.tierLevel} | {difficulty.digitCount} Digits ({difficulty.recallMode})
+                {t.tierLabel[language]} {difficulty.tierLevel} | {difficulty.digitCount} {t.digitsLabel[language]} ({difficulty.recallMode})
               </span>
               <span className="text-[11px] font-mono bg-white/10 px-2.5 py-1 rounded-lg text-emerald-300">
-                Display: {difficulty.displaySpeedMs}ms
+                {t.displayLabel[language]} {difficulty.displaySpeedMs}ms
               </span>
             </div>
           </div>
@@ -829,65 +1081,65 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
             
             {/* Gauge 1: Ability Theta */}
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1">
-              <span className="text-[10px] text-indigo-300 uppercase font-bold tracking-wider">Latent Ability θ (2PL IRT)</span>
+              <span className="text-[10px] text-indigo-300 uppercase font-bold tracking-wider">{t.latentAbility[language]}</span>
               <div className="text-xl font-black text-indigo-400">
                 {engine.getTheta() >= 0 ? `+${engine.getTheta().toFixed(2)}` : engine.getTheta().toFixed(2)}
               </div>
-              <p className="text-[10px] text-slate-400 leading-snug">Range [-3.0, +3.0]. Dynamic Item Difficulty $b$: {difficulty.itemDifficultyB.toFixed(2)}</p>
+              <p className="text-[10px] text-slate-400 leading-snug">{t.abilityRange[language]} $b$: {difficulty.itemDifficultyB.toFixed(2)}</p>
             </div>
 
             {/* Gauge 2: WAIS Scaled Score */}
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1">
-              <span className="text-[10px] text-emerald-300 uppercase font-bold tracking-wider">WAIS-IV Scaled Equivalent</span>
+              <span className="text-[10px] text-emerald-300 uppercase font-bold tracking-wider">{t.waisScaled[language]}</span>
               <div className="text-xl font-black text-emerald-400">
                 {engine.calculateWAISDigitSpanScore(difficulty.digitCount, difficulty.recallMode === 'backward' ? difficulty.digitCount : 0)} / 19
               </div>
-              <p className="text-[10px] text-slate-400 leading-snug">Age-normed percentile. Median = 10.</p>
+              <p className="text-[10px] text-slate-400 leading-snug">{t.waisNorm[language]}</p>
             </div>
 
             {/* Gauge 3: Mode & Watermark */}
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1">
-              <span className="text-[10px] text-amber-300 uppercase font-bold tracking-wider">Scaffolding Status</span>
+              <span className="text-[10px] text-amber-300 uppercase font-bold tracking-wider">{t.scaffoldingStatus[language]}</span>
               <div className="text-sm font-black text-amber-300 capitalize">
-                {isGhostWatermarkVisible ? `Watermark (${Math.round(difficulty.ghostWatermarkOpacity * 100)}%)` : 'Unassisted (+Bonus)'}
+                {isGhostWatermarkVisible ? `${t.watermarkLabel[language]} (${Math.round(difficulty.ghostWatermarkOpacity * 100)}%)` : t.unassistedBonus[language]}
               </div>
-              <p className="text-[10px] text-slate-400 leading-snug">Mode: {difficulty.recallMode.toUpperCase()}</p>
+              <p className="text-[10px] text-slate-400 leading-snug">{t.modeLabel[language]} {difficulty.recallMode.toUpperCase()}</p>
             </div>
 
             {/* Gauge 4: Hardware Tremor Guard */}
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1">
-              <span className="text-[10px] text-purple-300 uppercase font-bold tracking-wider">Tremor Debounce Guard</span>
+              <span className="text-[10px] text-purple-300 uppercase font-bold tracking-wider">{t.tremorGuard[language]}</span>
               <div className="text-xl font-black text-purple-300">
-                {engine.getTremorFilteredCount()} Taps
+                {engine.getTremorFilteredCount()} {t.tapsLabel[language]}
               </div>
-              <p className="text-[10px] text-slate-400 leading-snug">400ms Debounce with Clock Skew Shield</p>
+              <p className="text-[10px] text-slate-400 leading-snug">{t.debounceShield[language]}</p>
             </div>
           </div>
 
           {/* Testbed Interactive Controls */}
           <div className="pt-2 border-t border-white/10 space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <span className="text-xs font-bold text-slate-300">Direct Minimal Step Tier Force Override:</span>
+              <span className="text-xs font-bold text-slate-300">{t.directTierOverride[language]}</span>
               <div className="flex items-center gap-1.5 flex-wrap">
-                {NUMBER_RECALL_TIERS.map(t => (
+                {NUMBER_RECALL_TIERS.map(tTier => (
                   <button
-                    key={t.tierLevel}
+                    key={tTier.tierLevel}
                     onClick={() => {
                       clearAllPresentationTimers();
                       numberRecallAudio.stopAllSpeech();
-                      if (manualTierOverride === t.tierLevel) {
-                        initTrial(currentTrialIndex, t.tierLevel);
+                      if (manualTierOverride === tTier.tierLevel) {
+                        initTrial(currentTrialIndex, tTier.tierLevel);
                       } else {
-                        setManualTierOverride(t.tierLevel);
+                        setManualTierOverride(tTier.tierLevel);
                       }
                     }}
                     className={`px-2 py-1 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer ${
-                      difficulty.tierLevel === t.tierLevel
+                      difficulty.tierLevel === tTier.tierLevel
                         ? 'bg-indigo-500 text-white ring-2 ring-indigo-300'
                         : 'bg-white/10 hover:bg-white/20 text-slate-300'
                     }`}
                   >
-                    T{t.tierLevel} ({t.digitCount}d{t.recallMode === 'backward' ? 'R' : ''})
+                    T{tTier.tierLevel} ({tTier.digitCount}d{tTier.recallMode === 'backward' ? 'R' : ''})
                   </button>
                 ))}
               </div>
@@ -895,7 +1147,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
 
             {/* Quick Simulation Triggers */}
             <div className="flex items-center gap-2 flex-wrap pt-1">
-              <span className="text-[11px] text-slate-400 font-bold">Simulate Response:</span>
+              <span className="text-[11px] text-slate-400 font-bold">{t.simulateResponse[language]}</span>
               
               <button
                 onClick={() => {
@@ -905,7 +1157,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
                 }}
                 className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold cursor-pointer"
               >
-                ✓ Fill Perfect Sequence
+                {t.fillPerfect[language]}
               </button>
 
               <button
@@ -923,7 +1175,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
                 }}
                 className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold cursor-pointer"
               >
-                ⇄ Fill Transposition Error
+                {t.fillTransposition[language]}
               </button>
 
               <button
@@ -934,7 +1186,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
                 }}
                 className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[11px] font-bold cursor-pointer"
               >
-                ✕ Fill Reversal Failure
+                {t.fillReversal[language]}
               </button>
             </div>
           </div>
@@ -954,7 +1206,7 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
             <Sparkles className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
             <div className="space-y-0.5">
               <span className="text-[10px] font-black uppercase tracking-wider text-indigo-700 block">
-                National Real-Time Bayesian DDA &amp; Autonomy Analysis
+                {t.aiBannerTitle[language]}
               </span>
               <p className="leading-snug">{feedbackBanner || aiLiveReasoning}</p>
               {aiSettingsImpact && !feedbackBanner && (
@@ -1195,23 +1447,23 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
                   : (language === 'hi' ? 'अच्छा प्रयास!' : 'Good Effort!')}
               </h3>
               <p className="text-xs text-slate-500 font-medium">
-                Target: <strong>{lastTrialFeedback.expected}</strong> · Your entry: <strong>{lastTrialFeedback.entered}</strong>
+                {t.targetLabel[language]} <strong>{lastTrialFeedback.expected}</strong> · {t.yourEntry[language]} <strong>{lastTrialFeedback.entered}</strong>
               </p>
             </div>
 
             {/* Serial Position breakdown */}
             <div className="p-3 bg-white rounded-2xl border border-slate-200 text-xs flex items-center justify-around">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Primacy (First Digits)</span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">{t.primacyLabel[language]}</span>
                 <span className={`font-black ${lastTrialFeedback.primacyAccuracy ? 'text-emerald-700' : 'text-rose-600'}`}>
-                  {lastTrialFeedback.primacyAccuracy ? '✓ Retained' : '✗ Missed'}
+                  {lastTrialFeedback.primacyAccuracy ? t.retainedLabel[language] : t.missedLabel[language]}
                 </span>
               </div>
               <div className="w-px h-8 bg-slate-200" />
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Recency (Last Digits)</span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">{t.recencyLabel[language]}</span>
                 <span className={`font-black ${lastTrialFeedback.recencyAccuracy ? 'text-emerald-700' : 'text-rose-600'}`}>
-                  {lastTrialFeedback.recencyAccuracy ? '✓ Retained' : '✗ Missed'}
+                  {lastTrialFeedback.recencyAccuracy ? t.retainedLabel[language] : t.missedLabel[language]}
                 </span>
               </div>
             </div>
@@ -1226,98 +1478,27 @@ export const NumberRecall: React.FC<NumberRecallProps> = ({
           </div>
         )}
 
-        {/* PHASE E: SESSION COMPLETE SUMMARY MODAL */}
+        {/* PHASE E: SESSION COMPLETE WARM REASSURING SUMMARY (NO CLINICAL DIAGNOSTICS) */}
         {phase === 'COMPLETE' && finalSessionSummary && (
-          <div className="text-center space-y-5 animate-fadeIn max-w-2xl w-full p-2">
-            
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center mx-auto shadow-md">
-              <Award className="w-8 h-8" />
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-2xl font-black text-slate-900">
-                {language === 'hi' ? 'सत्र सफलतापूर्वक पूरा हुआ!' : 'Assessment Battery Complete!'}
-              </h3>
-              <p className="text-xs text-slate-500 font-medium">
-                WAIS-IV Digit Span & Dorsolateral Prefrontal Working Memory Profile
-              </p>
-            </div>
-
-            {/* 6-Grid Clinical Metrics Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-left">
-              
-              {/* Card 1: WAIS Scaled Score */}
-              <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">WAIS-IV Scaled Score</span>
-                <div className="text-2xl font-black text-indigo-700">
-                  {finalSessionSummary.waisDigitSpanScaledScore} <span className="text-xs text-slate-400 font-bold">/ 19</span>
-                </div>
-                <p className="text-[10px] text-slate-500">Median older adult baseline: 10</p>
-              </div>
-
-              {/* Card 2: Max Forward Span */}
-              <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Max Forward Span</span>
-                <div className="text-2xl font-black text-emerald-700">
-                  {finalSessionSummary.maxForwardSpanAchieved} <span className="text-xs text-slate-400 font-bold">Digits</span>
-                </div>
-                <p className="text-[10px] text-slate-500">Phonological echoic span</p>
-              </div>
-
-              {/* Card 3: Max Backward Span */}
-              <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Max Backward Span</span>
-                <div className="text-2xl font-black text-amber-700">
-                  {finalSessionSummary.maxBackwardSpanAchieved} <span className="text-xs text-slate-400 font-bold">Digits</span>
-                </div>
-                <p className="text-[10px] text-slate-500">DLPFC mental reversal</p>
-              </div>
-
-              {/* Card 4: Phonological Loop */}
-              <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Phonological Loop</span>
-                <div className="text-sm font-black text-slate-900 capitalize">
-                  {finalSessionSummary.phonologicalLoopRating.replace(/_/g, ' ')}
-                </div>
-                <p className="text-[10px] text-slate-500">Acoustic rehearsal capacity</p>
-              </div>
-
-              {/* Card 5: DLPFC Status */}
-              <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Prefrontal Reversal</span>
-                <div className="text-sm font-black text-slate-900 capitalize">
-                  {finalSessionSummary.dorsolateralPrefrontalStatus.replace(/_/g, ' ')}
-                </div>
-                <p className="text-[10px] text-slate-500">Working memory manipulation</p>
-              </div>
-
-              {/* Card 6: Autonomy Score */}
-              <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Settings Autonomy</span>
-                <div className="text-2xl font-black text-purple-700">
-                  {finalSessionSummary.autonomyScore}%
-                </div>
-                <p className="text-[10px] text-slate-500 capitalize">{finalSessionSummary.patientSettingsAutonomyRating.replace(/_/g, ' ')}</p>
-              </div>
-            </div>
-
-            {/* Serial Position Curve Interpretation */}
-            <div className="p-4 bg-indigo-50/70 border border-indigo-200 rounded-2xl text-left space-y-1.5">
-              <span className="text-xs font-black text-indigo-950 uppercase tracking-wider block">
-                Serial Position Effect Analysis: Primacy ({finalSessionSummary.serialPositionProfile.primacyRetentionRate}%) vs Recency ({finalSessionSummary.serialPositionProfile.recencyRetentionRate}%)
-              </span>
-              <p className="text-xs text-indigo-900 leading-snug">
-                {finalSessionSummary.serialPositionProfile.clinicalInterpretation}
-              </p>
-            </div>
-
-            <button
-              onClick={onExit}
-              className="w-full py-3.5 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-md transition-all cursor-pointer active:scale-95"
-            >
-              Close & Return to Dashboard
-            </button>
-          </div>
+          <PatientGameCompletionView
+            language={language}
+            activityTitle={language === 'hi' ? 'संख्या स्मरण' : 'Number Recall'}
+            stats={[
+              {
+                label: language === 'hi' ? 'पूरे किए गए प्रयास' : 'Rounds Completed',
+                value: `${sessionTrials.length} / ${totalTrials}`,
+              },
+              {
+                label: language === 'hi' ? 'सटीकता' : 'Accuracy',
+                value: `${finalSessionSummary.accuracyPercentage}%`,
+              },
+              {
+                label: language === 'hi' ? 'सर्वोत्तम स्मरण' : 'Longest Recall',
+                value: `${finalSessionSummary.maxForwardSpanAchieved} ${language === 'hi' ? 'अंक' : 'digits'}`,
+              },
+            ]}
+            onExit={onExit}
+          />
         )}
       </div>
     </div>
