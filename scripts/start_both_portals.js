@@ -15,7 +15,7 @@ console.log('   🟣 Caregiver Portal: http://localhost:5174');
 console.log('---------------------------------------------------------\n');
 
 // 1. Patient Portal on Port 5173
-const patientProcess = spawn(npxCmd, ['vite', '--port', '5173', '--strictPort'], {
+const patientProcess = spawn(npxCmd, ['vite', '--port', '5173', '--host', '--strictPort'], {
   stdio: 'pipe',
   shell: true,
   env: { ...process.env, PORT: '5173' }
@@ -32,7 +32,7 @@ patientProcess.stderr.on('data', (data) => {
 });
 
 // 2. Caregiver Portal on Port 5174
-const caregiverProcess = spawn(npxCmd, ['vite', '--port', '5174', '--strictPort'], {
+const caregiverProcess = spawn(npxCmd, ['vite', '--port', '5174', '--host', '--strictPort'], {
   stdio: 'pipe',
   shell: true,
   env: { ...process.env, PORT: '5174' }
