@@ -22,13 +22,14 @@ import {
   CheckCircle2,
   AlertCircle,
   Settings,
-  Cpu,
   Copy,
   Check,
   HeartPulse,
   Share2,
   ListChecks,
   Download,
+  TrendingUp,
+  Sliders,
 } from 'lucide-react';
 import { downloadReportDocument } from '../../utils/reportsStorage';
 import type { PatientProfile } from '../../types/auth';
@@ -46,10 +47,13 @@ import {
   type CloudAIConfig,
 } from '../../services/ai-clinical-reporting';
 import { CloudAIConfigModal } from '../modals/CloudAIConfigModal';
-import type { 
-  DailyCompositeScoreResult, 
-  DailyGameSessionRecord 
+import { 
+  DailySessionManager,
+  type DailyCompositeScoreResult, 
+  type DailyGameSessionRecord,
+  type LongitudinalTrajectoryResult,
 } from '../../utils/dailySessionManager';
+import { AIGameCalibratorService } from '../../services/ai-game-calibrator';
 
 import type { SupportedLanguage } from '../../types/prescription';
 import { safeSessionStorage } from '../../utils/safeStorage';
@@ -127,6 +131,11 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
       tremorJitterIndex: 0.12,
     });
   }, [activeReport]);
+
+  // Longitudinal all-time trajectory from Day 1 to current
+  const longitudinalTrajectory: LongitudinalTrajectoryResult = useMemo(() => {
+    return DailySessionManager.getLongitudinalTrajectory(dailyComposite?.score || 82);
+  }, [dailyComposite]);
 
   // AI Configuration Modal state
   const [isAIConfigOpen, setIsAIConfigOpen] = useState(false);
@@ -400,6 +409,8 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
           { id: 'r3', patientId: patient?.id || 'p_01', time: '01:00 PM', activity: 'Nutritious Lunch & Rest', category: 'meal', completed: true },
           { id: 'r4', patientId: patient?.id || 'p_01', time: '05:00 PM', activity: 'Family Tea & Conversation', category: 'social', completed: false },
         ],
+        longitudinalHistory: DailySessionManager.getLongitudinalTrajectory(compositeData.score),
+        aiGameCalibrations: AIGameCalibratorService.getHistory(),
       };
 
       try {
@@ -950,6 +961,78 @@ ${routineBullets}
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* 1B. All-Time Longitudinal Progress Snapshot (From Day 1) */}
+              <div className="p-5 rounded-3xl bg-gradient-to-r from-[#FAF8F5] via-emerald-50/30 to-[#FAF8F5] border-2 border-[#CCE2D4] shadow-xs space-y-3.5">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-[#E5DFD5] pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-[#EDF5F0] text-[#28573E] flex items-center justify-center font-bold">
+                      <TrendingUp className="w-5 h-5 text-[#28573E]" />
+                    </div>
+                    <div>
+                      <h4 className="font-['Sora'] font-bold text-sm text-[#1F2421]">
+                        {isHi ? 'शुरुआत से अब तक की प्रगति (ऑल-टाइम ट्रैजेक्टरी)' : 'All-Time Progress Since Day 1 (Longitudinal Trajectory)'}
+                      </h4>
+                      <p className="text-[11px] text-[#636B65]">
+                        {isHi ? `${longitudinalTrajectory.totalDaysTracked} रिकॉर्ड किए गए दिन (${longitudinalTrajectory.startDate} से ${longitudinalTrajectory.latestDate})` : `${longitudinalTrajectory.totalDaysTracked} recorded days tracked (${longitudinalTrajectory.startDate} to ${longitudinalTrajectory.latestDate})`}
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`text-[11px] font-['Sora'] font-bold px-3 py-1 rounded-full border ${
+                    longitudinalTrajectory.overallProgressionVerdict === 'MARKED_IMPROVEMENT'
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                      : longitudinalTrajectory.overallProgressionVerdict === 'STABLE_PRESERVATION'
+                      ? 'bg-[#EDF5F0] text-[#28573E] border-[#CCE2D4]'
+                      : longitudinalTrajectory.overallProgressionVerdict === 'MILD_FLUCTUATION'
+                      ? 'bg-amber-100 text-amber-800 border-amber-300'
+                      : 'bg-rose-100 text-rose-800 border-rose-300'
+                  }`}>
+                    {longitudinalTrajectory.overallProgressionVerdict.replace(/_/g, ' ')}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div className="p-3 rounded-xl bg-white border border-[#E5DFD5]">
+                    <span className="text-[10px] font-bold text-[#636B65] uppercase block">{isHi ? 'समग्र स्कोर बदलाव' : 'Composite Score Δ'}</span>
+                    <strong className="text-base font-extrabold text-[#28573E]">
+                      {longitudinalTrajectory.scoreDelta >= 0 ? '+' : ''}{longitudinalTrajectory.scoreDelta.toFixed(1)} pts
+                    </strong>
+                    <span className="text-[10px] text-[#636B65] block mt-0.5">
+                      {isHi ? 'डे 1' : 'Day 1'}: {longitudinalTrajectory.initialCompositeScore} → {isHi ? 'आज' : 'Now'}: {longitudinalTrajectory.latestCompositeScore}
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white border border-[#E5DFD5]">
+                    <span className="text-[10px] font-bold text-[#636B65] uppercase block">{isHi ? 'सटीकता बदलाव' : 'Accuracy Δ'}</span>
+                    <strong className="text-base font-extrabold text-[#28573E]">
+                      {longitudinalTrajectory.accuracyDelta >= 0 ? '+' : ''}{longitudinalTrajectory.accuracyDelta.toFixed(1)}%
+                    </strong>
+                    <span className="text-[10px] text-[#636B65] block mt-0.5">{isHi ? 'सटीकता में वृद्धि' : 'Overall precision'}</span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white border border-[#E5DFD5]">
+                    <span className="text-[10px] font-bold text-[#636B65] uppercase block">{isHi ? 'प्रतिक्रिया गति' : 'Latency Δ'}</span>
+                    <strong className="text-base font-extrabold text-[#1F2421]">
+                      {longitudinalTrajectory.latencyDeltaMs <= 0 ? '-' : '+'}{Math.abs(longitudinalTrajectory.latencyDeltaMs)} ms
+                    </strong>
+                    <span className="text-[10px] text-[#636B65] block mt-0.5">
+                      {longitudinalTrajectory.latencyDeltaMs <= 0 ? (isHi ? 'तेज प्रतिक्रिया' : 'Faster processing') : (isHi ? 'सतर्क प्रतिक्रिया' : 'Deliberate')}
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white border border-[#E5DFD5]">
+                    <span className="text-[10px] font-bold text-[#636B65] uppercase block">{isHi ? 'संज्ञानात्मक क्षमता θ' : 'Latent Ability θ'}</span>
+                    <strong className="text-base font-extrabold text-[#8C5E39]">
+                      {longitudinalTrajectory.thetaDelta >= 0 ? '+' : ''}{longitudinalTrajectory.thetaDelta.toFixed(2)} θ
+                    </strong>
+                    <span className="text-[10px] text-[#636B65] block mt-0.5">{isHi ? 'IRT क्षमता वृद्धि' : 'Latent ability'}</span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-[#28573E] font-medium bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 leading-relaxed">
+                  {longitudinalTrajectory.progressionNarrative}
+                </p>
               </div>
 
               {/* 2. Medication Adherence & Exact Timings (USER CORE REQUEST) */}
@@ -1847,21 +1930,228 @@ ${routineBullets}
 
                   </div>
 
-                  {/* 5B. 🤖 AI GAME DIRECTOR (OPENAI) DYNAMIC LEVEL SYNTHESIS */}
-                  {comprehensiveReport.aiGameCalibrationReview && (
-                    <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-indigo-50 border-2 border-emerald-300 space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-emerald-950 font-black text-xs uppercase tracking-wider">
-                          <Cpu className="w-4 h-4 text-emerald-600" />
-                          <span>{tReport.openAiDirectorReview}</span>
+                  {/* 5B. ⚙️ AI DYNAMIC DIFFICULTY & LEVEL-CHANGE DIAGNOSTICS */}
+                  {(comprehensiveReport.levelChangeDiagnostics || comprehensiveReport.aiGameCalibrationReview) && (
+                    <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-50/70 via-teal-50/50 to-indigo-50/70 border-2 border-emerald-300 space-y-4 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200/80 pb-3">
+                        <div className="flex items-center gap-2.5 text-emerald-950 font-black text-xs uppercase tracking-wider">
+                          <Sliders className="w-4 h-4 text-emerald-600" />
+                          <span>{isHi ? 'AI डायनामिक स्तर परिवर्तन व परफॉर्मेंस डायग्नोस्टिक्स' : 'AI Dynamic Difficulty & Level-Change Diagnostics'}</span>
                         </div>
-                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 border border-emerald-300">
-                          {tReport.inGameCalibrationsIngested}
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {comprehensiveReport.levelChangeDiagnostics && (
+                            <>
+                              <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900 border border-emerald-300">
+                                Strategy: {comprehensiveReport.levelChangeDiagnostics.overallStrategy.replace(/_/g, ' ')}
+                              </span>
+                              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-white text-emerald-800 border border-emerald-200">
+                                {comprehensiveReport.levelChangeDiagnostics.totalPromotions + comprehensiveReport.levelChangeDiagnostics.totalDemotions + comprehensiveReport.levelChangeDiagnostics.totalMaintained} Calibrations
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Stat summary chips */}
+                      {comprehensiveReport.levelChangeDiagnostics && (
+                        <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                          <div className="p-2.5 rounded-xl bg-white/90 border border-emerald-200 shadow-2xs">
+                            <div className="flex items-center justify-center gap-1 text-emerald-700 font-extrabold text-sm">
+                              <TrendingUp className="w-3.5 h-3.5" />
+                              <span>{comprehensiveReport.levelChangeDiagnostics.totalPromotions}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-500 font-semibold block uppercase tracking-wider mt-0.5">
+                              {isHi ? 'स्तर पदोन्नति (Promoted)' : 'Promotions (Up)'}
+                            </span>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-white/90 border border-slate-200 shadow-2xs">
+                            <div className="flex items-center justify-center gap-1 text-slate-700 font-extrabold text-sm">
+                              <Check className="w-3.5 h-3.5" />
+                              <span>{comprehensiveReport.levelChangeDiagnostics.totalMaintained}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-500 font-semibold block uppercase tracking-wider mt-0.5">
+                              {isHi ? 'स्थिर स्तर (Maintained)' : 'Maintained (Stable)'}
+                            </span>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-white/90 border border-amber-200 shadow-2xs">
+                            <div className="flex items-center justify-center gap-1 text-amber-700 font-extrabold text-sm">
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              <span>{comprehensiveReport.levelChangeDiagnostics.totalDemotions}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-500 font-semibold block uppercase tracking-wider mt-0.5">
+                              {isHi ? 'सहायता / सुगम (Scaffolded)' : 'Scaffolded (Assisted)'}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Clinical Strategy Narrative */}
+                      <p className="text-xs sm:text-sm text-emerald-950/90 leading-relaxed font-medium bg-white/80 p-3.5 rounded-xl border border-emerald-200 shadow-2xs">
+                        {comprehensiveReport.aiGameCalibrationReview || comprehensiveReport.levelChangeDiagnostics?.cognitiveLoadState}
+                      </p>
+
+                      {/* Diagnostic Breakdown List */}
+                      {comprehensiveReport.levelChangeDiagnostics?.diagnosticItems && comprehensiveReport.levelChangeDiagnostics.diagnosticItems.length > 0 && (
+                        <div className="space-y-2 pt-1">
+                          <span className="text-[11px] font-black uppercase text-emerald-900 tracking-wider block">
+                            {isHi ? 'प्रत्येक खेल में AI द्वारा किए गए स्तर परिवर्तन एवं सटीक कारण:' : 'Per-Game AI Calibration Triggers & Rationale:'}
+                          </span>
+                          <div className="space-y-2">
+                            {comprehensiveReport.levelChangeDiagnostics.diagnosticItems.map((diag, dIdx) => (
+                              <div key={dIdx} className="p-3 rounded-xl bg-white/95 border border-emerald-200/80 shadow-2xs space-y-1.5 text-xs">
+                                <div className="flex items-center justify-between flex-wrap gap-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <strong className="font-extrabold text-slate-900 text-xs">{diag.gameTitle}</strong>
+                                    <span className="text-[11px] font-mono text-slate-500">
+                                      {diag.tierShift}
+                                    </span>
+                                  </div>
+                                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                                    diag.action === 'PROMOTE' 
+                                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                      : diag.action === 'SCAFFOLD_DOWN'
+                                      ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                      : 'bg-slate-100 text-slate-700 border-slate-300'
+                                  }`}>
+                                    {diag.action}
+                                  </span>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-1 border-t border-slate-100">
+                                  <div>
+                                    <span className="font-bold text-amber-800 block">🎯 {isHi ? 'परफॉर्मेंस ट्रिगर (Performance Trigger):' : 'Performance Trigger:'}</span>
+                                    <p className="text-slate-600 mt-0.5 leading-snug">{diag.primaryTrigger}</p>
+                                  </div>
+                                  <div>
+                                    <span className="font-bold text-indigo-800 block">🧠 {isHi ? 'क्लिनिकल तर्क (Clinical Rationale):' : 'Clinical Rationale:'}</span>
+                                    <p className="text-slate-600 mt-0.5 leading-snug">{diag.clinicalRationale}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 5C. 📈 LONGITUDINAL TRAJECTORY ANALYSIS (DAY 1 TO PRESENT) */}
+                  {comprehensiveReport.longitudinalAnalysis && (
+                    <div className="p-5 rounded-3xl bg-gradient-to-r from-indigo-50/70 via-purple-50/50 to-blue-50/70 border-2 border-indigo-300 space-y-4 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-200/80 pb-3">
+                        <div className="flex items-center gap-2.5 text-indigo-950 font-black text-xs uppercase tracking-wider">
+                          <TrendingUp className="w-4 h-4 text-indigo-600" />
+                          <span>{isHi ? 'दीर्घकालिक संज्ञानात्मक प्रक्षेपवक्र (शुरुआत से अब तक)' : 'All-Time Longitudinal Trajectory (From Day 1 to Present)'}</span>
+                        </div>
+                        <span className={`text-[11px] font-black uppercase px-3 py-1 rounded-full border self-start sm:self-auto ${
+                          comprehensiveReport.longitudinalAnalysis.progressionVerdict === 'MARKED_IMPROVEMENT'
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                            : comprehensiveReport.longitudinalAnalysis.progressionVerdict === 'STABLE_PRESERVATION'
+                            ? 'bg-sky-100 text-sky-800 border-sky-300'
+                            : comprehensiveReport.longitudinalAnalysis.progressionVerdict === 'MILD_FLUCTUATION'
+                            ? 'bg-amber-100 text-amber-800 border-amber-300'
+                            : 'bg-rose-100 text-rose-800 border-rose-300'
+                        }`}>
+                          {comprehensiveReport.longitudinalAnalysis.clinicalVerdictLabel}
                         </span>
                       </div>
-                      <p className="text-xs sm:text-sm text-emerald-950/90 leading-relaxed font-medium bg-white/80 p-3.5 rounded-xl border border-emerald-200 shadow-2xs">
-                        {comprehensiveReport.aiGameCalibrationReview}
+
+                      {/* Longitudinal Delta Metrics Grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div className="p-3 rounded-2xl bg-white/90 border border-indigo-200 shadow-2xs space-y-1">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                            {isHi ? 'समग्र स्कोर' : 'Composite Score'}
+                          </span>
+                          <div className="flex items-baseline gap-1.5">
+                            <strong className="text-xl font-black text-indigo-950">
+                              {comprehensiveReport.longitudinalAnalysis.latestCompositeScore}
+                            </strong>
+                            <span className={`text-xs font-bold ${comprehensiveReport.longitudinalAnalysis.scoreDelta >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                              ({comprehensiveReport.longitudinalAnalysis.scoreDelta >= 0 ? '+' : ''}{comprehensiveReport.longitudinalAnalysis.scoreDelta.toFixed(1)} pts)
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-slate-500 block">
+                            {isHi ? 'शुरुआती बेसलाइन' : 'Day 1 Baseline'}: {comprehensiveReport.longitudinalAnalysis.initialCompositeScore}
+                          </span>
+                        </div>
+
+                        <div className="p-3 rounded-2xl bg-white/90 border border-indigo-200 shadow-2xs space-y-1">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                            {isHi ? 'सटीकता में बदलाव' : 'Accuracy Δ'}
+                          </span>
+                          <div className="flex items-baseline gap-1.5">
+                            <strong className="text-xl font-black text-indigo-950">
+                              {comprehensiveReport.longitudinalAnalysis.accuracyDelta >= 0 ? '+' : ''}{comprehensiveReport.longitudinalAnalysis.accuracyDelta.toFixed(1)}%
+                            </strong>
+                          </div>
+                          <span className="text-[10px] text-slate-500 block">
+                            {isHi ? 'शुरुआत से वर्तमान' : 'Baseline vs current'}
+                          </span>
+                        </div>
+
+                        <div className="p-3 rounded-2xl bg-white/90 border border-indigo-200 shadow-2xs space-y-1">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                            {isHi ? 'प्रतिक्रिया विलंबता' : 'Reaction Latency'}
+                          </span>
+                          <div className="flex items-baseline gap-1.5">
+                            <strong className="text-xl font-black text-indigo-950">
+                              {comprehensiveReport.longitudinalAnalysis.latencyDeltaMs <= 0 ? '-' : '+'}{Math.abs(comprehensiveReport.longitudinalAnalysis.latencyDeltaMs)} ms
+                            </strong>
+                          </div>
+                          <span className="text-[10px] text-slate-500 block">
+                            {comprehensiveReport.longitudinalAnalysis.latencyDeltaMs <= 0 ? (isHi ? 'तेज प्रतिक्रिया' : 'Faster processing') : (isHi ? 'सतर्क प्रतिक्रिया' : 'Deliberate')}
+                          </span>
+                        </div>
+
+                        <div className="p-3 rounded-2xl bg-white/90 border border-indigo-200 shadow-2xs space-y-1">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                            {isHi ? 'ट्रैकिंग समयावधि' : 'Tracked Duration'}
+                          </span>
+                          <div className="flex items-baseline gap-1.5">
+                            <strong className="text-xl font-black text-indigo-950">
+                              {comprehensiveReport.longitudinalAnalysis.totalDaysTracked}
+                            </strong>
+                            <span className="text-xs text-slate-600 font-semibold">{isHi ? 'दिन' : 'days'}</span>
+                          </div>
+                          <span className="text-[10px] text-slate-500 block truncate">
+                            {comprehensiveReport.longitudinalAnalysis.startDate} – {comprehensiveReport.longitudinalAnalysis.latestDate}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Longitudinal Progress Narrative */}
+                      <p className="text-xs sm:text-sm text-indigo-950/90 leading-relaxed font-medium bg-white/80 p-3.5 rounded-xl border border-indigo-200 shadow-2xs">
+                        {comprehensiveReport.longitudinalAnalysis.narrative}
                       </p>
+
+                      {/* Domain-Level Evolution Trends */}
+                      {comprehensiveReport.longitudinalAnalysis.domainTrajectories && comprehensiveReport.longitudinalAnalysis.domainTrajectories.length > 0 && (
+                        <div className="space-y-2 pt-1">
+                          <span className="text-[11px] font-black uppercase text-indigo-900 tracking-wider block">
+                            {isHi ? 'संज्ञानात्मक डोमेन-वार विकास (Domain-Wise Trajectory):' : 'Cognitive Domain Trajectories Since Day 1:'}
+                          </span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                            {comprehensiveReport.longitudinalAnalysis.domainTrajectories.map((dom, domIdx) => (
+                              <div key={domIdx} className="p-3 rounded-xl bg-white/90 border border-indigo-200/80 shadow-2xs space-y-1 text-xs">
+                                <div className="flex items-center justify-between">
+                                  <strong className="font-extrabold text-slate-900">{dom.label}</strong>
+                                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                                    dom.trend === 'IMPROVING'
+                                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                      : dom.trend === 'STABLE'
+                                      ? 'bg-sky-100 text-sky-800 border-sky-300'
+                                      : 'bg-rose-100 text-rose-800 border-rose-300'
+                                  }`}>
+                                    {dom.trend}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-600 leading-snug">{dom.clinicalNotes}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
