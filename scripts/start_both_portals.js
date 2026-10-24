@@ -4,6 +4,12 @@
  */
 
 import { spawn } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, '..');
 
 const isWindows = process.platform === 'win32';
 const npxCmd = isWindows ? 'npx.cmd' : 'npx';
@@ -16,6 +22,7 @@ console.log('---------------------------------------------------------\n');
 
 // 1. Patient Portal on Port 5173
 const patientProcess = spawn(npxCmd, ['vite', '--port', '5173', '--host', '--strictPort'], {
+  cwd: projectRoot,
   stdio: 'pipe',
   shell: true,
   env: { ...process.env, PORT: '5173' }
@@ -33,6 +40,7 @@ patientProcess.stderr.on('data', (data) => {
 
 // 2. Caregiver Portal on Port 5174
 const caregiverProcess = spawn(npxCmd, ['vite', '--port', '5174', '--host', '--strictPort'], {
+  cwd: projectRoot,
   stdio: 'pipe',
   shell: true,
   env: { ...process.env, PORT: '5174' }
