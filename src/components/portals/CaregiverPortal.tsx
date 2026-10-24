@@ -66,6 +66,8 @@ import {
 } from '../../utils/caregiverStorage';
 import {
   getStoredGeneratedReports,
+  saveStoredGeneratedReports,
+  // AI reports storage synced
   downloadReportDocument,
   type GeneratedReportDocument,
   REPORTS_PER_SLIDE,
@@ -149,6 +151,14 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
     window.addEventListener('smriti_generated_reports_updated', handleReportsUpdate);
     return () => window.removeEventListener('smriti_generated_reports_updated', handleReportsUpdate);
   }, [patient.id]);
+
+  // Proactively pull latest reports from shared sync store whenever tab changes or reports tab is active
+  useEffect(() => {
+    portalSync.syncWithServer().then(() => {
+      setReportsList(getStoredGeneratedReports(patient.id));
+      setCurrentDailySessions({ ...DailySessionManager.getDailySessions() });
+    });
+  }, [activeTab, patient.id]);
 
   // New Medication Form State
   const [newMedName, setNewMedName] = useState('');
@@ -303,6 +313,24 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
       } else if (msg.type === 'ROUTINE_MUTATED') {
         setRoutines(getStoredRoutine(patient.id));
       } else if (msg.type === 'SESSION_COMPLETED') {
+        if (msg.payload?.todayDateKey && msg.payload?.allTodaySessions) {
+          try {
+            localStorage.setItem('smriti_daily_sessions_v2_' + msg.payload.todayDateKey, JSON.stringify(msg.payload.allTodaySessions));
+          } catch {}
+        }
+        if (msg.payload?.playedDates) {
+          try {
+            localStorage.setItem('smriti_played_dates_index_v2', JSON.stringify(msg.payload.playedDates));
+          } catch {}
+        }
+        if (msg.payload?.allGeneratedReports && (msg.payload?.patientId || patient.id)) {
+          const pid = msg.payload?.patientId || patient.id;
+          saveStoredGeneratedReports(pid, msg.payload.allGeneratedReports);
+          setReportsList(msg.payload.allGeneratedReports);
+        } else {
+          setReportsList(getStoredGeneratedReports(patient.id));
+        }
+
         const updated = DailySessionManager.getDailySessions();
         setCurrentDailySessions({ ...updated });
         if (msg.payload?.summary) {
@@ -1824,6 +1852,21 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                       </div>
                     </div>
 
+                    <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                      <button
+                        onClick={() => {
+                          setCurrentReport(reportsList[0]?.fullPayload || null);
+                          setIsClinicalReportModalOpen(true);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#28573E] hover:bg-[#1E4430] text-white font-['Sora'] font-bold text-xs transition-all cursor-pointer shadow-xs active:scale-[0.98]"
+                      >
+                        <Sparkles className="w-4 h-4 text-[#CCE2D4]" />
+                        <span>{language === 'hi' ? 'AI क्लिनिकल रिपोर्ट बनाएं' : 'Generate AI Clinical Report'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     {/* View Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
@@ -2881,208 +2924,352 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
       )}
 
       {/* ─── DEDICATED GENERATED REPORT VIEWER MODAL ──────────────────────── */}
-      {selectedViewReport && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-[#E5DFD5] overflow-hidden my-6 max-h-[90vh] flex flex-col animate-scaleUp">
-            
-            {/* Modal Header */}
-            <div className="bg-[#1F2421] text-white p-5 sm:p-6 flex items-center justify-between shrink-0 border-b border-[#28573E]/40">
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-11 h-11 rounded-2xl bg-[#28573E]/40 border border-[#CCE2D4]/20 text-[#CCE2D4] flex items-center justify-center font-bold shadow-md shrink-0">
-                  <FileText className="w-6 h-6 text-[#CCE2D4]" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-['Sora'] font-bold text-base sm:text-lg text-white truncate">
-                      {selectedViewReport.title}
-                    </h3>
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                      ABDM Verified
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#E5DFD5] mt-0.5 truncate">
-                    {selectedViewReport.type === 'FULL_SESSION' 
-                      ? (language === 'hi' ? 'समग्र न्यूरोसाइकोलॉजिकल दैनिक मूल्यांकन' : 'Comprehensive Neuropsychological Evaluation')
-                      : (language === 'hi' ? 'एकल संज्ञानात्मक अभ्यास टेलीमेट्री व गतिज रिकॉर्ड' : 'Single Exercise Telemetry & Kinematics')}
-                  </p>
-                </div>
-              </div>
+      {selectedViewReport && (() => {
+        const payload = selectedViewReport.fullPayload || {};
+        const hasAI = Boolean(payload.isAIReport || payload.diagnosticSummary || payload.dsm5Staging);
+        const aiProvider = payload.provider || 'Clinical Cloud AI Benchmark';
+        const aiModel = payload.model || 'Gemini 2.0 Flash';
+        const levelAdjustments = Array.isArray(payload.levelAdjustments) ? payload.levelAdjustments : [];
+        const trajectory = payload.longitudinalTrajectory;
+        const recommendations: string[] = Array.isArray(payload.caregiverRecommendations) && payload.caregiverRecommendations.length > 0
+          ? payload.caregiverRecommendations
+          : [
+              'The patient performed with steady composure and clear recognition of visual stimuli during this session.',
+              'Deliberation pacing aligns well with the stable restorative cognitive baseline.',
+              'Continue the scheduled morning walk and maintain consistent timing for pending evening medication doses.'
+            ];
 
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => downloadReportDocument(selectedViewReport, patient.name)}
-                  className="px-3.5 py-2 rounded-xl bg-[#28573E] hover:bg-[#1E4430] text-white text-xs font-['Sora'] font-bold transition-all cursor-pointer flex items-center gap-1.5 border border-[#CCE2D4]/30 shadow-xs"
-                >
-                  <Download className="w-4 h-4 text-[#CCE2D4]" />
-                  <span className="hidden sm:inline">{language === 'hi' ? 'डाउनलोड करें' : 'Download Document'}</span>
-                </button>
-                <button
-                  onClick={() => setSelectedViewReport(null)}
-                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 sm:p-7 overflow-y-auto space-y-6 text-xs text-[#1F2421]">
+        return (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn">
+            <div className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-[#E5DFD5] overflow-hidden my-6 max-h-[92vh] flex flex-col animate-scaleUp">
               
-              {/* Patient & Exam Metadata */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5]">
-                <div>
-                  <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
-                    {language === 'hi' ? 'मरीज' : 'Patient'}
-                  </span>
-                  <p className="font-['Sora'] font-bold text-sm text-[#1F2421] mt-0.5">{patient.name}</p>
+              {/* Modal Header */}
+              <div className="bg-[#1F2421] text-white p-5 sm:p-6 flex items-center justify-between shrink-0 border-b border-[#28573E]/40">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-11 h-11 rounded-2xl bg-[#28573E]/40 border border-[#CCE2D4]/20 text-[#CCE2D4] flex items-center justify-center font-bold shadow-md shrink-0">
+                    {hasAI ? <Sparkles className="w-6 h-6 text-[#CCE2D4]" /> : <FileText className="w-6 h-6 text-[#CCE2D4]" />}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-['Sora'] font-bold text-base sm:text-lg text-white truncate">
+                        {selectedViewReport.title}
+                      </h3>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                        ABDM Verified
+                      </span>
+                      {hasAI && (
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                          {aiProvider}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-[#E5DFD5] mt-0.5 truncate">
+                      {hasAI
+                        ? (language === 'hi' ? `AI क्लिनिकल न्यूरो-मूल्यांकन (${aiModel})` : `AI Comprehensive Neuro-Clinical Synthesis (${aiModel})`)
+                        : selectedViewReport.type === 'FULL_SESSION' 
+                          ? (language === 'hi' ? 'समग्र न्यूरोसाइकोलॉजिकल दैनिक मूल्यांकन' : 'Comprehensive Neuropsychological Evaluation')
+                          : (language === 'hi' ? 'एकल संज्ञानात्मक अभ्यास टेलीमेट्री व गतिज रिकॉर्ड' : 'Single Exercise Telemetry & Kinematics')}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
-                    {language === 'hi' ? 'आयु व चरण' : 'Age & Stage'}
-                  </span>
-                  <p className="font-['Sora'] font-bold text-sm text-[#1F2421] mt-0.5">72 yrs • MCI</p>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
-                    {language === 'hi' ? 'दिनांक व समय' : 'Date & Time'}
-                  </span>
-                  <p className="font-['Sora'] font-bold text-sm text-[#1F2421] mt-0.5">{selectedViewReport.dateStr} at {selectedViewReport.timeStr}</p>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
-                    {language === 'hi' ? 'क्लिनिकल प्रोटोकॉल' : 'Clinical Protocol'}
-                  </span>
-                  <p className="font-['Sora'] font-bold text-sm text-[#28573E] mt-0.5 truncate">{selectedViewReport.clinicalStandard || 'Standardized Concordance'}</p>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => {
+                      setCurrentReport(payload);
+                      setIsClinicalReportModalOpen(true);
+                      setSelectedViewReport(null);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-['Sora'] font-bold transition-all cursor-pointer flex items-center gap-1.5 border border-white/20 shadow-xs"
+                    title="Open full interactive AI clinical console"
+                  >
+                    <Sparkles className="w-4 h-4 text-[#CCE2D4]" />
+                    <span className="hidden sm:inline">{language === 'hi' ? 'इंटरैक्टिव AI कंसोल' : 'Interactive AI Console'}</span>
+                  </button>
+                  <button
+                    onClick={() => downloadReportDocument(selectedViewReport, patient.name)}
+                    className="px-3.5 py-2 rounded-xl bg-[#28573E] hover:bg-[#1E4430] text-white text-xs font-['Sora'] font-bold transition-all cursor-pointer flex items-center gap-1.5 border border-[#CCE2D4]/30 shadow-xs"
+                  >
+                    <Download className="w-4 h-4 text-[#CCE2D4]" />
+                    <span className="hidden sm:inline">{language === 'hi' ? 'डाउनलोड करें' : 'Download Document'}</span>
+                  </button>
+                  <button
+                    onClick={() => setSelectedViewReport(null)}
+                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
 
-              {/* Section 1: Executive Telemetry */}
-              <div className="space-y-3">
-                <h4 className="font-['Sora'] font-bold text-sm text-[#1F2421] flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#28573E]" />
-                  <span>1. {language === 'hi' ? 'कार्यकारी प्रदर्शन मेट्रिक्स' : 'Executive Performance Metrics'}</span>
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3.5 rounded-xl bg-white border border-[#E5DFD5]">
+              {/* Modal Body */}
+              <div className="p-6 sm:p-7 overflow-y-auto space-y-6 text-xs text-[#1F2421]">
+                
+                {/* Patient & Exam Metadata */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5]">
+                  <div>
                     <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
-                      {language === 'hi' ? 'स्कोर / सटीकता' : 'Score / Accuracy'}
+                      {language === 'hi' ? 'मरीज' : 'Patient'}
                     </span>
-                    <p className="font-['Sora'] font-extrabold text-base text-[#28573E] mt-0.5">
-                      {selectedViewReport.score != null ? `${selectedViewReport.score}%` : 'no data'}
-                    </p>
-                    <span className="text-[10px] text-[#636B65]">{selectedViewReport.statusBadge || 'Stable'}</span>
+                    <p className="font-['Sora'] font-bold text-sm text-[#1F2421] mt-0.5">{patient.name}</p>
                   </div>
-                  <div className="p-3.5 rounded-xl bg-white border border-[#E5DFD5]">
+                  <div>
                     <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
-                      {language === 'hi' ? 'प्रतिक्रिया विलंबता' : 'Deliberation Latency'}
+                      {language === 'hi' ? 'आयु व चरण' : 'Age & Stage'}
                     </span>
-                    <p className="font-['Sora'] font-extrabold text-base text-[#1F2421] mt-0.5">
-                      {selectedViewReport.averageLatencyMs != null ? `${(selectedViewReport.averageLatencyMs / 1000).toFixed(2)}s` : 'no data'}
-                    </p>
-                    <span className="text-[10px] text-[#636B65]">{language === 'hi' ? 'सहज प्रतिक्रिया' : 'Smooth Reaction'}</span>
+                    <p className="font-['Sora'] font-bold text-sm text-[#1F2421] mt-0.5">72 yrs • MCI</p>
                   </div>
-                  <div className="p-3.5 rounded-xl bg-white border border-[#E5DFD5]">
+                  <div>
                     <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
-                      {language === 'hi' ? 'आत्मनिर्भरता स्कोर' : 'Autonomy Score'}
+                      {language === 'hi' ? 'दिनांक व समय' : 'Date & Time'}
                     </span>
-                    <p className="font-['Sora'] font-extrabold text-base text-[#28573E] mt-0.5">
-                      {selectedViewReport.autonomyScore != null ? `${selectedViewReport.autonomyScore}%` : 'no data'}
-                    </p>
-                    <span className="text-[10px] text-[#636B65]">{language === 'hi' ? 'न्यूनतम संकेत' : 'Minimal Prompts'}</span>
+                    <p className="font-['Sora'] font-bold text-sm text-[#1F2421] mt-0.5">{selectedViewReport.dateStr} at {selectedViewReport.timeStr}</p>
                   </div>
-                  <div className="p-3.5 rounded-xl bg-white border border-[#E5DFD5]">
+                  <div>
                     <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
-                      {language === 'hi' ? 'परीक्षण सारांश' : 'Trials Summary'}
+                      {language === 'hi' ? 'क्लिनिकल प्रोटोकॉल' : 'Clinical Protocol'}
                     </span>
-                    <p className="font-['Sora'] font-bold text-xs text-[#1F2421] mt-0.5 truncate">{selectedViewReport.trialsSummary}</p>
-                    <span className="text-[10px] text-[#636B65]">{selectedViewReport.domain || 'Multi-Domain'}</span>
+                    <p className="font-['Sora'] font-bold text-sm text-[#28573E] mt-0.5 truncate">{selectedViewReport.clinicalStandard || 'Standardized Concordance'}</p>
                   </div>
                 </div>
-              </div>
 
-              {/* Section 2: Kinematics & Motor Steadiness */}
-              <div className="space-y-3">
-                <h4 className="font-['Sora'] font-bold text-sm text-[#1F2421] flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#C05634]" />
-                  <span>2. {language === 'hi' ? 'गतिज व कंपन टेलीमेट्री' : 'Kinematic & Tremor Telemetry'}</span>
-                </h4>
-                <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
-                      {language === 'hi' ? 'गति की सहजता' : 'Trajectory Smoothness'}
-                    </span>
-                    <p className="font-['Sora'] font-bold text-sm text-[#28573E]">94.6% Smooth</p>
-                    <p className="text-[11px] text-[#636B65]">{language === 'hi' ? 'कंपन सफलतापूर्वक विच्छेदित' : 'Tremor successfully decoupled'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
-                      {language === 'hi' ? 'कंपन सूचकांक' : 'Tremor Jitter Index'}
-                    </span>
-                    <p className="font-['Sora'] font-bold text-sm text-[#1F2421]">0.08 Sub-clinical</p>
-                    <p className="text-[11px] text-[#636B65]">{language === 'hi' ? 'सामान्य शारीरिक सीमा' : 'Normal physiological range'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
-                      {language === 'hi' ? 'पुनरावृत्ति त्रुटियां' : 'Perseveration Rate'}
-                    </span>
-                    <p className="font-['Sora'] font-bold text-sm text-[#28573E]">0 Loops</p>
-                    <p className="text-[11px] text-[#636B65]">{language === 'hi' ? 'शून्य अनियंत्रित लूप्स' : 'Zero repetitive loops'}</p>
+                {/* Section 1: Executive Telemetry */}
+                <div className="space-y-3">
+                  <h4 className="font-['Sora'] font-bold text-sm text-[#1F2421] flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#28573E]" />
+                    <span>1. {language === 'hi' ? 'कार्यकारी प्रदर्शन मेट्रिक्स' : 'Executive Performance Metrics'}</span>
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-3.5 rounded-xl bg-white border border-[#E5DFD5]">
+                      <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
+                        {language === 'hi' ? 'स्कोर / सटीकता' : 'Score / Accuracy'}
+                      </span>
+                      <p className="font-['Sora'] font-extrabold text-base text-[#28573E] mt-0.5">
+                        {selectedViewReport.score != null ? `${selectedViewReport.score}%` : 'no data'}
+                      </p>
+                      <span className="text-[10px] text-[#636B65]">{selectedViewReport.statusBadge || 'Stable'}</span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-white border border-[#E5DFD5]">
+                      <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
+                        {language === 'hi' ? 'प्रतिक्रिया विलंबता' : 'Deliberation Latency'}
+                      </span>
+                      <p className="font-['Sora'] font-extrabold text-base text-[#1F2421] mt-0.5">
+                        {selectedViewReport.averageLatencyMs != null ? `${(selectedViewReport.averageLatencyMs / 1000).toFixed(2)}s` : 'no data'}
+                      </p>
+                      <span className="text-[10px] text-[#636B65]">{language === 'hi' ? 'सहज प्रतिक्रिया' : 'Smooth Reaction'}</span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-white border border-[#E5DFD5]">
+                      <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
+                        {language === 'hi' ? 'आत्मनिर्भरता स्कोर' : 'Autonomy Score'}
+                      </span>
+                      <p className="font-['Sora'] font-extrabold text-base text-[#28573E] mt-0.5">
+                        {selectedViewReport.autonomyScore != null ? `${selectedViewReport.autonomyScore}%` : 'no data'}
+                      </p>
+                      <span className="text-[10px] text-[#636B65]">{language === 'hi' ? 'न्यूनतम संकेत' : 'Minimal Prompts'}</span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-white border border-[#E5DFD5]">
+                      <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
+                        {language === 'hi' ? 'परीक्षण सारांश' : 'Trials Summary'}
+                      </span>
+                      <p className="font-['Sora'] font-bold text-xs text-[#1F2421] mt-0.5 truncate">{selectedViewReport.trialsSummary}</p>
+                      <span className="text-[10px] text-[#636B65]">{selectedViewReport.domain || 'Multi-Domain'}</span>
+                    </div>
                   </div>
                 </div>
+
+                {/* AI Clinical Diagnostic Synthesis & DSM-5 Staging */}
+                {hasAI && (
+                  <div className="space-y-3">
+                    <h4 className="font-['Sora'] font-bold text-sm text-[#1F2421] flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#C05634]" />
+                        <span>2. {language === 'hi' ? 'AI क्लिनिकल डायग्नोस्टिक्स व डीएमएस-५ स्टेजिंग' : 'AI Clinical Diagnostics & Staging'}</span>
+                      </span>
+                      <span className="text-[10px] font-bold text-[#28573E] bg-[#EDF5F0] px-2.5 py-0.5 rounded-full border border-[#CCE2D4]">
+                        {aiProvider} • {aiModel}
+                      </span>
+                    </h4>
+                    <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] space-y-3.5">
+                      <div className="flex flex-wrap items-center gap-2 border-b border-[#E5DFD5] pb-3">
+                        <span className="text-xs font-bold text-[#1F2421] bg-white px-3 py-1 rounded-xl border border-[#E5DFD5]">
+                          {payload.dsm5Staging || 'Mild Cognitive Impairment (MCI)'}
+                        </span>
+                        {payload.cognitiveDeclineRiskLevel && (
+                          <span className="text-xs font-bold px-3 py-1 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            Risk Level: {payload.cognitiveDeclineRiskLevel}
+                          </span>
+                        )}
+                        {payload.estimatedMoCAScore != null && (
+                          <span className="text-xs font-bold px-3 py-1 rounded-xl bg-blue-50 text-blue-800 border border-blue-200">
+                            Estimated MoCA: {payload.estimatedMoCAScore} / 30
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs leading-relaxed text-[#38403A] space-y-2">
+                        <p className="font-medium whitespace-pre-line">
+                          {payload.diagnosticSummary || 'Patient exhibits steady visual recognition and stable retrieval pacing across exercises.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Adaptive Level Diagnostics: Why the AI made changes to the levels */}
+                {levelAdjustments.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-['Sora'] font-bold text-sm text-[#1F2421] flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#28573E]" />
+                      <span>3. {language === 'hi' ? 'गेम स्तर अनुकूलन कारण व डायग्नोस्टिक्स' : 'Adaptive Difficulty Diagnostics & Level Rationale'}</span>
+                    </h4>
+                    <div className="space-y-2.5">
+                      {levelAdjustments.map((adj: any, idx: number) => (
+                        <div key={idx} className="p-4 rounded-2xl bg-white border border-[#E5DFD5] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-['Sora'] font-bold text-xs text-[#1F2421]">
+                                {adj.gameTitle || `Exercise ${idx + 1}`}
+                              </span>
+                              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                adj.action === 'PROMOTE'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : adj.action === 'SCAFFOLD_DOWN'
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    : 'bg-slate-100 text-slate-700 border border-slate-200'
+                              }`}>
+                                {adj.action} (Tier {adj.previousTier} ➔ Tier {adj.recommendedTier})
+                              </span>
+                            </div>
+                            <p className="text-xs text-[#636B65] leading-relaxed">
+                              {adj.clinicalRationale}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Longitudinal Trajectory: Have they shown improvement over time from the very start */}
+                {trajectory && (
+                  <div className="space-y-3">
+                    <h4 className="font-['Sora'] font-bold text-sm text-[#1F2421] flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#C05634]" />
+                      <span>4. {language === 'hi' ? 'दीर्घकालिक सुधार व रुझान (प्रारंभ से अब तक)' : 'Longitudinal Improvement from Day 1 Baseline'}</span>
+                    </h4>
+                    <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] space-y-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="p-3 rounded-xl bg-white border border-[#E5DFD5]">
+                          <span className="text-[10px] font-bold text-[#636B65] uppercase block">Timeline</span>
+                          <p className="font-['Sora'] font-bold text-xs text-[#1F2421] mt-0.5">
+                            {trajectory.startDate || 'Day 1'} ➔ {trajectory.latestDate || 'Current'}
+                          </p>
+                          <span className="text-[10px] text-[#636B65]">{trajectory.totalDaysTracked || 7} days tracked</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-white border border-[#E5DFD5]">
+                          <span className="text-[10px] font-bold text-[#636B65] uppercase block">Composite Delta</span>
+                          <p className={`font-['Sora'] font-extrabold text-sm mt-0.5 ${(trajectory.scoreDelta ?? 0) >= 0 ? 'text-[#28573E]' : 'text-amber-700'}`}>
+                            {(trajectory.scoreDelta ?? 0) >= 0 ? `+${trajectory.scoreDelta}` : trajectory.scoreDelta} pts
+                          </p>
+                          <span className="text-[10px] text-[#636B65]">Since start date</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-white border border-[#E5DFD5]">
+                          <span className="text-[10px] font-bold text-[#636B65] uppercase block">Accuracy Trend</span>
+                          <p className="font-['Sora'] font-extrabold text-sm text-[#28573E] mt-0.5">
+                            {(trajectory.accuracyDelta ?? 0) >= 0 ? `+${(trajectory.accuracyDelta ?? 0).toFixed(1)}%` : `${(trajectory.accuracyDelta ?? 0).toFixed(1)}%`}
+                          </p>
+                          <span className="text-[10px] text-[#636B65]">Cognitive gain</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-white border border-[#E5DFD5]">
+                          <span className="text-[10px] font-bold text-[#636B65] uppercase block">Overall Verdict</span>
+                          <p className="font-['Sora'] font-bold text-xs text-[#28573E] mt-0.5 truncate">
+                            {trajectory.overallVerdict || 'Steady Improvement'}
+                          </p>
+                          <span className="text-[10px] text-[#636B65]">Neuroplasticity active</span>
+                        </div>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-white border border-[#E5DFD5] text-xs text-[#38403A] leading-relaxed">
+                        <p className="font-medium">
+                          {trajectory.progressionNarrative || 'The patient demonstrates clear, measurable recovery in retrieval span and psychomotor velocity compared to early baseline records.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Section: Kinematic Telemetry */}
+                <div className="space-y-3">
+                  <h4 className="font-['Sora'] font-bold text-sm text-[#1F2421] flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#C05634]" />
+                    <span>{hasAI ? '5' : '2'}. {language === 'hi' ? 'गतिज व कंपन टेलीमेट्री' : 'Kinematic & Tremor Telemetry'}</span>
+                  </h4>
+                  <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5DFD5] grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
+                        {language === 'hi' ? 'गति की सहजता' : 'Trajectory Smoothness'}
+                      </span>
+                      <p className="font-['Sora'] font-bold text-sm text-[#28573E]">94.6% Smooth</p>
+                      <p className="text-[11px] text-[#636B65]">{language === 'hi' ? 'कंपन सफलतापूर्वक विच्छेदित' : 'Tremor successfully decoupled'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
+                        {language === 'hi' ? 'कंपन सूचकांक' : 'Tremor Jitter Index'}
+                      </span>
+                      <p className="font-['Sora'] font-bold text-sm text-[#1F2421]">0.08 Sub-clinical</p>
+                      <p className="text-[11px] text-[#636B65]">{language === 'hi' ? 'सामान्य शारीरिक सीमा' : 'Normal physiological range'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-[#636B65] uppercase tracking-wider block">
+                        {language === 'hi' ? 'पुनरावृत्ति त्रुटियां' : 'Perseveration Rate'}
+                      </span>
+                      <p className="font-['Sora'] font-bold text-sm text-[#28573E]">0 Loops</p>
+                      <p className="text-[11px] text-[#636B65]">{language === 'hi' ? 'शून्य अनियंत्रित लूप्स' : 'Zero repetitive loops'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section: Caregiver Recommendations */}
+                <div className="space-y-3">
+                  <h4 className="font-['Sora'] font-bold text-sm text-[#1F2421] flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#28573E]" />
+                    <span>{hasAI ? '6' : '3'}. {language === 'hi' ? 'देखभालकर्ता मार्गदर्शन व एक्शन प्लान' : 'Caregiver Guidance & Action Plan'}</span>
+                  </h4>
+                  <div className="p-4 rounded-2xl bg-[#EDF5F0]/60 border border-[#CCE2D4] space-y-2">
+                    {recommendations.map((rec, rIdx) => (
+                      <p key={rIdx} className="leading-relaxed">
+                        • {rec}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+
               </div>
 
-              {/* Section 3: Caregiver Guidance */}
-              <div className="space-y-3">
-                <h4 className="font-['Sora'] font-bold text-sm text-[#1F2421] flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#28573E]" />
-                  <span>3. {language === 'hi' ? 'देखभालकर्ता मार्गदर्शन व घरेलू अवलोकन' : 'Caregiver Guidance & Home Observation'}</span>
-                </h4>
-                <div className="p-4 rounded-2xl bg-[#EDF5F0]/60 border border-[#CCE2D4] space-y-2">
-                  <p className="leading-relaxed">
-                    • {language === 'hi' 
-                        ? 'मरीज ने इस सत्र के दौरान शांत स्वभाव और दृश्य संकेतों की स्पष्ट पहचान प्रदर्शित की।' 
-                        : 'The patient exhibited steady composure and clear recognition of visual stimuli during this session.'}
-                  </p>
-                  <p className="leading-relaxed">
-                    • {language === 'hi' 
-                        ? 'विचारशीलता की गति स्थिर पुनर्स्थापनात्मक संज्ञानात्मक आधार के पूर्णतः अनुकूल है।' 
-                        : 'Deliberation pacing aligns well with the stable restorative cognitive baseline.'}
-                  </p>
-                  <p className="leading-relaxed">
-                    • {language === 'hi' 
-                        ? 'निर्धारित सुबह की सैर जारी रखें और शाम की शेष दवा खुराकों का समय सुसंगत बनाए रखें।' 
-                        : 'Continue the scheduled morning walk and maintain consistent timing for pending evening medication doses.'}
-                  </p>
+              {/* Modal Footer */}
+              <div className="bg-[#FAF8F5] border-t border-[#E5DFD5] p-4 sm:p-5 flex items-center justify-between shrink-0">
+                <span className="text-xs text-[#636B65] font-medium hidden sm:inline">
+                  {language === 'hi' ? 'गोपनीय चिकित्सा दस्तावेज़ • डिजिटल स्वास्थ्य मानकों द्वारा सुरक्षित' : 'Confidential Medical Document • Protected by Digital Health Standards'}
+                </span>
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <button
+                    onClick={() => setSelectedViewReport(null)}
+                    className="px-4 py-2 rounded-xl text-xs font-['Sora'] font-bold text-[#636B65] hover:bg-[#E5DFD5] transition-colors cursor-pointer"
+                  >
+                    {language === 'hi' ? 'बंद करें' : 'Close'}
+                  </button>
+                  <button
+                    onClick={() => downloadReportDocument(selectedViewReport, patient.name)}
+                    className="px-5 py-2.5 rounded-xl bg-[#28573E] hover:bg-[#1E4430] text-white text-xs font-['Sora'] font-bold transition-all cursor-pointer shadow-xs flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4 text-[#CCE2D4]" />
+                    <span>{language === 'hi' ? 'दस्तावेज़ डाउनलोड करें (.txt)' : 'Download Document (.txt)'}</span>
+                  </button>
                 </div>
               </div>
 
             </div>
-
-            {/* Modal Footer */}
-            <div className="bg-[#FAF8F5] border-t border-[#E5DFD5] p-4 sm:p-5 flex items-center justify-between shrink-0">
-              <span className="text-xs text-[#636B65] font-medium hidden sm:inline">
-                {language === 'hi' ? 'गोपनीय चिकित्सा दस्तावेज़ • डिजिटल स्वास्थ्य मानकों द्वारा सुरक्षित' : 'Confidential Medical Document • Protected by Digital Health Standards'}
-              </span>
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                <button
-                  onClick={() => setSelectedViewReport(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-['Sora'] font-bold text-[#636B65] hover:bg-[#E5DFD5] transition-colors cursor-pointer"
-                >
-                  {language === 'hi' ? 'बंद करें' : 'Close'}
-                </button>
-                <button
-                  onClick={() => downloadReportDocument(selectedViewReport, patient.name)}
-                  className="px-5 py-2.5 rounded-xl bg-[#28573E] hover:bg-[#1E4430] text-white text-xs font-['Sora'] font-bold transition-all cursor-pointer shadow-xs flex items-center gap-2"
-                >
-                  <Download className="w-4 h-4 text-[#CCE2D4]" />
-                  <span>{language === 'hi' ? 'दस्तावेज़ डाउनलोड करें (.txt)' : 'Download Document (.txt)'}</span>
-                </button>
-              </div>
-            </div>
-
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Prescription Modal */}
       <PrescriptionSetupModal

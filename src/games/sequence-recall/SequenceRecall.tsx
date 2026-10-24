@@ -164,6 +164,21 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
 
   const autoAssistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const presentationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionFinishedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    return () => {
+      if (!sessionFinishedRef.current && engine.getTrialNumber() > 0) {
+        try {
+          const summary = engine.generateSessionSummary(true);
+          sessionFinishedRef.current = true;
+          if (onSessionComplete) onSessionComplete(summary);
+        } catch (e) {
+          console.warn('Early exit summary capture error:', e);
+        }
+      }
+    };
+  }, [engine, onSessionComplete]);
 
   const t = LOCALIZED_UI[language] || LOCALIZED_UI.en;
   const difficulty = engine.getDifficulty();
@@ -372,6 +387,7 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
     if (engine.isSessionComplete()) {
       const summary = engine.generateSessionSummary(false);
       setSessionSummary(summary);
+      sessionFinishedRef.current = true;
       if (onSessionComplete) onSessionComplete(summary);
     }
   };
@@ -395,6 +411,7 @@ export const SequenceRecall: React.FC<SequenceRecallProps> = ({
     const summary = engine.generateSessionSummary(true);
     setSessionSummary(summary);
     setPhase('SESSION_COMPLETE');
+    sessionFinishedRef.current = true;
     if (onSessionComplete) onSessionComplete(summary);
   };
 

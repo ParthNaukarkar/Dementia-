@@ -27,7 +27,11 @@ import {
   saveStoredRoutine,
 } from '../../utils/caregiverStorage';
 import { DailySessionManager } from '../../utils/dailySessionManager';
-import { recordGameGeneratedReport, recordFullSessionReport } from '../../utils/reportsStorage';
+import { 
+  recordGameGeneratedReport, 
+  recordFullSessionReport,
+  getStoredGeneratedReports,
+} from '../../utils/reportsStorage';
 import { AdaptiveGameFlowEngine, type FlowRecommendation } from '../../engine/adaptive-game-flow';
 import { GAME_CATALOG } from '../../data/gameCatalog';
 
@@ -210,6 +214,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       gameId,
     });
 
+    const allGeneratedReports = getStoredGeneratedReports(patient.id);
+
     // 2. Broadcast to Caregiver Portal with full data mirroring payload
     portalSync.broadcast(
       'SESSION_COMPLETED',
@@ -220,6 +226,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
         todayDateKey: DailySessionManager.getTodayDateKey(),
         allTodaySessions: DailySessionManager.getDailySessions(),
         playedDates: JSON.parse(localStorage.getItem('smriti_played_dates_index_v2') || '[]'),
+        patientId: patient.id,
+        allGeneratedReports,
+        allGameCalibrations: JSON.parse(localStorage.getItem('smriti_ai_game_calibrations_history') || '[]'),
       },
       'patient'
     );

@@ -87,6 +87,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
   const pairAttemptHistoryRef = useRef<Map<string, number>>(new Map()); // pairKey -> attempts count
   const flipEventsRef = useRef<FlipEvent[]>([]);
   const roundTelemetryListRef = useRef<MemoryMatchRoundTelemetry[]>([]);
+  const isSessionFinishedRef = useRef<boolean>(false);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoAssistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -770,6 +771,7 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
    */
   const handleFinalizeSession = () => {
     setIsSessionFinished(true);
+    isSessionFinishedRef.current = true;
 
     const rounds = roundTelemetryListRef.current;
     const totalFlipsAll = rounds.reduce((sum, r) => sum + r.totalFlips, 0);
@@ -823,6 +825,18 @@ export const MemoryMatch: React.FC<MemoryMatchProps> = ({
       onSessionComplete(summary);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (!isSessionFinishedRef.current && (roundTelemetryListRef.current.length > 0 || totalFlips > 0)) {
+        try {
+          handleFinalizeSession();
+        } catch (e) {
+          console.warn('Early exit summary capture error in MemoryMatch:', e);
+        }
+      }
+    };
+  }, [totalFlips]);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto animate-fadeIn select-none">

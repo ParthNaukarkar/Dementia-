@@ -31,6 +31,113 @@ class PortalSyncRelay {
     this.initChannel();
     this.initStorageListener();
     this.initPostMessageListener();
+    this.autoInit();
+  }
+
+  private autoInit() {
+    if (typeof window === 'undefined') return;
+
+    // Auto-detect port and mount cross-port bridge iframe
+    const port = window.location.port ? parseInt(window.location.port, 10) : 0;
+    if (port === 5173) {
+      this.setupCrossPortBridge(5174);
+    } else if (port === 5174) {
+      this.setupCrossPortBridge(5173);
+    }
+
+    // Initial sync from shared server store
+    this.syncWithServer();
+
+    // Push local storage on startup to populate server store
+    setTimeout(() => {
+      this.pushAllSmritiStorage();
+    }, 600);
+
+    // Sync on tab focus or visibility change
+    window.addEventListener('focus', () => this.syncWithServer());
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        this.syncWithServer();
+      }
+    });
+  }
+
+  public async pushToServer(data: Record<string, any>): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+      await fetch('/api/sync-storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    } catch {}
+  }
+
+  public async pushAllSmritiStorage(): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+      const dump: Record<string, any> = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('smriti_')) {
+          try {
+            dump[key] = JSON.parse(localStorage.getItem(key) || '');
+          } catch {
+            dump[key] = localStorage.getItem(key);
+          }
+        }
+      }
+      if (Object.keys(dump).length > 0) {
+        await this.pushToServer(dump);
+      }
+    } catch {}
+  }
+
+  public async syncWithServer(): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+      const res = await fetch('/api/sync-storage');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data || typeof data !== 'object') return;
+
+      let hasReportUpdate = false;
+      let hasSessionUpdate = false;
+      let hasMedUpdate = false;
+      let hasRoutineUpdate = false;
+      let hasPrescriptionUpdate = false;
+
+      Object.keys(data).forEach((key) => {
+        if (!key.startsWith('smriti_')) return;
+        const incomingVal = typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]);
+        const currentVal = localStorage.getItem(key);
+
+        if (incomingVal !== currentVal) {
+          localStorage.setItem(key, incomingVal);
+          if (key.startsWith('smriti_generated_reports_v2_')) hasReportUpdate = true;
+          if (key.startsWith('smriti_daily_sessions_v2_')) hasSessionUpdate = true;
+          if (key.startsWith('smriti_medications_v2_')) hasMedUpdate = true;
+          if (key.startsWith('smriti_routine_v2_')) hasRoutineUpdate = true;
+          if (key.startsWith('smriti_prescription_v2')) hasPrescriptionUpdate = true;
+        }
+      });
+
+      if (hasReportUpdate) {
+        window.dispatchEvent(new CustomEvent('smriti_generated_reports_updated'));
+      }
+      if (hasSessionUpdate) {
+        window.dispatchEvent(new CustomEvent('smriti_daily_sessions_updated'));
+      }
+      if (hasMedUpdate) {
+        window.dispatchEvent(new CustomEvent('smriti_medications_updated'));
+      }
+      if (hasRoutineUpdate) {
+        window.dispatchEvent(new CustomEvent('smriti_routine_updated'));
+      }
+      if (hasPrescriptionUpdate) {
+        window.dispatchEvent(new CustomEvent('smriti_prescription_updated'));
+      }
+    } catch {}
   }
 
   private initChannel() {
@@ -170,6 +277,34 @@ class PortalSyncRelay {
         );
       } catch {}
     }
+
+    // 4. Server-Side Shared Store Persistence
+    try {
+      const syncDump: Record<string, any> = {};
+      if (payload && typeof payload === 'object') {
+        if (payload.todayDateKey && payload.allTodaySessions) {
+          syncDump[`smriti_daily_sessions_v2_${payload.todayDateKey}`] = payload.allTodaySessions;
+        }
+        if (payload.playedDates) {
+          syncDump['smriti_played_dates_index_v2'] = payload.playedDates;
+        }
+        if (payload.allGeneratedReports && payload.patientId) {
+          syncDump[`smriti_generated_reports_v2_${payload.patientId}`] = payload.allGeneratedReports;
+        }
+        if (payload.allMeds && payload.patientId) {
+          syncDump[`smriti_medications_v2_${payload.patientId}`] = payload.allMeds;
+        }
+        if (payload.allRoutines && payload.patientId) {
+          syncDump[`smriti_routine_v2_${payload.patientId}`] = payload.allRoutines;
+        }
+        if (payload.allGameCalibrations) {
+          syncDump['smriti_ai_game_calibrations_history'] = payload.allGameCalibrations;
+        }
+      }
+      if (Object.keys(syncDump).length > 0) {
+        this.pushToServer(syncDump);
+      }
+    } catch {}
 
     // Notify local listeners
     this.notifyListeners(message);

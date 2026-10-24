@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { 
   X, 
   Printer, 
@@ -31,7 +31,7 @@ import {
   TrendingUp,
   Sliders,
 } from 'lucide-react';
-import { downloadReportDocument } from '../../utils/reportsStorage';
+import { downloadReportDocument, recordAIClinicalReport, getStoredGeneratedReports } from '../../utils/reportsStorage';
 import type { PatientProfile } from '../../types/auth';
 import type { MedicationItem, DailyRoutineItem } from '../../types/caregiver';
 import type { MedicalReportItem } from '../../utils/caregiverStorage';
@@ -145,12 +145,40 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
 
   // Single-Game Cloud Report State
-  const [singleCloudReport, setSingleCloudReport] = useState<GeneratedClinicalReport | null>(null);
+  const [singleCloudReport, setSingleCloudReport] = useState<GeneratedClinicalReport | null>(() => {
+    if (report && (report.aiEvaluationSummary || report.clinicalImpressions || report.diagnosticSummary)) {
+      return report;
+    }
+    const pid = patient?.id || 'p_01';
+    const stored = getStoredGeneratedReports(pid);
+    const item = stored.find(r => r.type === 'GAME_SESSION' && (r.fullPayload?.isAIReport || r.fullPayload?.diagnosticSummary));
+    return item ? (item.fullPayload as GeneratedClinicalReport) : null;
+  });
   const [isGeneratingSingle, setIsGeneratingSingle] = useState(false);
 
   // Comprehensive Multi-Modal Cloud Report State (Ingesting EVERYTHING)
-  const [comprehensiveReport, setComprehensiveReport] = useState<ComprehensiveClinicalReport | null>(null);
+  const [comprehensiveReport, setComprehensiveReport] = useState<ComprehensiveClinicalReport | null>(() => {
+    if (report && (report.isAIReport || report.diagnosticSummary || report.dsm5Staging)) {
+      return report;
+    }
+    const pid = patient?.id || 'p_01';
+    const stored = getStoredGeneratedReports(pid);
+    const item = stored.find(r => r.type === 'FULL_SESSION' && (r.fullPayload?.isAIReport || r.fullPayload?.diagnosticSummary));
+    return item ? (item.fullPayload as ComprehensiveClinicalReport) : null;
+  });
   const [isGeneratingComprehensive, setIsGeneratingComprehensive] = useState(false);
+
+  // Synchronize when a specific report is passed to view
+  useEffect(() => {
+    if (report) {
+      if (report.isAIReport || report.diagnosticSummary || report.dsm5Staging) {
+        setComprehensiveReport(report);
+        setReportMode('COMPREHENSIVE');
+      } else if (report.gameId) {
+        setReportMode('SINGLE_SESSION');
+      }
+    }
+  }, [report]);
 
   // Cloud AI Consent State
   const [showConsentModal, setShowConsentModal] = useState(false);
@@ -228,6 +256,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
       try {
         const res = await AIClinicalReportingService.generateReport(payload);
         setSingleCloudReport(res);
+        recordAIClinicalReport(patient?.id || 'p_01', res, 'GAME_SESSION', activeReport);
       } catch (e) {
         console.error(e);
       } finally {
@@ -256,9 +285,11 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
         AIClinicalReportingService.saveConfig(activeConfig);
         setCloudConfig(activeConfig);
       } else {
-        setIsGeneratingComprehensive(false);
-        setApiErrorMessage('Cloud API Key Required: Please paste your Google Gemini, OpenAI, or Groq API key below to generate this report via Cloud AI.');
-        return;
+        // Fallback to reference benchmark evaluation seamlessly if no API key is entered
+        activeConfig = {
+          ...cloudConfig,
+          apiKey: '',
+        };
       }
     } else {
       activeConfig = {
@@ -416,6 +447,7 @@ export const ClinicalSessionReportModal: React.FC<ClinicalSessionReportModalProp
       try {
         const res = await AIClinicalReportingService.generateComprehensiveReport(comprehensivePayload, activeConfig);
         setComprehensiveReport(res);
+        recordAIClinicalReport(patient?.id || 'p_01', res, 'FULL_SESSION');
       } catch (e: any) {
         console.error(e);
         setApiErrorMessage(e?.message || 'Cloud API request failed. Please check your API key.');

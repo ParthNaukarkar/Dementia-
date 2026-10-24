@@ -61,6 +61,13 @@
           if (msg.payload.playedDates) {
             localStorage.setItem('smriti_played_dates_index_v2', JSON.stringify(msg.payload.playedDates));
           }
+          if (msg.payload.allGeneratedReports && msg.payload.patientId) {
+            localStorage.setItem('smriti_generated_reports_v2_' + msg.payload.patientId, JSON.stringify(msg.payload.allGeneratedReports));
+            window.dispatchEvent(new CustomEvent('smriti_generated_reports_updated', { detail: { patientId: msg.payload.patientId, count: msg.payload.allGeneratedReports.length } }));
+          }
+          if (msg.payload.allGameCalibrations) {
+            localStorage.setItem('smriti_ai_game_calibrations_history', JSON.stringify(msg.payload.allGameCalibrations));
+          }
           if (msg.payload.allMeds && msg.payload.patientId) {
             localStorage.setItem('smriti_medications_v2_' + msg.payload.patientId, JSON.stringify(msg.payload.allMeds));
           }
